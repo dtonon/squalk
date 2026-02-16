@@ -1,3 +1,14 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
+
+html {
+  font-size: 16px;
+}
+
+@theme {
+  --color-brand: #e32a6d;
+  --color-brand-hover: #c4205a;
+  --color-accent: #ffaf25;
+  --color-accent-hover: #e69e1a;
+}

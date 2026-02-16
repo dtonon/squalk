@@ -1,9 +1,38 @@
 <script lang="ts">
-	import './layout.css';
-	import favicon from '$lib/assets/favicon.svg';
+  import "./layout.css";
+  import favicon from "$lib/assets/favicon.svg";
+  import Navbar from "$lib/components/Navbar.svelte";
+  import LeftSidebar from "$lib/components/LeftSidebar.svelte";
+  import ChatSidebar from "$lib/components/ChatSidebar.svelte";
+  import { page } from "$app/state";
 
-	let { children } = $props();
+  let { children } = $props();
+
+  // In full mode, extract active room from the URL
+  const mode: "simple" | "full" = "full";
+  const chatEnabled = true;
+
+  let chatExpanded = $state(false);
+
+  const activeRoom = $derived(page.params.slug ?? "");
 </script>
 
-<svelte:head><link rel="icon" href={favicon} /></svelte:head>
-{@render children()}
+<svelte:head>
+  <link rel="icon" href={favicon} />
+</svelte:head>
+
+<div class="flex h-screen flex-col overflow-hidden bg-gray-100">
+  <Navbar />
+  <div class="flex flex-1 gap-5 overflow-hidden pt-2">
+    <LeftSidebar {mode} {activeRoom} />
+    <main class="flex-1 overflow-y-auto rounded-t-xl bg-white px-10 py-6">
+      {@render children()}
+    </main>
+    {#if chatEnabled}
+      <ChatSidebar
+        {chatExpanded}
+        onToggle={() => (chatExpanded = !chatExpanded)}
+      />
+    {/if}
+  </div>
+</div>
