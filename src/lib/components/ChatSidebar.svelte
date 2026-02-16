@@ -10,7 +10,7 @@
 </script>
 
 <aside
-  class="flex shrink-0 flex-col rounded-tl-xl bg-white transition-all duration-200
+  class="flex shrink-0 flex-col rounded-tl-xl min-[1540px]:rounded-tr-xl bg-white transition-all duration-200
 		{expanded ? 'w-[420px]' : 'w-80'}"
 >
   <div class="flex h-12 shrink-0 items-center justify-between px-4">

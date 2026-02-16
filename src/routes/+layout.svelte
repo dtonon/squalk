@@ -21,7 +21,7 @@
   <link rel="icon" href={favicon} />
 </svelte:head>
 
-<div class="flex h-screen flex-col overflow-hidden bg-gray-100">
+<div class="flex h-screen flex-col overflow-hidden max-w-[1540px] mx-auto">
   <Navbar />
   <div class="flex flex-1 gap-5 overflow-hidden pt-2">
     <LeftSidebar {mode} {activeRoom} />
