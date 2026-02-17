@@ -97,7 +97,7 @@ export const threads: Thread[] = [
           id: "r1",
           author: bob,
           content:
-            "Etiam efficitur ornare odio, id elementum felis interdum sit amet. Nam tincidunt justo quam, eu rhoncus lectus pellentesque id.",
+            "Etiam efficitur ornare odio, id elementum felis interdum sit amet. Nam tincidunt justo quam, eu rhoncus lectus pellentesque id. Vivamus fermentum accumsan lorem, laoreet molestie lectus facilisis in.",
           createdAt: "2025-01-15T11:00:00Z",
           reactions: [{ emoji: "👍", count: 5 }],
           zaps: 210,
@@ -106,13 +106,94 @@ export const threads: Thread[] = [
           id: "r2",
           author: carol,
           content:
-            "Maecenas sollicitudin erat eu metus lacinia congue. Nunc sagittis laoreet odio, non molestie eros.",
+            "Maecenas sollicitudin erat eu metus lacinia congue. Nunc sagittis laoreet odio, non molestie eros. Proin vitae ex iaculis, luctus elit in, fermentum turpis. Pellentesque sagittis congue quam erat, egestas a lobortis non.",
           createdAt: "2025-01-15T12:30:00Z",
           reactions: [
             { emoji: "❤️", count: 2 },
             { emoji: "😂", count: 1 },
           ],
           zaps: 0,
+        },
+        {
+          id: "r3",
+          author: dave,
+          content:
+            "Interesting point. Sed tempus augue sapien laoreet, sed iaculis velit dictum diam. Fusce ullamcorper nulla a purus faucibus, vel hendrerit velit sodales. Nullam porttitor arcu vel diam hendrerit, nec gravida magna tincidunt.",
+          createdAt: "2025-01-16T09:15:00Z",
+          reactions: [{ emoji: "👍", count: 3 }],
+          zaps: 50,
+        },
+        {
+          id: "r4",
+          author: alice,
+          content:
+            "To expand on what Dave said — Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper.",
+          createdAt: "2025-01-17T14:00:00Z",
+          reactions: [
+            { emoji: "🎉", count: 4 },
+            { emoji: "👍", count: 2 },
+          ],
+          zaps: 320,
+        },
+        {
+          id: "r5",
+          author: bob,
+          content:
+            "Nam rutrum dolor in nulla imperdiet consequat. Sed tincidunt augue a velit consectetur, et cursus lorem auctor. Curabitur tempor felis nec magna blandit, ac posuere lorem varius.",
+          createdAt: "2025-01-18T10:30:00Z",
+          reactions: [],
+          zaps: 0,
+        },
+        {
+          id: "r6",
+          author: carol,
+          content:
+            "Phasellus nec velit quis luctus maximus pellentesque. Nam erat, egestas a lobortis non, molestie ut enim. Quisque sagittis quam dui, nec pulvinar velit aliquam in. Sed volutpat interdum purus at convallis.",
+          createdAt: "2025-01-19T16:45:00Z",
+          reactions: [{ emoji: "❤️", count: 1 }],
+          zaps: 80,
+        },
+        {
+          id: "r7",
+          author: dave,
+          content:
+            "Vivamus fermentum accumsan lorem, laoreet molestie lectus facilisis in. In hac habitasse platea dictumst. Nulla a quam tempor, posuere neque non, fringilla velit.",
+          createdAt: "2025-01-20T11:00:00Z",
+          reactions: [{ emoji: "👍", count: 7 }],
+          zaps: 140,
+        },
+        {
+          id: "r8",
+          author: alice,
+          content:
+            "Mauro dui dolor, sagittis id sem nec, rhoncus consequat duis. Suspendisse dapibus mauris maximus mauris imperdiet. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation.",
+          createdAt: "2025-01-21T08:30:00Z",
+          reactions: [
+            { emoji: "🎉", count: 2 },
+            { emoji: "👍", count: 6 },
+          ],
+          zaps: 450,
+        },
+        {
+          id: "r9",
+          author: bob,
+          content:
+            "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+          createdAt: "2025-01-22T13:15:00Z",
+          reactions: [{ emoji: "👍", count: 4 }],
+          zaps: 0,
+        },
+        {
+          id: "r10",
+          author: carol,
+          content:
+            "Great discussion everyone. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. This sums it up well I think.",
+          createdAt: "2025-01-23T17:00:00Z",
+          reactions: [
+            { emoji: "❤️", count: 5 },
+            { emoji: "🎉", count: 3 },
+          ],
+          zaps: 200,
         },
       ],
     },

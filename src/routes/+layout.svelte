@@ -25,7 +25,7 @@
   <Navbar />
   <div class="flex flex-1 gap-5 overflow-hidden pt-2">
     <LeftSidebar {mode} {activeRoom} />
-    <main class="flex-1 overflow-y-auto rounded-t-xl bg-white px-10 py-6">
+    <main class="flex-1 overflow-y-auto rounded-t-xl bg-white px-10 pt-6 pb-20">
       {@render children()}
     </main>
     {#if chatEnabled}
