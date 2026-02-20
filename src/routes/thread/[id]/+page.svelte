@@ -97,7 +97,7 @@
           </div>
           <div class="flex-1 min-w-0">
             <div class="flex items-baseline justify-between mb-2">
-              <span class="font-semibold text-gray-900"
+              <span class="font-medium text-gray-600"
                 >{thread.op.author.name}</span
               >
               <span class="text-sm text-gray-400 ml-4 flex-shrink-0"
@@ -145,7 +145,7 @@
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-baseline justify-between mb-2">
-                    <span class="font-semibold text-gray-900"
+                    <span class="font-medium text-gray-600"
                       >{reply.author.name}</span
                     >
                     <span class="text-sm text-gray-400 ml-4 flex-shrink-0"

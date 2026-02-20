@@ -329,6 +329,8 @@ export type ChatMessage = {
   author: Author;
   content: string;
   createdAt: string;
+  reactions?: Reaction[];
+  zaps?: number;
 };
 
 export const chatMessages: ChatMessage[] = [
@@ -338,6 +340,8 @@ export const chatMessages: ChatMessage[] = [
     content:
       "Quisque sagittis quam dui, nec pulvinar velit aliquam in. Sed volutpat in.",
     createdAt: "2025-01-15T13:00:00Z",
+    reactions: [{ emoji: "👍", count: 3 }],
+    zaps: 210,
   },
   {
     id: "c2",
@@ -352,6 +356,7 @@ export const chatMessages: ChatMessage[] = [
     content:
       "Proin vitae ex iaculis, luctus elit in, fermentum turpis. Pellentesque sagittis congue quam.",
     createdAt: "2025-01-15T13:05:00Z",
+    reactions: [{ emoji: "❤️", count: 2 }, { emoji: "🎉", count: 1 }],
   },
   {
     id: "c4",
@@ -359,6 +364,7 @@ export const chatMessages: ChatMessage[] = [
     content:
       "Mauro dui dolor, sagittis id sem nec, rhoncus consequat duis. Suspendisse dapibus mauris maximus mauris imperdiet.",
     createdAt: "2025-01-15T13:08:00Z",
+    zaps: 500,
   },
   {
     id: "c5",
@@ -366,5 +372,7 @@ export const chatMessages: ChatMessage[] = [
     content:
       "In hac habitasse platea dictumst. Nulla a quam tempor, posuere neque non, fringilla velit.",
     createdAt: "2025-01-15T13:10:00Z",
+    reactions: [{ emoji: "👍", count: 7 }],
+    zaps: 140,
   },
 ];

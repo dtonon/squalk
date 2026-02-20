@@ -23,14 +23,15 @@
 
 <div class="flex h-screen flex-col overflow-hidden max-w-[1540px] mx-auto">
   <Navbar />
-  <div class="flex flex-1 gap-5 overflow-hidden pt-2">
+  <div class="relative flex flex-1 gap-5 overflow-hidden pt-2">
     <LeftSidebar {mode} {activeRoom} />
     <main class="flex-1 overflow-y-auto rounded-t-xl bg-white px-10 pt-6 pb-20">
       {@render children()}
     </main>
     {#if chatEnabled}
+      <div class="shrink-0 w-80" aria-hidden="true"></div>
       <ChatSidebar
-        {chatExpanded}
+        expanded={chatExpanded}
         onToggle={() => (chatExpanded = !chatExpanded)}
       />
     {/if}
