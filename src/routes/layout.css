@@ -10,6 +10,13 @@ body {
   background-color: var(--color-gray-100);
 }
 
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 @theme {
   --color-brand: #e32a6d;
   --color-brand-hover: #c4205a;

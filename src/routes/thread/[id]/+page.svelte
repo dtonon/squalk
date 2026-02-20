@@ -26,11 +26,15 @@
   onMount(() => {
     const main = document.querySelector("main");
     if (!main) return;
+    main.classList.add("no-scrollbar");
     const onScroll = () => {
       isScrolled = main.scrollTop > 0;
     };
     main.addEventListener("scroll", onScroll, { passive: true });
-    return () => main.removeEventListener("scroll", onScroll);
+    return () => {
+      main.classList.remove("no-scrollbar");
+      main.removeEventListener("scroll", onScroll);
+    };
   });
 
   // Measure OP's natural distance from main's border top (once after DOM is ready)

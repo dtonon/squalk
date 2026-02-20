@@ -22,6 +22,7 @@
   let dragStartY = 0;
   let dragStartScrollTop = 0;
 
+  const isOverflowing = $derived(scrollHeight > clientHeight);
   const maxScroll = $derived(Math.max(scrollHeight - clientHeight, 1));
   const thumbHeight = $derived(
     Math.max((clientHeight / scrollHeight) * trackHeight, 28),
@@ -130,7 +131,7 @@
 
 <div
   class="sticky self-start flex-shrink-0 flex flex-col items-end select-none pt-1"
-  style="top: calc({topOffset}px - 1.5rem); height: 50vh; width: 72px;"
+  style="top: calc({topOffset}px - 1.5rem); height: 50vh; width: 72px; visibility: {isOverflowing ? 'visible' : 'hidden'}; pointer-events: {isOverflowing ? 'auto' : 'none'};"
   aria-hidden="true"
 >
   <!-- First post date -->
