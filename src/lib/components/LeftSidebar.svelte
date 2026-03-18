@@ -1,5 +1,6 @@
 <script lang="ts">
   import { rooms, community } from "$lib/mock";
+  import { auth, login, logout } from "$lib/auth.svelte";
 
   type Props = {
     mode: "simple" | "full";
@@ -9,6 +10,7 @@
   let { mode, activeRoom }: Props = $props();
 
   const groups = [...new Set(rooms.map((r) => r.group))];
+
 </script>
 
 <aside
@@ -66,9 +68,36 @@
     </nav>
   </div>
 
-  <button
-    class="mt-3 w-full rounded bg-brand px-3 py-1.5 font-medium text-sm text-white hover:bg-brand-hover"
-  >
-    Join with Nostr
-  </button>
+  {#if auth.user}
+    <button
+      onclick={() => {
+        if (confirm("Log out?")) logout();
+      }}
+      class="mt-3 flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-200"
+      aria-label="Account options"
+    >
+      {#if auth.user.metadata.picture}
+        <img
+          src={auth.user.metadata.picture}
+          alt=""
+          class="h-7 w-7 rounded-full object-cover"
+        />
+      {:else}
+        <span
+          class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-300 text-xs font-semibold text-gray-600"
+          aria-hidden="true"
+        >
+          {auth.user.shortName.slice(0, 1).toUpperCase()}
+        </span>
+      {/if}
+      <span class="truncate font-medium">{auth.user.shortName}</span>
+    </button>
+  {:else}
+    <button
+      onclick={login}
+      class="mt-3 w-full rounded bg-brand px-3 py-1.5 font-medium text-sm text-white hover:bg-brand-hover"
+    >
+      Login
+    </button>
+  {/if}
 </aside>
