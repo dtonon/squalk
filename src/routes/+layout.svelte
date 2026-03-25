@@ -7,11 +7,11 @@
   import { page } from "$app/state";
   import { onMount } from "svelte";
   import { restoreSession } from "$lib/auth.svelte";
+  import { MODE } from "$lib/config";
 
   let { children } = $props();
 
-  // In full mode, extract active room from the URL
-  const mode: "simple" | "full" = "full";
+  const mode = MODE;
   const chatEnabled = true;
 
   onMount(restoreSession);
