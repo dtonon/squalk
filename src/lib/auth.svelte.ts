@@ -19,6 +19,8 @@ export const auth = {
   },
 };
 
+const PUBKEY_KEY = "nostr_pubkey";
+
 export async function login() {
   if (!window.nostr) {
     alert(
@@ -28,6 +30,7 @@ export async function login() {
   }
   const pubkey = await window.nostr.getPublicKey();
   signer = window.nostr;
+  localStorage.setItem(PUBKEY_KEY, pubkey);
   const { loadNostrUser } = await import("@nostr/gadgets/metadata");
   user = await loadNostrUser(pubkey);
 }
@@ -35,4 +38,13 @@ export async function login() {
 export function logout() {
   user = null;
   signer = null;
+  localStorage.removeItem(PUBKEY_KEY);
+}
+
+export async function restoreSession() {
+  const pubkey = localStorage.getItem(PUBKEY_KEY);
+  if (!pubkey) return;
+  signer = window.nostr ?? null;
+  const { loadNostrUser } = await import("@nostr/gadgets/metadata");
+  user = await loadNostrUser(pubkey);
 }

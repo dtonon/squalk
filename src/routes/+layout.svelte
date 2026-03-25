@@ -5,12 +5,16 @@
   import LeftSidebar from "$lib/components/LeftSidebar.svelte";
   import ChatSidebar from "$lib/components/ChatSidebar.svelte";
   import { page } from "$app/state";
+  import { onMount } from "svelte";
+  import { restoreSession } from "$lib/auth.svelte";
 
   let { children } = $props();
 
   // In full mode, extract active room from the URL
   const mode: "simple" | "full" = "full";
   const chatEnabled = true;
+
+  onMount(restoreSession);
 
   let chatExpanded = $state(false);
 
