@@ -7,6 +7,7 @@
   import { page } from "$app/state";
   import { onMount } from "svelte";
   import { restoreSession } from "$lib/auth.svelte";
+  import { loadGroup } from "$lib/group.svelte";
   import { MODE } from "$lib/config";
 
   let { children } = $props();
@@ -14,7 +15,10 @@
   const mode = MODE;
   const chatEnabled = true;
 
-  onMount(restoreSession);
+  onMount(() => {
+    restoreSession();
+    loadGroup();
+  });
 
   let chatExpanded = $state(false);
 

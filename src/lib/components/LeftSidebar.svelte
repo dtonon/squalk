@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { rooms, community } from "$lib/mock";
+  import { rooms } from "$lib/mock";
   import { auth, login, logout } from "$lib/auth.svelte";
+  import { groupStore } from "$lib/group.svelte";
 
   type Props = {
     mode: "simple" | "full";
@@ -10,11 +11,10 @@
   let { mode, activeRoom }: Props = $props();
 
   const groups = [...new Set(rooms.map((r) => r.group))];
-
 </script>
 
 <aside
-  class="flex max-w-52 min-w-48 shrink-0 flex-col justify-between py-2 pl-8 pr-3 pb-8"
+  class="flex max-w-52 min-w-48 shrink-0 flex-col justify-between py-2 pl-8 pr-1 pb-8"
 >
   <div>
     <a
@@ -26,7 +26,7 @@
 
     {#if mode === "simple"}
       <div class="flex mt-6">
-        <p class="text-sm text-gray-500">{community.about}</p>
+        <p class="text-sm text-gray-500">{groupStore.data?.about ?? ""}</p>
       </div>
     {:else}
       <nav class="flex-auto mt-6">
