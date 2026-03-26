@@ -1,10 +1,29 @@
 <script lang="ts">
-  import { threads, rooms } from "$lib/mock";
-  import ThreadItem from "$lib/components/ThreadItem.svelte";
+  import { threads, rooms, type Thread } from "$lib/mock";
+  import ThreadItem, {
+    type ThreadRow,
+  } from "$lib/components/ThreadItem.svelte";
   import { page } from "$app/state";
 
   const slug = $derived(page.params.slug);
   const room = $derived(rooms.find((r) => r.slug === slug));
+
+  function mockToRow(t: Thread): ThreadRow {
+    return {
+      id: t.id,
+      title: t.title,
+      author: t.op.author,
+      replyCount: t.replyCount,
+      repliers: t.participants
+        .filter((p) => p.pubkey !== t.op.author.pubkey)
+        .slice(0, 4),
+      lastActiveAuthor: t.participants[t.participants.length - 1],
+      lastActivity: t.lastActivity,
+      score: t.op.reactions.reduce((s, r) => s + r.count, 0) + t.op.zaps,
+    };
+  }
+
+  const rows = $derived(threads.map(mockToRow));
 </script>
 
 <svelte:head>
@@ -22,7 +41,7 @@
   </div>
 
   <div>
-    {#each threads as thread}
+    {#each rows as thread}
       <ThreadItem {thread} />
     {/each}
   </div>

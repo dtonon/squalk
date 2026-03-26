@@ -1,15 +1,38 @@
 <script lang="ts">
-  import type { Thread } from "$lib/mock";
   import Tag from "./Tag.svelte";
 
-  type Props = { thread: Thread };
-  let { thread }: Props = $props();
+  export type Author = {
+    pubkey: string;
+    name: string;
+    picture?: string;
+  };
 
-  // Placeholder until scoring formula is defined
-  const score = $derived(
-    thread.op.reactions.reduce((s, r) => s + r.count, 0) + thread.op.zaps,
-  );
+  export type ThreadRow = {
+    id: string;
+    title: string;
+    author: Author;
+    replyCount: number;
+    repliers: Author[];
+    lastActiveAuthor: Author;
+    lastActivity: string;
+    score: number;
+  };
+
+  type Props = { thread: ThreadRow };
+  let { thread }: Props = $props();
 </script>
+
+{#snippet avatar(a: Author, cls: string)}
+  {#if a.picture}
+    <img src={a.picture} alt="" class={cls} />
+  {:else}
+    <span
+      class="{cls} flex items-center justify-center rounded-full bg-gray-200 text-[10px] font-semibold text-gray-500"
+    >
+      {a.name[0].toUpperCase()}
+    </span>
+  {/if}
+{/snippet}
 
 <a
   href="/thread/{thread.id}"
@@ -20,55 +43,36 @@
     <div class="text-lg mb-1.5 text-gray-900 leading-6">{thread.title}</div>
     <div class="flex items-center gap-1.5 text-sm text-gray-500">
       <span>by</span>
-      <img
-        src={thread.op.author.picture}
-        alt={thread.op.author.name}
-        class="h-5 w-5 rounded-full"
-      />
-      {#if thread.participants.length > 1}
+      {@render avatar(thread.author, "h-5 w-5 rounded-full object-cover")}
+      {#if thread.repliers.length > 0}
         <span>and</span>
         <div class="flex -space-x-1.5">
-          {#each thread.participants
-            .filter((p) => p.pubkey !== thread.op.author.pubkey)
-            .slice(0, 4) as p}
-            <img
-              src={p.picture}
-              alt={p.name}
-              class="h-5 w-5 rounded-full ring-1 ring-white"
-            />
+          {#each thread.repliers as r, i}
+            <span class="relative" style="z-index: {thread.repliers.length - i}">
+              {@render avatar(r, "h-5 w-5 rounded-full object-cover ring-1 ring-white")}
+            </span>
           {/each}
         </div>
       {/if}
     </div>
   </div>
 
-  <!-- Col 2: tags -->
-  <div class="flex shrink-0 flex-wrap justify-end gap-1.5">
-    {#each thread.tags as tag}
-      <Tag label={tag.label} />
-    {/each}
-  </div>
-
   <!-- Col 3: replies | score | activity -->
   <div class="flex shrink-0 items-center gap-6">
     <div class="flex flex-col items-center gap-0.5">
-      <span class=" text-gray-800">{thread.replyCount}</span>
+      <span class="text-gray-800">{thread.replyCount}</span>
       <span class="text-sm text-gray-400">replies</span>
     </div>
 
     <div class="flex flex-col items-center gap-0.5">
-      <span class=" text-accent">{score}</span>
+      <span class="text-accent">{thread.score}</span>
       <span class="text-sm text-gray-400">score</span>
     </div>
 
     <div class="flex flex-col items-center gap-0.5">
       <div class="flex items-center gap-1">
-        <img
-          src={thread.participants[thread.participants.length - 1].picture}
-          alt={thread.participants[thread.participants.length - 1].name}
-          class="h-5 w-5 rounded-full"
-        />
-        <span class=" text-gray-800">{thread.lastActivity}</span>
+        {@render avatar(thread.lastActiveAuthor, "h-5 w-5 rounded-full object-cover")}
+        <span class="text-gray-800">{thread.lastActivity}</span>
       </div>
       <span class="text-sm text-gray-400">activity</span>
     </div>
