@@ -1,7 +1,8 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { page } from "$app/state";
-  import { threadDetailStore, loadThread, type PostData } from "$lib/thread.svelte";
+  import { threadDetailStore, loadThread, sendReply, type PostData } from "$lib/thread.svelte";
+  import { auth, login } from "$lib/auth.svelte";
   import Reactions from "$lib/components/Reactions.svelte";
   import ThreadScrubber from "$lib/components/ThreadScrubber.svelte";
   import type { NostrUser } from "@nostr/gadgets/metadata";
@@ -28,6 +29,23 @@
   let opEl = $state<HTMLElement | null>(null);
   let replyEls = $state<(HTMLElement | null)[]>([]);
   let isScrolled = $state(false);
+  let replyContent = $state("");
+  let replying = $state(false);
+  let replyError = $state<string | null>(null);
+
+  async function submitReply() {
+    if (!auth.user || !replyContent.trim()) return;
+    replying = true;
+    replyError = null;
+    try {
+      await sendReply(replyContent.trim(), auth.user!.pubkey);
+      replyContent = "";
+    } catch (e) {
+      replyError = e instanceof Error ? e.message : "Failed to post reply";
+    } finally {
+      replying = false;
+    }
+  }
   let opTopOffset = $state(0);
 
   const detail = $derived(threadDetailStore.detail);
@@ -132,16 +150,34 @@
       {/if}
 
       <div class="mt-8 border-t border-gray-200 pt-6">
-        <textarea
-          rows="4"
-          placeholder="Write a reply..."
-          class="w-full rounded border border-gray-200 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-brand"
-        ></textarea>
-        <div class="mt-2 flex justify-end">
-          <button class="rounded bg-brand px-6 py-1.5 font-medium text-white hover:bg-brand-hover">
-            Reply
-          </button>
-        </div>
+        {#if auth.user}
+          {#if replyError}
+            <div class="mb-4 rounded bg-red-50 px-4 py-3 text-sm text-red-700 border border-red-200">
+              {replyError}
+            </div>
+          {/if}
+          <textarea
+            rows="4"
+            placeholder="Write a reply..."
+            bind:value={replyContent}
+            disabled={replying}
+            class="w-full rounded border border-gray-200 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-brand disabled:opacity-50"
+          ></textarea>
+          <div class="mt-2 flex justify-end">
+            <button
+              onclick={submitReply}
+              disabled={replying || !replyContent.trim()}
+              class="rounded bg-brand px-6 py-1.5 font-medium text-white hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {replying ? "Posting…" : "Reply"}
+            </button>
+          </div>
+        {:else}
+          <p class="text-sm text-gray-500">
+            To participate and reply,
+            <button onclick={login} class="text-brand hover:underline">login now</button>
+          </p>
+        {/if}
       </div>
     </div>
 

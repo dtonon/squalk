@@ -1,6 +1,6 @@
 import { SimplePool } from "@nostr/tools";
 import { loadNostrUser, type NostrUser } from "@nostr/gadgets/metadata";
-import { RELAY_URL } from "$lib/config";
+import { RELAY_URL, GROUP_ID } from "$lib/config";
 import { threads as mockThreads } from "$lib/mock";
 
 const isNostrId = (id: string) => /^[0-9a-f]{64}$/.test(id);
@@ -94,4 +94,52 @@ export async function loadThread(id: string) {
   } finally {
     pool.close([RELAY_URL]);
   }
+}
+
+export async function sendReply(content: string, ownPubkey: string) {
+  if (!detail) throw new Error("No thread loaded");
+  if (!window.nostr) throw new Error("No Nostr extension found");
+
+  // Use last 3 events not authored by us as previous refs (NIP-29)
+  const previousRefs = [...detail.replies, detail.op]
+    .filter((p) => p.pubkey !== ownPubkey)
+    .slice(-3)
+    .map((p) => p.id.slice(0, 8));
+
+  const tags: string[][] = [
+    ["h", GROUP_ID],
+    ["K", "11"],
+    ["E", detail.id, RELAY_URL, detail.op.pubkey],
+  ];
+  if (previousRefs.length > 0) tags.push(["previous", ...previousRefs]);
+
+  console.log("[reply] signing event…");
+  const signed = await window.nostr.signEvent({
+    kind: 1111,
+    created_at: Math.floor(Date.now() / 1000),
+    tags,
+    content,
+  });
+  console.log("[reply] event signed:", signed.id);
+
+  console.log("[reply] publishing…");
+  const pool = new SimplePool();
+  try {
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Relay did not respond in time")), 8000)
+    );
+    await Promise.race([Promise.all(pool.publish([RELAY_URL], signed)), timeout]);
+  } finally {
+    pool.destroy();
+  }
+  console.log("[reply] published");
+
+  const newReply: PostData = {
+    id: signed.id,
+    pubkey: signed.pubkey,
+    createdAt: signed.created_at,
+    content: signed.content,
+  };
+  detail = { ...detail, replies: [...detail.replies, newReply] };
+  loadProfile(signed.pubkey);
 }
