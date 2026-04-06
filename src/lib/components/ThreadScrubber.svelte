@@ -1,9 +1,9 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import type { Post } from "$lib/mock";
+  type PostLike = { createdAt: number };
 
   type Props = {
-    posts: Post[];
+    posts: PostLike[];
     postEls: (HTMLElement | null)[];
     topOffset: number;
   };
@@ -52,15 +52,15 @@
       : "",
   );
 
-  function formatShortDate(iso: string) {
-    return new Date(iso).toLocaleDateString("en-US", {
+  function formatShortDate(ts: number) {
+    return new Date(ts * 1000).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
     });
   }
 
-  function formatDate(iso: string) {
-    return new Date(iso).toLocaleDateString("en-US", {
+  function formatDate(ts: number) {
+    return new Date(ts * 1000).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
