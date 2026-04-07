@@ -2,6 +2,7 @@ import { SimplePool } from "@nostr/tools";
 import { loadNostrUser, type NostrUser } from "@nostr/gadgets/metadata";
 import { RELAY_URL, GROUP_ID } from "$lib/config";
 import { threads as mockThreads } from "$lib/mock";
+import { auth } from "$lib/auth.svelte";
 
 const isNostrId = (id: string) => /^[0-9a-f]{64}$/.test(id);
 
@@ -98,7 +99,7 @@ export async function loadThread(id: string) {
 
 export async function sendReply(content: string, ownPubkey: string) {
   if (!detail) throw new Error("No thread loaded");
-  if (!window.nostr) throw new Error("No Nostr extension found");
+  if (!auth.signer) throw new Error("Not logged in");
 
   // Use last 3 events not authored by us as previous refs (NIP-29)
   const previousRefs = [...detail.replies, detail.op]
@@ -114,7 +115,7 @@ export async function sendReply(content: string, ownPubkey: string) {
   if (previousRefs.length > 0) tags.push(["previous", ...previousRefs]);
 
   console.log("[reply] signing event…");
-  const signed = await window.nostr.signEvent({
+  const signed = await auth.signer.signEvent({
     kind: 1111,
     created_at: Math.floor(Date.now() / 1000),
     tags,

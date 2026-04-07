@@ -1,6 +1,6 @@
 <script lang="ts">
   import { rooms } from "$lib/mock";
-  import { auth, login, logout } from "$lib/auth.svelte";
+  import { auth, openLogin, logout } from "$lib/auth.svelte";
   import { groupStore } from "$lib/group.svelte";
 
   type Props = {
@@ -94,7 +94,7 @@
     </button>
   {:else}
     <button
-      onclick={login}
+      onclick={openLogin}
       class="mt-3 w-full rounded bg-brand px-3 py-1.5 font-medium text-sm text-white hover:bg-brand-hover"
     >
       Login

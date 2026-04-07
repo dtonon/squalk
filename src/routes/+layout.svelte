@@ -4,6 +4,7 @@
   import Navbar from "$lib/components/Navbar.svelte";
   import LeftSidebar from "$lib/components/LeftSidebar.svelte";
   import ChatSidebar from "$lib/components/ChatSidebar.svelte";
+  import LoginModal from "$lib/components/LoginModal.svelte";
   import { page } from "$app/state";
   import { onMount } from "svelte";
   import { restoreSession } from "$lib/auth.svelte";
@@ -45,3 +46,5 @@
     {/if}
   </div>
 </div>
+
+<LoginModal />

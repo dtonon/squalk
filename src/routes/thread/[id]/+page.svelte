@@ -7,7 +7,7 @@
     sendReply,
     type PostData,
   } from "$lib/thread.svelte";
-  import { auth, login } from "$lib/auth.svelte";
+  import { auth, openLogin } from "$lib/auth.svelte";
   import Reactions from "$lib/components/Reactions.svelte";
   import ThreadScrubber from "$lib/components/ThreadScrubber.svelte";
   import type { NostrUser } from "@nostr/gadgets/metadata";
@@ -200,7 +200,7 @@
         {:else}
           <p class=" text-gray-500 text-center">
             To participate and reply, please
-            <button onclick={login} class="text-brand hover:underline"
+            <button onclick={openLogin} class="text-brand hover:underline"
               >login now</button
             >
           </p>
