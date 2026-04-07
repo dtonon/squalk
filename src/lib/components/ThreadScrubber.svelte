@@ -6,9 +6,15 @@
     posts: PostLike[];
     postEls: (HTMLElement | null)[];
     topOffset: number;
+    visible?: boolean;
   };
 
-  let { posts, postEls, topOffset }: Props = $props();
+  let {
+    posts,
+    postEls,
+    topOffset,
+    visible = $bindable(false),
+  }: Props = $props();
 
   let scrollEl = $state<HTMLElement | null>(null);
   let trackEl = $state<HTMLElement | null>(null);
@@ -23,6 +29,9 @@
   let dragStartScrollTop = 0;
 
   const isOverflowing = $derived(scrollHeight > clientHeight);
+  $effect(() => {
+    visible = isOverflowing;
+  });
   const maxScroll = $derived(Math.max(scrollHeight - clientHeight, 1));
   const thumbHeight = $derived(
     Math.max((clientHeight / scrollHeight) * trackHeight, 28),
@@ -60,11 +69,13 @@
   }
 
   function formatDate(ts: number) {
-    return new Date(ts * 1000).toLocaleDateString("en-US", {
+    const date = new Date(ts * 1000);
+    const monthDay = date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
-      year: "numeric",
     });
+    const year = date.toLocaleDateString("en-US", { year: "numeric" });
+    return `${monthDay}\n${year}`;
   }
 
   function update() {
@@ -131,11 +142,15 @@
 
 <div
   class="sticky self-start flex-shrink-0 flex flex-col items-end select-none pt-1"
-  style="top: calc({topOffset}px - 1.5rem); height: 50vh; width: 72px; visibility: {isOverflowing ? 'visible' : 'hidden'}; pointer-events: {isOverflowing ? 'auto' : 'none'};"
+  style="top: calc({topOffset}px - 1.5rem); height: 50vh; width: 72px; display: {isOverflowing
+    ? 'flex'
+    : 'none'};"
   aria-hidden="true"
 >
   <!-- First post date -->
-  <div class="text-xs text-gray-300 mb-1 text-right leading-tight">
+  <div
+    class="text-xs text-gray-300 mb-1 text-right leading-tight whitespace-pre"
+  >
     {firstPost ? formatDate(firstPost.createdAt) : ""}
   </div>
 
@@ -174,7 +189,9 @@
   </div>
 
   <!-- Last post date -->
-  <div class="text-xs text-gray-300 mt-1 text-right leading-tight">
+  <div
+    class="text-xs text-gray-300 mt-1 text-right leading-tight whitespace-pre"
+  >
     {lastPost ? formatDate(lastPost.createdAt) : ""}
   </div>
 </div>
