@@ -8,6 +8,7 @@
     type PostData,
   } from "$lib/thread.svelte";
   import { auth, openLogin } from "$lib/auth.svelte";
+  import { withJoin } from "$lib/join.svelte";
   import Reactions from "$lib/components/Reactions.svelte";
   import ThreadScrubber from "$lib/components/ThreadScrubber.svelte";
   import type { NostrUser } from "@nostr/gadgets/metadata";
@@ -43,11 +44,15 @@
 
   async function submitReply() {
     if (!auth.user || !replyContent.trim()) return;
+    const content = replyContent.trim();
+    const pubkey = auth.user.pubkey;
     replying = true;
     replyError = null;
     try {
-      await sendReply(replyContent.trim(), auth.user!.pubkey);
-      replyContent = "";
+      await withJoin(async () => {
+        await sendReply(content, pubkey);
+        replyContent = "";
+      });
     } catch (e) {
       replyError = e instanceof Error ? e.message : "Failed to post reply";
     } finally {

@@ -5,6 +5,7 @@
   import LeftSidebar from "$lib/components/LeftSidebar.svelte";
   import ChatSidebar from "$lib/components/ChatSidebar.svelte";
   import LoginModal from "$lib/components/LoginModal.svelte";
+  import JoinModal from "$lib/components/JoinModal.svelte";
   import { page } from "$app/state";
   import { onMount } from "svelte";
   import { restoreSession } from "$lib/auth.svelte";
@@ -48,3 +49,4 @@
 </div>
 
 <LoginModal />
+<JoinModal />

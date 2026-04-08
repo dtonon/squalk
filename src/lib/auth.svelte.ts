@@ -3,6 +3,7 @@ import type { WindowNostr } from "@nostr/tools/nip07";
 import type { EventTemplate, VerifiedEvent } from "@nostr/tools/core";
 import * as nip19 from "@nostr/tools/nip19";
 import { finalizeEvent, getPublicKey } from "@nostr/tools/pure";
+import { resetJoinState, initJoinForUser } from "$lib/join.svelte";
 
 declare global {
   interface Window {
@@ -58,6 +59,7 @@ function makeNsecSigner(secretKey: Uint8Array): Signer {
 async function setUser(pubkey: string) {
   const { loadNostrUser } = await import("@nostr/gadgets/metadata");
   user = await loadNostrUser(pubkey);
+  initJoinForUser(pubkey);
 }
 
 export async function loginWithExtension() {
@@ -108,6 +110,7 @@ export function logout() {
   localStorage.removeItem(PUBKEY_KEY);
   localStorage.removeItem(METHOD_KEY);
   localStorage.removeItem(NSEC_KEY);
+  resetJoinState();
 }
 
 export async function restoreSession() {
