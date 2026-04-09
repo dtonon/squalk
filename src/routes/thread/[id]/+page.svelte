@@ -35,6 +35,26 @@
     });
   }
 
+  const IMG_URL_RE =
+    /https?:\/\/\S+?\.(?:jpg|jpeg|png|gif|webp|avif|svg|bmp)(?:\?\S*)?/gi;
+
+  type Token = { type: "text" | "image"; value: string };
+
+  function tokenize(text: string): Token[] {
+    const tokens: Token[] = [];
+    let last = 0;
+    for (const m of text.matchAll(IMG_URL_RE)) {
+      const start = m.index ?? 0;
+      if (start > last)
+        tokens.push({ type: "text", value: text.slice(last, start) });
+      tokens.push({ type: "image", value: m[0] });
+      last = start + m[0].length;
+    }
+    if (last < text.length)
+      tokens.push({ type: "text", value: text.slice(last) });
+    return tokens;
+  }
+
   let opEl = $state<HTMLElement | null>(null);
   let replyEls = $state<(HTMLElement | null)[]>([]);
   let isScrolled = $state(false);
@@ -131,7 +151,19 @@
       </div>
       <div class="prose leading-5 max-w-none text-gray-700">
         {#each p.content.split("\n\n") as para}
-          <p>{para}</p>
+          {@const tokens = tokenize(para)}
+          {#each tokens as token}
+            {#if token.type === "image"}
+              <img
+                src={token.value}
+                alt=""
+                loading="lazy"
+                class="block mx-auto w-full max-h-[80vh] object-contain rounded my-3"
+              />
+            {:else if token.value.trim()}
+              <p>{token.value}</p>
+            {/if}
+          {/each}
         {/each}
       </div>
       <div class="flex items-center justify-between mt-3">
