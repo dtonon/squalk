@@ -10,6 +10,7 @@
   export type ThreadRow = {
     id: string;
     title: string;
+    labels: string[];
     author: Author;
     replyCount: number;
     repliers: Author[];
@@ -51,6 +52,13 @@
             <span class="relative" style="z-index: {thread.repliers.length - i}">
               {@render avatar(r, "h-5 w-5 rounded-full object-cover ring-1 ring-white")}
             </span>
+          {/each}
+        </div>
+      {/if}
+      {#if thread.labels.length > 0}
+        <div class="ml-auto flex flex-wrap items-center justify-end gap-1">
+          {#each thread.labels as l}
+            <Tag label={l} />
           {/each}
         </div>
       {/if}

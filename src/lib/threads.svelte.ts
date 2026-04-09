@@ -5,6 +5,7 @@ import { RELAY_URL, GROUP_ID } from "$lib/config";
 export type ThreadData = {
   id: string;
   title: string;
+  labels: string[];
   authorPubkey: string;
   createdAt: number;
   replyCount: number;
@@ -42,6 +43,7 @@ export async function loadThreads() {
     threads = events.map((e) => ({
       id: e.id,
       title: e.tags.find((t) => t[0] === "title")?.[1] ?? "(untitled)",
+      labels: e.tags.filter((t) => t[0] === "t" && t[1]).map((t) => t[1]),
       authorPubkey: e.pubkey,
       createdAt: e.created_at,
       replyCount: 0,

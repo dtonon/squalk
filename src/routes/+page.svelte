@@ -49,6 +49,7 @@
     return {
       id: t.id,
       title: t.title,
+      labels: t.labels,
       author: resolveAuthor(t.authorPubkey, profiles),
       replyCount: t.replyCount,
       repliers: t.replierPubkeys.map((pk) => resolveAuthor(pk, profiles)),
