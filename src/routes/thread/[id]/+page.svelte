@@ -35,24 +35,69 @@
     });
   }
 
-  const IMG_URL_RE =
-    /https?:\/\/\S+?\.(?:jpg|jpeg|png|gif|webp|avif|svg|bmp)(?:\?\S*)?/gi;
+  // Curated TLD list: gTLDs, popular new gTLDs, common ccTLDs
+  const TLDS = [
+    "com","org","net","edu","gov","mil","int","info","biz","name","pro",
+    "io","co","app","dev","ai","sh","me","ly","tv","fm","lol","club",
+    "online","site","store","blog","tech","xyz","art","design","news",
+    "media","page","link","fun","gg","gl","st","to","run","life","world",
+    "space","cloud","email","social","chat","wtf","cafe","zone","studio",
+    "us","uk","de","fr","it","es","nl","ru","jp","cn","ca","au","br","in",
+    "mx","se","no","fi","dk","ch","at","be","pl","pt","gr","cz","ie","nz",
+    "kr","sg","hk","tw","za","cc","ws","eu","tr","ua","il","ar","cl","pe",
+  ].join("|");
 
-  type Token = { type: "text" | "image"; value: string };
+  const URL_RE = new RegExp(
+    `https?:\\/\\/[^\\s<>"']+|(?<![\\w@.\\/])(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+(?:${TLDS})\\b(?:[\\/?#][^\\s<>"']*)?`,
+    "gi",
+  );
+  const IMG_EXT_RE = /\.(?:jpg|jpeg|png|gif|webp|avif|svg|bmp)(?:\?.*)?$/i;
+  // Trailing punctuation that is usually not part of the URL
+  const TRAILING_PUNCT_RE = /[).,;:!?'"]+$/;
 
-  function tokenize(text: string): Token[] {
-    const tokens: Token[] = [];
+  type Inline =
+    | { type: "text"; value: string }
+    | { type: "link"; href: string; label: string };
+
+  type Block =
+    | { type: "image"; value: string }
+    | { type: "para"; inlines: Inline[] };
+
+  function tokenize(text: string): Block[] {
+    const blocks: Block[] = [];
+    let inlines: Inline[] = [];
+    const flush = () => {
+      if (inlines.some((i) => i.type === "link" || i.value.trim()))
+        blocks.push({ type: "para", inlines });
+      inlines = [];
+    };
     let last = 0;
-    for (const m of text.matchAll(IMG_URL_RE)) {
+    for (const m of text.matchAll(URL_RE)) {
       const start = m.index ?? 0;
+      let url = m[0];
+      let trailing = "";
+      const trail = url.match(TRAILING_PUNCT_RE);
+      if (trail) {
+        trailing = trail[0];
+        url = url.slice(0, -trailing.length);
+      }
       if (start > last)
-        tokens.push({ type: "text", value: text.slice(last, start) });
-      tokens.push({ type: "image", value: m[0] });
+        inlines.push({ type: "text", value: text.slice(last, start) });
+      const href = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+      if (IMG_EXT_RE.test(url)) {
+        flush();
+        blocks.push({ type: "image", value: href });
+        if (trailing) inlines.push({ type: "text", value: trailing });
+      } else {
+        inlines.push({ type: "link", href, label: url });
+        if (trailing) inlines.push({ type: "text", value: trailing });
+      }
       last = start + m[0].length;
     }
     if (last < text.length)
-      tokens.push({ type: "text", value: text.slice(last) });
-    return tokens;
+      inlines.push({ type: "text", value: text.slice(last) });
+    flush();
+    return blocks;
   }
 
   let opEl = $state<HTMLElement | null>(null);
@@ -151,17 +196,27 @@
       </div>
       <div class="prose leading-5 max-w-none text-gray-700">
         {#each p.content.split("\n\n") as para}
-          {@const tokens = tokenize(para)}
-          {#each tokens as token}
-            {#if token.type === "image"}
+          {#each tokenize(para) as block}
+            {#if block.type === "image"}
               <img
-                src={token.value}
+                src={block.value}
                 alt=""
                 loading="lazy"
                 class="block mx-auto w-full max-h-[80vh] object-contain rounded my-3"
               />
-            {:else if token.value.trim()}
-              <p>{token.value}</p>
+            {:else}
+              <p>
+                {#each block.inlines as inline}
+                  {#if inline.type === "link"}
+                    <a
+                      href={inline.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="text-brand hover:underline break-all"
+                    >{inline.label}</a>
+                  {:else}{inline.value}{/if}
+                {/each}
+              </p>
             {/if}
           {/each}
         {/each}
