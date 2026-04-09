@@ -4,8 +4,18 @@
     type ThreadRow,
   } from "$lib/components/ThreadItem.svelte";
   import { page } from "$app/state";
+  import { auth, openLogin } from "$lib/auth.svelte";
+  import { openDraft } from "$lib/draft.svelte";
 
   const slug = $derived(page.params.slug);
+
+  function onNewTopic() {
+    if (!auth.user) {
+      openLogin();
+      return;
+    }
+    openDraft();
+  }
   const room = $derived(rooms.find((r) => r.slug === slug));
 
   function mockToRow(t: Thread): ThreadRow {
@@ -34,6 +44,7 @@
   <div class="flex items-center justify-between pb-2">
     <h1 class="text-[1.65rem] text-brand leading-7">{room?.name ?? slug}</h1>
     <button
+      onclick={onNewTopic}
       class="rounded bg-brand px-6 py-1.5 text-sm font-medium text-white hover:bg-brand-hover"
     >
       New Topic

@@ -10,8 +10,18 @@
     type Author,
   } from "$lib/components/ThreadItem.svelte";
   import type { NostrUser } from "@nostr/gadgets/metadata";
+  import { auth, openLogin } from "$lib/auth.svelte";
+  import { openDraft } from "$lib/draft.svelte";
 
   onMount(loadThreads);
+
+  function onNewTopic() {
+    if (!auth.user) {
+      openLogin();
+      return;
+    }
+    openDraft();
+  }
 
   function relativeTime(ts: number): string {
     const diff = Math.floor(Date.now() / 1000) - ts;
@@ -61,6 +71,7 @@
   <div class="flex items-center justify-between py-2">
     <h1 class="text-[1.65rem] text-brand">Discussions</h1>
     <button
+      onclick={onNewTopic}
       class="rounded bg-brand px-6 py-1.5 text-sm font-medium text-white hover:bg-brand-hover"
     >
       New Topic

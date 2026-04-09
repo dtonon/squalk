@@ -2,6 +2,7 @@
   import { rooms } from "$lib/mock";
   import { auth, openLogin, logout } from "$lib/auth.svelte";
   import { groupStore } from "$lib/group.svelte";
+  import { draftState, resumeDraft } from "$lib/draft.svelte";
 
   type Props = {
     mode: "simple" | "full";
@@ -68,6 +69,16 @@
     </nav>
   </div>
 
+  <div class="flex flex-col gap-2">
+  {#if draftState.iconized}
+    <button
+      type="button"
+      onclick={resumeDraft}
+      class="w-full rounded bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-hover"
+    >
+      Resume draft
+    </button>
+  {/if}
   {#if auth.user}
     <button
       onclick={() => {
@@ -100,4 +111,5 @@
       Login
     </button>
   {/if}
+  </div>
 </aside>
