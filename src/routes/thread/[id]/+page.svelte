@@ -277,15 +277,17 @@
           >{formatDate(p.createdAt)}</span
         >
       </div>
-      <div class="prose leading-5 max-w-none text-gray-700">
-        {#each p.content.split("\n\n") as para}
+      <div
+        class="prose leading-5 max-w-none text-gray-700 [&_p]:my-3 [&_img]:my-3"
+      >
+        {#each p.content.split(/\n{2,}/) as para}
           {#each tokenize(para) as block}
             {#if block.type === "image"}
               <img
                 src={block.value}
                 alt=""
                 loading="lazy"
-                class="block mx-auto w-full max-h-[80vh] object-contain rounded my-3"
+                class="block mx-auto w-full max-h-[80vh] object-contain rounded"
               />
             {:else}
               <p>
@@ -296,22 +298,26 @@
                       target="_blank"
                       rel="noopener noreferrer"
                       class="text-brand hover:underline break-all"
-                    >{inline.label}</a>
+                      >{inline.label}</a
+                    >
                   {:else if inline.type === "mention"}
-                    {@const u = profiles[inline.pubkey] ?? resolvedUsers[inline.pubkey]}
+                    {@const u =
+                      profiles[inline.pubkey] ?? resolvedUsers[inline.pubkey]}
                     <a
                       href="https://njump.me/{inline.entity}"
                       target="_blank"
                       rel="noopener noreferrer"
                       class="text-brand hover:underline"
-                    >@{u?.shortName ?? inline.fallback}</a>
+                      >@{u?.shortName ?? inline.fallback}</a
+                    >
                   {:else if inline.type === "entity"}
                     <a
                       href="https://njump.me/{inline.entity}"
                       target="_blank"
                       rel="noopener noreferrer"
                       class="text-brand hover:underline break-all"
-                    >{inline.label}</a>
+                      >{inline.label}</a
+                    >
                   {:else}{inline.value}{/if}
                 {/each}
               </p>
@@ -398,7 +404,12 @@
       </div>
     </div>
 
-    <ThreadScrubber posts={allPosts} {postEls} topOffset={opTopOffset} bind:visible={scrubberVisible} />
+    <ThreadScrubber
+      posts={allPosts}
+      {postEls}
+      topOffset={opTopOffset}
+      bind:visible={scrubberVisible}
+    />
   </div>
 {:else}
   <div class="py-12 text-center text-gray-400">Loading…</div>
