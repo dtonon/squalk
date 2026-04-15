@@ -130,7 +130,7 @@
       onclick={iconizeDraft}
     ></button>
     <div
-      class="relative w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl flex flex-col gap-4 max-h-[90vh]"
+      class="relative w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl flex flex-col gap-4 max-h-[90vh] overflow-hidden"
       role="dialog"
       aria-modal="true"
       aria-labelledby="newdisc-title"
