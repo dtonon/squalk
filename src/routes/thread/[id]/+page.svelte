@@ -11,6 +11,7 @@
   import { withJoin } from "$lib/join.svelte";
   import Reactions from "$lib/components/Reactions.svelte";
   import ThreadScrubber from "$lib/components/ThreadScrubber.svelte";
+  import MessageEditor from "$lib/components/MessageEditor.svelte";
   import { loadNostrUser, type NostrUser } from "@nostr/gadgets/metadata";
   import * as nip19 from "@nostr/tools/nip19";
 
@@ -377,13 +378,12 @@
               {replyError}
             </div>
           {/if}
-          <textarea
-            rows="4"
-            placeholder="Write a reply..."
+          <MessageEditor
             bind:value={replyContent}
             disabled={replying}
-            class="w-full rounded border border-gray-200 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-brand disabled:opacity-50"
-          ></textarea>
+            rows={4}
+            placeholder="Write a reply..."
+          />
           <div class="mt-2 flex justify-end">
             <button
               onclick={submitReply}

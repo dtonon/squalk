@@ -9,18 +9,14 @@
     removeLabel,
     publishDraft,
   } from "$lib/draft.svelte";
-  import { LABELS, BLOSSOM_URL } from "$lib/config";
+  import { LABELS } from "$lib/config";
   import { groupStore } from "$lib/group.svelte";
-  import { uploadImage } from "$lib/blossom";
+  import MessageEditor from "$lib/components/MessageEditor.svelte";
 
   let labelInput = $state("");
   let labelInputEl = $state<HTMLInputElement | null>(null);
   let suggestOpen = $state(false);
   let titleEl = $state<HTMLInputElement | null>(null);
-  let contentEl = $state<HTMLTextAreaElement | null>(null);
-  let fileInputEl = $state<HTMLInputElement | null>(null);
-  let uploading = $state(false);
-  let uploadError = $state<string | null>(null);
 
   const available = $derived(
     LABELS.filter((l) => !draftState.labels.includes(l)),
@@ -48,9 +44,7 @@
       tick().then(() => titleEl?.focus());
     } else {
       // Modal stays mounted in the layout — reset transient local state so a
-      // hung "Uploading…" or stale error doesn't carry over to the next open.
-      uploading = false;
-      uploadError = null;
+      // stale label input doesn't carry over to the next open.
       labelInput = "";
       suggestOpen = false;
     }
@@ -104,46 +98,6 @@
     setTimeout(() => {
       suggestOpen = false;
     }, 150);
-  }
-
-  async function onUploadClick() {
-    fileInputEl?.click();
-  }
-
-  async function onFileChange(e: Event) {
-    const input = e.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    console.log("[upload] picked file:", file.name, file.size, file.type);
-    uploadError = null;
-    uploading = true;
-    try {
-      const blob = await uploadImage(file);
-      const ta = contentEl;
-      if (ta) {
-        const start = ta.selectionStart;
-        const end = ta.selectionEnd;
-        const before = draftState.content.slice(0, start);
-        const after = draftState.content.slice(end);
-        const sep = before.length > 0 && !before.endsWith("\n") ? "\n" : "";
-        const insertion = sep + blob.url + "\n";
-        draftState.content = before + insertion + after;
-        await tick();
-        ta.focus();
-        const pos = (before + insertion).length;
-        ta.setSelectionRange(pos, pos);
-      } else {
-        draftState.content =
-          (draftState.content ? draftState.content + "\n" : "") +
-          blob.url +
-          "\n";
-      }
-    } catch (err) {
-      uploadError = err instanceof Error ? err.message : "Upload failed";
-    } finally {
-      uploading = false;
-      input.value = "";
-    }
   }
 
   async function onPublish() {
@@ -309,53 +263,12 @@
       {/if}
 
       <!-- Content -->
-      <div class="flex flex-col">
-        <textarea
-          bind:this={contentEl}
-          bind:value={draftState.content}
-          disabled={draftState.publishing}
-          rows="8"
-          class="w-full rounded-t border border-gray-200 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-brand disabled:opacity-50 resize-none min-h-[12rem]"
-        ></textarea>
-        <div
-          class="flex items-center gap-4 rounded-b border border-t-0 border-gray-200 bg-gray-50 px-3 py-2 text-sm"
-        >
-          <button
-            type="button"
-            onclick={onUploadClick}
-            disabled={uploading || draftState.publishing || !BLOSSOM_URL}
-            title={!BLOSSOM_URL ? "Blossom server not configured" : ""}
-            class="inline-flex items-center gap-1.5 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="17 8 12 3 7 8" />
-              <line x1="12" y1="3" x2="12" y2="15" />
-            </svg>
-            {uploading ? "Uploading…" : "Upload image"}
-          </button>
-          {#if uploadError}
-            <span class="text-xs text-red-600">{uploadError}</span>
-          {/if}
-        </div>
-        <input
-          type="file"
-          bind:this={fileInputEl}
-          onchange={onFileChange}
-          accept="image/*"
-          class="hidden"
-        />
-      </div>
+      <MessageEditor
+        bind:value={draftState.content}
+        disabled={draftState.publishing}
+        rows={8}
+        minHeightClass="min-h-[12rem]"
+      />
 
       {#if draftState.publishError}
         <div
