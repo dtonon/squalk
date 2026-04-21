@@ -13,6 +13,7 @@
   import ThreadScrubber from "$lib/components/ThreadScrubber.svelte";
   import MessageEditor from "$lib/components/MessageEditor.svelte";
   import PostContent from "$lib/components/PostContent.svelte";
+  import Tag from "$lib/components/Tag.svelte";
   import { type NostrUser } from "@nostr/gadgets/metadata";
 
   type Author = { pubkey: string; name: string; picture?: string };
@@ -150,16 +151,24 @@
   <div class="flex gap-6 items-start">
     <div class="flex-1 min-w-0" class:pr-18={!scrubberVisible}>
       <div
-        class="sticky -top-6 bg-white z-10 pb-4 -mx-10 px-10 pt-6 -mt-6 relative"
+        class="sticky -top-6 bg-white z-10 pb-1 -mx-10 px-10 pt-6 -mt-6 relative"
       >
         <h1 class="text-[1.65rem] text-brand leading-7">{detail.title}</h1>
-        <div
-          class="absolute left-0 right-0 h-8 pointer-events-none transition-opacity duration-200"
-          style="top: 100%; opacity: {isScrolled
-            ? 1
-            : 0}; background: linear-gradient(to bottom, white, transparent);"
-        ></div>
+        {#if isScrolled}
+          <div
+            class="absolute left-0 right-0 h-8 pointer-events-none transition-opacity duration-200"
+            style="top: 100%; background: linear-gradient(to bottom, white, transparent);"
+          ></div>
+        {/if}
       </div>
+
+      {#if detail.labels.length > 0}
+        <div class="mt-1 flex flex-wrap items-center gap-1">
+          {#each detail.labels as l}
+            <Tag label={l} />
+          {/each}
+        </div>
+      {/if}
 
       <div class="pt-6 pb-6" bind:this={opEl}>
         {@render post(detail.op, () => {})}

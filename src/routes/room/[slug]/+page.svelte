@@ -22,6 +22,7 @@
     return {
       id: t.id,
       title: t.title,
+      labels: t.tags.map((tag) => tag.label),
       author: t.op.author,
       replyCount: t.replyCount,
       repliers: t.participants

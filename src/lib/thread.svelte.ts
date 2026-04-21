@@ -16,6 +16,7 @@ export type PostData = {
 type ThreadDetail = {
   id: string;
   title: string;
+  labels: string[];
   op: PostData;
   replies: PostData[];
 };
@@ -41,6 +42,7 @@ function loadMockThread(id: string) {
   detail = {
     id: t.id,
     title: t.title,
+    labels: t.tags.map((tag) => tag.label),
     op: { id: t.op.id, pubkey: t.op.author.pubkey, createdAt: toUnix(t.op.createdAt), content: t.op.content },
     replies: (t.op.replies ?? []).map((r) => ({
       id: r.id, pubkey: r.author.pubkey, createdAt: toUnix(r.createdAt), content: r.content,
@@ -77,6 +79,7 @@ export async function loadThread(id: string) {
     detail = {
       id: event.id,
       title: event.tags.find((t) => t[0] === "title")?.[1] ?? "(untitled)",
+      labels: event.tags.filter((t) => t[0] === "t" && t[1]).map((t) => t[1]),
       op: {
         id: event.id,
         pubkey: event.pubkey,
