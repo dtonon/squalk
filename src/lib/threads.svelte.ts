@@ -1,6 +1,7 @@
 import { SimplePool } from "@nostr/tools";
 import { loadNostrUser, type NostrUser } from "@nostr/gadgets/metadata";
 import { RELAY_URL, GROUP_ID } from "$lib/config";
+import { ingestNostrUser } from "$lib/profiles.svelte";
 
 export type ThreadData = {
   id: string;
@@ -26,6 +27,7 @@ async function loadProfile(pubkey: string) {
   if (profiles[pubkey]) return;
   const user = await loadNostrUser(pubkey);
   profiles[pubkey] = user;
+  ingestNostrUser(user);
 }
 
 export async function loadThreads() {

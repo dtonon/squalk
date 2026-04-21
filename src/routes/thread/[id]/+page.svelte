@@ -198,6 +198,7 @@
             disabled={replying}
             rows={4}
             placeholder="Write a reply..."
+            contextPubkeys={allPosts.map((p) => p.pubkey)}
           />
           <div class="mt-2 flex justify-end">
             <button

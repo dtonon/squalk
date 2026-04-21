@@ -9,8 +9,9 @@
   import NewDiscussionModal from "$lib/components/NewDiscussionModal.svelte";
   import { page } from "$app/state";
   import { onMount } from "svelte";
-  import { restoreSession } from "$lib/auth.svelte";
+  import { auth, restoreSession } from "$lib/auth.svelte";
   import { loadGroup } from "$lib/group.svelte";
+  import { seedProfiles } from "$lib/profiles.svelte";
   import { MODE } from "$lib/config";
 
   let { children } = $props();
@@ -18,9 +19,9 @@
   const mode = MODE;
   const chatEnabled = true;
 
-  onMount(() => {
-    restoreSession();
-    loadGroup();
+  onMount(async () => {
+    await Promise.all([restoreSession(), loadGroup()]);
+    seedProfiles(auth.user?.pubkey ?? null);
   });
 
   let chatExpanded = $state(false);

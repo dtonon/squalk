@@ -3,6 +3,7 @@ import { loadNostrUser, type NostrUser } from "@nostr/gadgets/metadata";
 import { RELAY_URL, GROUP_ID } from "$lib/config";
 import { threads as mockThreads } from "$lib/mock";
 import { auth } from "$lib/auth.svelte";
+import { ingestNostrUser } from "$lib/profiles.svelte";
 
 const isNostrId = (id: string) => /^[0-9a-f]{64}$/.test(id);
 
@@ -33,6 +34,7 @@ async function loadProfile(pubkey: string) {
   if (profiles[pubkey]) return;
   const user = await loadNostrUser(pubkey);
   profiles[pubkey] = user;
+  ingestNostrUser(user);
 }
 
 function loadMockThread(id: string) {
