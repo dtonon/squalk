@@ -1,5 +1,7 @@
 <script lang="ts">
   import { tick } from "svelte";
+  import * as nip19 from "@nostr/tools/nip19";
+  import { loadRelayList } from "@nostr/gadgets/lists";
   import { uploadImage } from "$lib/blossom";
   import { BLOSSOM_URL } from "$lib/config";
   import PostContent from "$lib/components/PostContent.svelte";
@@ -227,7 +229,22 @@
     if (!ta || mentionQuery === null) return;
     const before = value.slice(0, mentionStart);
     const after = value.slice(mentionEnd);
-    const insertion = `nostr:${entry.npub}`;
+
+    // Fetch the user's kind:10002 to embed write-relay hints in the nprofile.
+    // Cached by gadgets, so repeat selections are instant.
+    let relays: string[] = [];
+    try {
+      const list = await loadRelayList(entry.pubkey);
+      relays = list.items
+        .filter((r) => r.write)
+        .slice(0, 2)
+        .map((r) => r.url);
+    } catch {
+      // No hints — still a valid nprofile, just less robust for receivers.
+    }
+
+    const nprofile = nip19.nprofileEncode({ pubkey: entry.pubkey, relays });
+    const insertion = `nostr:${nprofile}`;
     const trailing = after.startsWith(" ") ? "" : " ";
     value = before + insertion + trailing + after;
     closeMention();
