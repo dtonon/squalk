@@ -105,6 +105,17 @@
     textareaEl?.focus();
   }
 
+  // Warm the kind:10002 cache for thread participants so relay hints are
+  // ready by publish time. Best-effort, dedup across focus events.
+  const prefetched = new Set<string>();
+  function onTextareaFocus() {
+    for (const pk of contextPubkeys) {
+      if (prefetched.has(pk)) continue;
+      prefetched.add(pk);
+      loadRelayList(pk).catch(() => {});
+    }
+  }
+
   function togglePreview() {
     previewing = !previewing;
   }
@@ -334,6 +345,7 @@
         onkeydown={onTextareaKeydown}
         onclick={onTextareaClickOrSelect}
         onkeyup={onTextareaClickOrSelect}
+        onfocus={onTextareaFocus}
         onblur={onTextareaBlur}
         aria-autocomplete="list"
         aria-controls={mentionOpen ? "mention-listbox" : undefined}

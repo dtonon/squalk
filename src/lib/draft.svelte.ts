@@ -2,6 +2,7 @@ import { SimplePool } from "@nostr/tools";
 import { auth } from "$lib/auth.svelte";
 import { withJoin } from "$lib/join.svelte";
 import { GROUP_ID, RELAY_URL } from "$lib/config";
+import { extractMentionPubkeys, buildPTagHints } from "$lib/mentions";
 
 let modalOpen = $state(false);
 let iconized = $state(false);
@@ -80,6 +81,10 @@ export async function publishDraft(): Promise<{ ok: boolean; threadId?: string }
   publishError = null;
   let threadId: string | undefined;
 
+  const ownPubkey = auth.user?.pubkey;
+  const mentionPubkeys = extractMentionPubkeys(c).filter((pk) => pk !== ownPubkey);
+  const hints = await buildPTagHints(mentionPubkeys);
+
   try {
     const success = await withJoin(async () => {
       const tags: string[][] = [
@@ -87,6 +92,10 @@ export async function publishDraft(): Promise<{ ok: boolean; threadId?: string }
         ["title", t],
       ];
       for (const l of labels) tags.push(["t", l]);
+      for (const pk of mentionPubkeys) {
+        const hint = hints.get(pk);
+        tags.push(hint ? ["p", pk, hint] : ["p", pk]);
+      }
 
       const event = await auth.signer!.signEvent({
         kind: 11,

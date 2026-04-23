@@ -4,6 +4,7 @@ import { RELAY_URL, GROUP_ID } from "$lib/config";
 import { threads as mockThreads } from "$lib/mock";
 import { auth } from "$lib/auth.svelte";
 import { ingestNostrUser } from "$lib/profiles.svelte";
+import { extractMentionPubkeys, buildPTagHints } from "$lib/mentions";
 
 const isNostrId = (id: string) => /^[0-9a-f]{64}$/.test(id);
 
@@ -112,11 +113,31 @@ export async function sendReply(content: string, ownPubkey: string) {
     .slice(-3)
     .map((p) => p.id.slice(0, 8));
 
+  // NIP-7D mandates flat-against-root, so parent === root for every reply.
+  // Build the notify set: thread participants + mentions in content, minus self.
+  const notifyPubkeys = new Set<string>();
+  notifyPubkeys.add(detail.op.pubkey);
+  for (const r of detail.replies) notifyPubkeys.add(r.pubkey);
+  for (const pk of extractMentionPubkeys(content)) notifyPubkeys.add(pk);
+  notifyPubkeys.delete(ownPubkey);
+
+  // Best-effort relay hints — cached calls return instantly, others race a timeout.
+  const hints = await buildPTagHints([...notifyPubkeys, detail.op.pubkey]);
+
+  const opHint = hints.get(detail.op.pubkey) ?? RELAY_URL;
+
   const tags: string[][] = [
     ["h", GROUP_ID],
+    ["E", detail.id, opHint, detail.op.pubkey],
     ["K", "11"],
-    ["E", detail.id, RELAY_URL, detail.op.pubkey],
+    ["P", detail.op.pubkey, opHint],
+    ["e", detail.id, opHint, detail.op.pubkey],
+    ["k", "11"],
   ];
+  for (const pk of notifyPubkeys) {
+    const hint = hints.get(pk);
+    tags.push(hint ? ["p", pk, hint] : ["p", pk]);
+  }
   if (previousRefs.length > 0) tags.push(["previous", ...previousRefs]);
 
   console.log("[reply] signing event…");
