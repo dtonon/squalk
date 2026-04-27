@@ -20,6 +20,7 @@
     placeholder?: string;
     minHeightClass?: string;
     contextPubkeys?: string[];
+    threadEventAuthors?: Record<string, string>;
   };
 
   let {
@@ -30,6 +31,7 @@
     placeholder = "",
     minHeightClass = "",
     contextPubkeys = [],
+    threadEventAuthors = {},
   }: Props = $props();
 
   let textareaEl = $state<HTMLTextAreaElement | null>(null);
@@ -101,8 +103,14 @@
     return Math.min(mentionIndex, mergedResults.length - 1);
   });
 
-  export function focus() {
-    textareaEl?.focus();
+  export function focus(opts: { caretAtEnd?: boolean } = {}) {
+    const ta = textareaEl;
+    if (!ta) return;
+    ta.focus();
+    if (opts.caretAtEnd) {
+      const pos = ta.value.length;
+      ta.setSelectionRange(pos, pos);
+    }
   }
 
   // Warm the kind:10002 cache for thread participants so relay hints are
@@ -328,7 +336,7 @@
       aria-label="Preview"
     >
       {#if value.trim()}
-        <PostContent content={value} />
+        <PostContent content={value} {threadEventAuthors} />
       {:else}
         <p class="text-gray-400 italic">Nothing to preview</p>
       {/if}

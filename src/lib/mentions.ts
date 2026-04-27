@@ -18,6 +18,32 @@ export function extractMentionPubkeys(content: string): string[] {
   return [...out];
 }
 
+export type QuotedEvent = {
+  id: string;
+  relay?: string;
+  author?: string;
+};
+
+export function extractQuotedEvents(content: string): QuotedEvent[] {
+  const re = /nostr:(note1[a-z0-9]+|nevent1[a-z0-9]+)/gi;
+  const seen = new Map<string, QuotedEvent>();
+  for (const m of content.matchAll(re)) {
+    try {
+      const decoded = nip19.decode(m[1]);
+      if (decoded.type === "note") {
+        if (!seen.has(decoded.data)) seen.set(decoded.data, { id: decoded.data });
+      } else if (decoded.type === "nevent") {
+        const { id, relays, author } = decoded.data;
+        if (!seen.has(id))
+          seen.set(id, { id, relay: relays?.[0], author });
+      }
+    } catch {
+      // Invalid bech32, skip
+    }
+  }
+  return [...seen.values()];
+}
+
 export async function relayHintFor(pubkey: string): Promise<string | undefined> {
   try {
     const TIMEOUT = Symbol();
