@@ -71,9 +71,12 @@
     const source = (selectedText ?? post.content).trim();
     if (!source) return;
     const block = formatQuoteBlock(source, ref);
-    const sep = replyContent.length > 0 && !replyContent.endsWith("\n\n")
-      ? replyContent.endsWith("\n") ? "\n" : "\n\n"
-      : "";
+    const sep =
+      replyContent.length > 0 && !replyContent.endsWith("\n\n")
+        ? replyContent.endsWith("\n")
+          ? "\n"
+          : "\n\n"
+        : "";
     replyContent = replyContent + sep + block + "\n\n";
     await tick();
     editorEl?.focus({ caretAtEnd: true });
@@ -228,11 +231,7 @@
         >
       </div>
       <div data-quote-post-index={index} id="post-{p.id}" class="scroll-mt-32">
-        <PostContent
-          content={p.content}
-          {profiles}
-          {threadEventAuthors}
-        />
+        <PostContent content={p.content} {profiles} {threadEventAuthors} />
       </div>
       <div class="flex items-center justify-between mt-3">
         <Reactions reactions={[]} zaps={0} />
@@ -303,7 +302,8 @@
             bind:this={editorEl}
             bind:value={replyContent}
             disabled={replying}
-            rows={4}
+            rows={8}
+            minHeightClass="min-h-[12rem]"
             placeholder="Write a reply..."
             contextPubkeys={allPosts.map((p) => p.pubkey)}
             {threadEventAuthors}

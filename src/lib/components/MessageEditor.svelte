@@ -357,7 +357,7 @@
         onblur={onTextareaBlur}
         aria-autocomplete="list"
         aria-controls={mentionOpen ? "mention-listbox" : undefined}
-        class="w-full rounded-t border border-gray-200 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-brand disabled:opacity-50 resize-none {minHeightClass}"
+        class="block w-full rounded-t border border-gray-200 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-brand disabled:opacity-50 resize-y {minHeightClass}"
       ></textarea>
       {#if mentionOpen}
         <div
