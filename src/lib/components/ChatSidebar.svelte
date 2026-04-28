@@ -1,5 +1,14 @@
 <script lang="ts">
-  import { chatMessages } from "$lib/mock";
+  import { tick } from "svelte";
+  import {
+    chatStore,
+    getChatMessage,
+    sendChatMessage,
+    type ChatMessageData,
+  } from "$lib/chat.svelte";
+  import { auth, openLogin } from "$lib/auth.svelte";
+  import { withJoin } from "$lib/join.svelte";
+  import type { NostrUser } from "@nostr/gadgets/metadata";
 
   type Props = {
     expanded?: boolean;
@@ -9,14 +18,103 @@
   let { expanded = false, onToggle }: Props = $props();
 
   let asideEl: HTMLElement;
+  let listEl = $state<HTMLDivElement | null>(null);
+  let inputEl = $state<HTMLTextAreaElement | null>(null);
   let openMenuId = $state<string | null>(null);
+  let replyTarget = $state<ChatMessageData | null>(null);
+  let inputValue = $state("");
+  let sending = $state(false);
+  let sendError = $state<string | null>(null);
 
-  function formatTime(iso: string) {
-    return new Date(iso).toLocaleTimeString([], {
+  const messages = $derived(chatStore.messages);
+  const profiles = $derived(chatStore.profiles);
+
+  function resolveAuthor(pubkey: string) {
+    const u: NostrUser | undefined = profiles[pubkey];
+    return {
+      name: u?.shortName ?? pubkey.slice(0, 8),
+      picture: u?.metadata?.picture,
+    };
+  }
+
+  function formatTime(ts: number) {
+    return new Date(ts * 1000).toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
     });
   }
+
+  function truncate(s: string, n = 60) {
+    const t = s.replace(/\s+/g, " ").trim();
+    return t.length > n ? t.slice(0, n) + "…" : t;
+  }
+
+  function startReply(msg: ChatMessageData) {
+    replyTarget = msg;
+    openMenuId = null;
+    tick().then(() => inputEl?.focus());
+  }
+
+  function cancelReply() {
+    replyTarget = null;
+  }
+
+  async function submit() {
+    const content = inputValue.trim();
+    if (!content) return;
+    if (!auth.user) {
+      openLogin();
+      return;
+    }
+    sending = true;
+    sendError = null;
+    const reply = replyTarget
+      ? { id: replyTarget.id, pubkey: replyTarget.pubkey }
+      : undefined;
+    try {
+      await withJoin(async () => {
+        await sendChatMessage(content, reply);
+        inputValue = "";
+        replyTarget = null;
+        userScrolledUp = false;
+        await tick();
+        if (listEl) listEl.scrollTop = listEl.scrollHeight;
+      });
+    } catch (e) {
+      sendError = e instanceof Error ? e.message : "Failed to send";
+    } finally {
+      sending = false;
+    }
+  }
+
+  function onKeydown(e: KeyboardEvent) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      submit();
+    } else if (e.key === "Escape" && replyTarget) {
+      e.preventDefault();
+      cancelReply();
+    }
+  }
+
+  // Track whether user scrolled away from the bottom to read older messages.
+  let userScrolledUp = false;
+
+  function onListScroll() {
+    if (!listEl) return;
+    const distance =
+      listEl.scrollHeight - listEl.scrollTop - listEl.clientHeight;
+    userScrolledUp = distance > 100;
+  }
+
+  // Anchor to bottom on new messages, unless user is reading older ones.
+  $effect(() => {
+    messages.length;
+    if (!listEl || userScrolledUp) return;
+    tick().then(() => {
+      if (listEl) listEl.scrollTop = listEl.scrollHeight;
+    });
+  });
 
   $effect(() => {
     if (!expanded) return;
@@ -70,83 +168,148 @@
     </button>
   </div>
 
-  <div class="flex-1 overflow-y-auto space-y-5 pb-4">
-    {#each chatMessages as msg}
-      <div>
-        <!-- Header: pfp, name, time -->
-        <div class="flex items-center gap-2 mb-1">
-          <img
-            src={msg.author.picture}
-            alt={msg.author.name}
-            class="h-6 w-6 shrink-0 rounded-full"
-          />
-          <span class="font-medium text-gray-600">{msg.author.name}</span>
-          <span class="ml-auto text-xs text-gray-400"
-            >{formatTime(msg.createdAt)}</span
-          >
-        </div>
-        <!-- Content + reactions -->
-        <div class="mt-0.5">
-          <p class=" text-gray-700 leading-5">{msg.content}</p>
-          <div class="mt-1.5 flex items-center gap-2">
-            {#each msg.reactions ?? [] as r}
-              <span class="flex items-center gap-0.5 text-xs text-gray-500">
-                {r.emoji}
-                {r.count}
-              </span>
-            {/each}
-            {#if msg.zaps}
-              <span class="flex items-center gap-0.5 text-xs text-gray-500">
-                ⚡{msg.zaps}
-              </span>
-            {/if}
-            <div class="relative ml-auto">
-              <button
-                onclick={(e) => {
-                  e.stopPropagation();
-                  openMenuId = openMenuId === msg.id ? null : msg.id;
-                }}
-                class="flex items-center justify-center rounded p-0.5 text-gray-300 hover:text-gray-500 hover:bg-gray-100 transition-colors"
-                aria-label="Message actions"
+  <div
+    bind:this={listEl}
+    onscroll={onListScroll}
+    class="flex-1 overflow-y-auto flex flex-col"
+  >
+    {#if messages.length === 0}
+      <div class="m-auto text-center text-sm text-gray-400 py-8">
+        No messages yet.
+      </div>
+    {:else}
+      <div class="mt-auto space-y-4 pb-4">
+        {#each messages as msg (msg.id)}
+          {@const author = resolveAuthor(msg.pubkey)}
+          {@const parent = msg.replyToId ? getChatMessage(msg.replyToId) : null}
+          {@const parentAuthor = parent ? resolveAuthor(parent.pubkey) : null}
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              {#if author.picture}
+                <img
+                  src={author.picture}
+                  alt=""
+                  class="h-6 w-6 shrink-0 rounded-full object-cover"
+                />
+              {:else}
+                <span
+                  class="h-6 w-6 shrink-0 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold text-gray-500"
+                >
+                  {author.name[0].toUpperCase()}
+                </span>
+              {/if}
+              <span class="font-medium text-gray-600">{author.name}</span>
+              <span class="ml-auto text-xs text-gray-400"
+                >{formatTime(msg.createdAt)}</span
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-4 w-4"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"
-                  />
-                </svg>
-              </button>
-              {#if openMenuId === msg.id}
+            </div>
+            <div class="mt-0.5">
+              {#if msg.replyToId}
                 <div
-                  class="absolute right-0 bottom-6 z-20 w-36 rounded-lg border border-gray-100 bg-white py-1 shadow-lg text-sm"
+                  class="mb-1 border-l-2 border-gray-300 pl-2 text-xs text-gray-500"
                 >
-                  <button class="w-full px-3 py-1.5 text-left hover:bg-gray-50"
-                    >React</button
-                  >
-                  <button class="w-full px-3 py-1.5 text-left hover:bg-gray-50"
-                    >Zap</button
-                  >
-                  <button class="w-full px-3 py-1.5 text-left hover:bg-gray-50"
-                    >Reply</button
-                  >
+                  {#if parent}
+                    <span class="font-medium">{parentAuthor?.name}</span>:
+                    {truncate(parent.content)}
+                  {:else}
+                    <span class="italic">Replying to a message</span>
+                  {/if}
                 </div>
               {/if}
+              <p
+                class="text-gray-700 leading-5 whitespace-pre-wrap break-words"
+              >
+                {msg.content}
+              </p>
+              <div class="mt-0.5 flex items-center gap-2">
+                <div class="relative ml-auto">
+                  <button
+                    onclick={(e) => {
+                      e.stopPropagation();
+                      openMenuId = openMenuId === msg.id ? null : msg.id;
+                    }}
+                    class="flex items-center justify-center rounded p-0.5 text-gray-300 hover:text-gray-500 hover:bg-gray-100 transition-colors"
+                    aria-label="Message actions"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-4 w-4"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"
+                      />
+                    </svg>
+                  </button>
+                  {#if openMenuId === msg.id}
+                    <div
+                      class="absolute right-0 bottom-6 z-20 w-36 rounded-lg border border-gray-100 bg-white py-1 shadow-lg text-sm"
+                    >
+                      <button
+                        disabled
+                        class="w-full px-3 py-1.5 text-left text-gray-400 cursor-not-allowed"
+                        aria-disabled="true">React</button
+                      >
+                      <button
+                        disabled
+                        class="w-full px-3 py-1.5 text-left text-gray-400 cursor-not-allowed"
+                        aria-disabled="true">Zap</button
+                      >
+                      <button
+                        onclick={(e) => {
+                          e.stopPropagation();
+                          startReply(msg);
+                        }}
+                        class="w-full px-3 py-1.5 text-left hover:bg-gray-50"
+                        >Reply</button
+                      >
+                    </div>
+                  {/if}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        {/each}
       </div>
-    {/each}
+    {/if}
   </div>
 
   <div class="border-t border-gray-200 pt-4">
-    <input
-      type="text"
-      placeholder="Message..."
-      class="w-full rounded border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand"
-    />
+    {#if replyTarget}
+      {@const replyAuthor = resolveAuthor(replyTarget.pubkey)}
+      <div
+        class="mb-2 flex items-start gap-2 rounded bg-gray-50 px-2 py-1.5 text-xs text-gray-600"
+      >
+        <div class="flex-1 min-w-0">
+          <span class="text-gray-400">↳ Reply to </span>
+          <span class="font-medium">{replyAuthor.name}</span>:
+          <span class="text-gray-500">{truncate(replyTarget.content, 80)}</span>
+        </div>
+        <button
+          onclick={cancelReply}
+          class="shrink-0 text-gray-400 hover:text-gray-600"
+          aria-label="Cancel reply"
+        >
+          ✕
+        </button>
+      </div>
+    {/if}
+    {#if sendError}
+      <div
+        class="mb-2 rounded bg-red-50 px-2 py-1.5 text-xs text-red-700 border border-red-200"
+      >
+        {sendError}
+      </div>
+    {/if}
+    <textarea
+      bind:this={inputEl}
+      bind:value={inputValue}
+      onkeydown={onKeydown}
+      rows="1"
+      disabled={sending}
+      placeholder={auth.user ? "Message..." : "Login to send messages"}
+      class="w-full resize-none rounded border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand disabled:opacity-50"
+    ></textarea>
   </div>
 </aside>

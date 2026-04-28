@@ -12,6 +12,7 @@
   import { auth, restoreSession } from "$lib/auth.svelte";
   import { loadGroup } from "$lib/group.svelte";
   import { seedProfiles } from "$lib/profiles.svelte";
+  import { startChat } from "$lib/chat.svelte";
   import { MODE } from "$lib/config";
 
   let { children } = $props();
@@ -22,6 +23,7 @@
   onMount(async () => {
     await Promise.all([restoreSession(), loadGroup()]);
     seedProfiles(auth.user?.pubkey ?? null);
+    if (chatEnabled) startChat();
   });
 
   let chatExpanded = $state(false);
