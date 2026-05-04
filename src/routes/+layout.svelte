@@ -35,7 +35,14 @@
   <link rel="icon" href={favicon} />
 </svelte:head>
 
-<div class="flex h-screen flex-col overflow-hidden max-w-[1540px] mx-auto">
+<div
+  class="flex h-screen items-center justify-center px-8 text-center text-gray-700 md:hidden"
+  role="status"
+>
+  Mobile version is coming, for now use a desktop PC
+</div>
+
+<div class="hidden h-screen flex-col overflow-hidden max-w-[1540px] mx-auto md:flex">
   <Navbar />
   <div class="relative flex flex-1 gap-5 overflow-hidden pt-2">
     <LeftSidebar {mode} {activeRoom} />
@@ -52,6 +59,8 @@
   </div>
 </div>
 
-<LoginModal />
-<JoinModal />
-<NewDiscussionModal />
+<div class="hidden md:contents">
+  <LoginModal />
+  <JoinModal />
+  <NewDiscussionModal />
+</div>
