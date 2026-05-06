@@ -138,7 +138,7 @@
 <aside
   bind:this={asideEl}
   class="absolute right-0 top-2 h-[calc(100%-0.5rem)] z-10 flex flex-col rounded-tl-xl min-[1540px]:rounded-tr-xl bg-white transition-all duration-200
-		{expanded ? 'w-150 shadow-2xl' : 'w-80'} px-6 py-6"
+		{expanded ? 'w-150 shadow-2xl' : 'w-80 shadow-lg'} px-6 py-6"
 >
   <div class="flex shrink-0 items-center justify-between mb-6">
     <span class="text-[1.5rem] text-brand leading-7">Chat</span>

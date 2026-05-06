@@ -42,11 +42,15 @@
   Mobile version is coming, for now use a desktop PC
 </div>
 
-<div class="hidden h-screen flex-col overflow-hidden max-w-[1540px] mx-auto md:flex">
+<div
+  class="hidden h-screen flex-col overflow-hidden max-w-[1540px] mx-auto md:flex"
+>
   <Navbar />
   <div class="relative flex flex-1 gap-5 overflow-hidden pt-2">
     <LeftSidebar {mode} {activeRoom} />
-    <main class="flex-1 overflow-y-auto rounded-t-xl bg-white px-10 pt-6 pb-20">
+    <main
+      class="flex-1 overflow-y-auto rounded-t-xl bg-white px-10 pt-6 pb-20 shadow-lg"
+    >
       {@render children()}
     </main>
     {#if chatEnabled}
