@@ -416,7 +416,7 @@
 {/snippet}
 
 <div
-  class="prose leading-5 max-w-none text-gray-700 [&_p]:my-3 [&_img]:my-3 [&_blockquote_p]:before:content-none [&_blockquote_p]:after:content-none"
+  class="prose leading-5 max-w-none text-gray-700 [&_p]:my-3 [&_img]:my-5 [&_blockquote_p]:before:content-none [&_blockquote_p]:after:content-none"
 >
   {#each paragraphs as blocks}
     {@render renderBlocks(blocks)}
