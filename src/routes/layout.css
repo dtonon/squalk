@@ -7,7 +7,7 @@ html {
 }
 
 body {
-  background-color: var(--color-gray-100);
+  background-color: var(--color-neutral-100);
 }
 
 .no-scrollbar {

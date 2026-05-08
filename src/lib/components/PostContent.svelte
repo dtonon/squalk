@@ -405,7 +405,7 @@
       />
     {:else if block.type === "blockquote"}
       <blockquote
-        class="my-3 pb-1 mb-0 border-l-3 border-gray-200 pl-3 text-gray-500"
+        class="my-3 pb-1 mb-0 border-l-3 border-neutral-200 pl-3 text-neutral-500"
       >
         {@render renderBlocks(block.blocks)}
       </blockquote>
@@ -416,7 +416,7 @@
 {/snippet}
 
 <div
-  class="prose leading-5 max-w-none text-gray-700 [&_p]:my-3 [&_img]:my-5 [&_blockquote_p]:before:content-none [&_blockquote_p]:after:content-none"
+  class="prose leading-5 max-w-none text-neutral-700 [&_p]:my-3 [&_img]:my-5 [&_blockquote_p]:before:content-none [&_blockquote_p]:after:content-none"
 >
   {#each paragraphs as blocks}
     {@render renderBlocks(blocks)}

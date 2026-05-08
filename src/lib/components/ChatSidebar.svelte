@@ -144,7 +144,7 @@
     <span class="text-[1.5rem] text-brand leading-7">Chat</span>
     <button
       onclick={onToggle}
-      class="rounded bg-gray-100 hover:bg-gray-200 transition-colors"
+      class="rounded bg-neutral-100 hover:bg-neutral-200 transition-colors"
       aria-label={expanded ? "Collapse chat" : "Expand chat"}
     >
       <svg
@@ -174,7 +174,7 @@
     class="flex-1 overflow-y-auto flex flex-col"
   >
     {#if messages.length === 0}
-      <div class="m-auto text-center text-sm text-gray-400 py-8">
+      <div class="m-auto text-center text-sm text-neutral-400 py-8">
         No messages yet.
       </div>
     {:else}
@@ -193,20 +193,20 @@
                 />
               {:else}
                 <span
-                  class="h-6 w-6 shrink-0 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold text-gray-500"
+                  class="h-6 w-6 shrink-0 rounded-full bg-neutral-200 flex items-center justify-center text-xs font-semibold text-neutral-500"
                 >
                   {author.name[0].toUpperCase()}
                 </span>
               {/if}
-              <span class="font-medium text-gray-600">{author.name}</span>
-              <span class="ml-auto text-xs text-gray-400"
+              <span class="font-medium text-neutral-600">{author.name}</span>
+              <span class="ml-auto text-xs text-neutral-400"
                 >{formatTime(msg.createdAt)}</span
               >
             </div>
             <div class="mt-0.5">
               {#if msg.replyToId}
                 <div
-                  class="mb-1 border-l-2 border-gray-300 pl-2 text-xs text-gray-500"
+                  class="mb-1 border-l-2 border-neutral-300 pl-2 text-xs text-neutral-500"
                 >
                   {#if parent}
                     <span class="font-medium">{parentAuthor?.name}</span>:
@@ -217,7 +217,7 @@
                 </div>
               {/if}
               <p
-                class="text-gray-700 leading-5 whitespace-pre-wrap break-words"
+                class="text-neutral-700 leading-5 whitespace-pre-wrap break-words"
               >
                 {msg.content}
               </p>
@@ -228,7 +228,7 @@
                       e.stopPropagation();
                       openMenuId = openMenuId === msg.id ? null : msg.id;
                     }}
-                    class="flex items-center justify-center rounded p-0.5 text-gray-300 hover:text-gray-500 hover:bg-gray-100 transition-colors"
+                    class="flex items-center justify-center rounded p-0.5 text-neutral-300 hover:text-neutral-500 hover:bg-neutral-100 transition-colors"
                     aria-label="Message actions"
                   >
                     <svg
@@ -244,16 +244,16 @@
                   </button>
                   {#if openMenuId === msg.id}
                     <div
-                      class="absolute right-0 bottom-6 z-20 w-36 rounded-lg border border-gray-100 bg-white py-1 shadow-lg text-sm"
+                      class="absolute right-0 bottom-6 z-20 w-36 rounded-lg border border-neutral-100 bg-white py-1 shadow-lg text-sm"
                     >
                       <button
                         disabled
-                        class="w-full px-3 py-1.5 text-left text-gray-400 cursor-not-allowed"
+                        class="w-full px-3 py-1.5 text-left text-neutral-400 cursor-not-allowed"
                         aria-disabled="true">React</button
                       >
                       <button
                         disabled
-                        class="w-full px-3 py-1.5 text-left text-gray-400 cursor-not-allowed"
+                        class="w-full px-3 py-1.5 text-left text-neutral-400 cursor-not-allowed"
                         aria-disabled="true">Zap</button
                       >
                       <button
@@ -261,7 +261,7 @@
                           e.stopPropagation();
                           startReply(msg);
                         }}
-                        class="w-full px-3 py-1.5 text-left hover:bg-gray-50"
+                        class="w-full px-3 py-1.5 text-left hover:bg-neutral-50"
                         >Reply</button
                       >
                     </div>
@@ -275,20 +275,22 @@
     {/if}
   </div>
 
-  <div class="border-t border-gray-200 pt-4">
+  <div class="border-t border-neutral-200 pt-4">
     {#if replyTarget}
       {@const replyAuthor = resolveAuthor(replyTarget.pubkey)}
       <div
-        class="mb-2 flex items-start gap-2 rounded bg-gray-50 px-2 py-1.5 text-xs text-gray-600"
+        class="mb-2 flex items-start gap-2 rounded bg-neutral-50 px-2 py-1.5 text-xs text-neutral-600"
       >
         <div class="flex-1 min-w-0">
-          <span class="text-gray-400">↳ Reply to </span>
+          <span class="text-neutral-400">↳ Reply to </span>
           <span class="font-medium">{replyAuthor.name}</span>:
-          <span class="text-gray-500">{truncate(replyTarget.content, 80)}</span>
+          <span class="text-neutral-500"
+            >{truncate(replyTarget.content, 80)}</span
+          >
         </div>
         <button
           onclick={cancelReply}
-          class="shrink-0 text-gray-400 hover:text-gray-600"
+          class="shrink-0 text-neutral-400 hover:text-neutral-600"
           aria-label="Cancel reply"
         >
           ✕
@@ -309,7 +311,7 @@
       rows="1"
       disabled={sending}
       placeholder={auth.user ? "Message..." : "Login to send messages"}
-      class="w-full resize-none rounded border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand disabled:opacity-50"
+      class="w-full resize-none rounded border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand disabled:opacity-50"
     ></textarea>
   </div>
 </aside>

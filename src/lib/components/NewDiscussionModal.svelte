@@ -139,7 +139,7 @@
       <div class="flex items-start justify-between">
         <div>
           {#if groupStore.data?.name}
-            <p class="text-sm text-gray-700">{groupStore.data.name}</p>
+            <p class="text-sm text-neutral-700">{groupStore.data.name}</p>
           {/if}
           <h2 id="newdisc-title" class="text-2xl text-brand">New discussion</h2>
         </div>
@@ -147,7 +147,7 @@
           type="button"
           onclick={iconizeDraft}
           aria-label="Minimize draft"
-          class="rounded bg-gray-50 p-1.5 text-gray-700 hover:bg-gray-100"
+          class="rounded bg-neutral-50 p-1.5 text-neutral-700 hover:bg-neutral-100"
         >
           <svg
             width="20"
@@ -169,7 +169,7 @@
       <div>
         <label
           for="newdisc-title-input"
-          class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1"
+          class="block text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-1"
         >
           Title
         </label>
@@ -180,7 +180,7 @@
           bind:value={draftState.title}
           disabled={draftState.publishing}
           maxlength="72"
-          class="w-full rounded border border-gray-200 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-brand disabled:opacity-50"
+          class="w-full rounded border border-neutral-200 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-brand disabled:opacity-50"
         />
       </div>
 
@@ -189,12 +189,12 @@
         <div class="relative">
           <label
             for="newdisc-labels-input"
-            class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1"
+            class="block text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-1"
           >
             Labels
           </label>
           <div
-            class="flex flex-wrap gap-1.5 items-center rounded border border-gray-200 px-3 py-1.5 min-h-[2.5rem] focus-within:ring-1 focus-within:ring-brand"
+            class="flex flex-wrap gap-1.5 items-center rounded border border-neutral-200 px-3 py-1.5 min-h-[2.5rem] focus-within:ring-1 focus-within:ring-brand"
           >
             {#each draftState.labels as l}
               <span
@@ -228,7 +228,7 @@
               />
               {#if suggestion}
                 <span
-                  class="pointer-events-none absolute inset-0 flex items-center text-sm text-gray-400"
+                  class="pointer-events-none absolute inset-0 flex items-center text-sm text-neutral-400"
                   aria-hidden="true"
                 >
                   <span class="invisible">{labelInput}</span><span
@@ -240,7 +240,7 @@
           </div>
           {#if suggestOpen && filtered.length > 0}
             <div
-              class="absolute left-0 right-0 z-20 mt-1 rounded border border-gray-200 bg-white shadow-lg p-3 flex flex-wrap gap-1.5"
+              class="absolute left-0 right-0 z-20 mt-1 rounded border border-neutral-200 bg-white shadow-lg p-3 flex flex-wrap gap-1.5"
             >
               {#each filtered as l}
                 <button
@@ -255,7 +255,7 @@
             </div>
           {/if}
           {#if suggestion}
-            <p class="mt-1 text-xs text-gray-400">
+            <p class="mt-1 text-xs text-neutral-400">
               Press Tab or Enter to add “{suggestion}”
             </p>
           {/if}
@@ -284,7 +284,7 @@
           type="button"
           onclick={onDiscard}
           disabled={draftState.publishing}
-          class="rounded bg-gray-700 px-5 py-1.5 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+          class="rounded bg-neutral-700 px-5 py-1.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
         >
           Discard
         </button>

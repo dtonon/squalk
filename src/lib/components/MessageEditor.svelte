@@ -332,13 +332,13 @@
 <div class="flex flex-col {previewing ? 'flex-1 min-h-0' : ''}">
   {#if previewing}
     <div
-      class="w-full rounded-t border border-gray-200 px-3 py-2 overflow-auto flex-1 min-h-0 max-h-[70vh] {minHeightClass}"
+      class="w-full rounded-t border border-neutral-200 px-3 py-2 overflow-auto flex-1 min-h-0 max-h-[70vh] {minHeightClass}"
       aria-label="Preview"
     >
       {#if value.trim()}
         <PostContent content={value} {threadEventAuthors} />
       {:else}
-        <p class="text-gray-400 italic">Nothing to preview</p>
+        <p class="text-neutral-400 italic">Nothing to preview</p>
       {/if}
     </div>
   {:else}
@@ -357,13 +357,13 @@
         onblur={onTextareaBlur}
         aria-autocomplete="list"
         aria-controls={mentionOpen ? "mention-listbox" : undefined}
-        class="block w-full rounded-t border border-gray-200 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-brand disabled:opacity-50 resize-y {minHeightClass}"
+        class="block w-full rounded-t border border-neutral-200 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-brand disabled:opacity-50 resize-y {minHeightClass}"
       ></textarea>
       {#if mentionOpen}
         <div
           id="mention-listbox"
           bind:this={listboxEl}
-          class="absolute z-30 left-0 right-0 max-h-72 overflow-auto rounded border border-gray-200 bg-white shadow-lg"
+          class="absolute z-30 left-0 right-0 max-h-72 overflow-auto rounded border border-neutral-200 bg-white shadow-lg"
           class:bottom-full={anchorAbove}
           class:mb-1={anchorAbove}
           class:top-full={!anchorAbove}
@@ -371,29 +371,31 @@
         >
           {#if mentionQuery === ""}
             <div
-              class="px-3 py-1.5 text-xs text-gray-400"
+              class="px-3 py-1.5 text-xs text-neutral-400"
               class:border-b={mergedResults.length > 0}
-              class:border-gray-100={mergedResults.length > 0}
+              class:border-neutral-100={mergedResults.length > 0}
             >
               Type to search
             </div>
           {:else if remoteSearching && mergedResults.length > 0}
             <div
-              class="px-3 py-1.5 text-xs text-gray-400 flex items-center gap-2 border-b border-gray-100"
+              class="px-3 py-1.5 text-xs text-neutral-400 flex items-center gap-2 border-b border-neutral-100"
               aria-live="polite"
             >
               <span
-                class="h-3 w-3 inline-block rounded-full border border-gray-300 border-t-gray-600 animate-spin"
+                class="h-3 w-3 inline-block rounded-full border border-neutral-300 border-t-neutral-600 animate-spin"
                 aria-hidden="true"
               ></span>
               <span>Searching…</span>
             </div>
           {/if}
           {#if mergedResults.length === 0 && mentionQuery !== ""}
-            <div class="px-3 py-2 text-xs text-gray-400 flex items-center gap-2">
+            <div
+              class="px-3 py-2 text-xs text-neutral-400 flex items-center gap-2"
+            >
               {#if remoteSearching}
                 <span
-                  class="h-3 w-3 inline-block rounded-full border border-gray-300 border-t-gray-600 animate-spin"
+                  class="h-3 w-3 inline-block rounded-full border border-neutral-300 border-t-neutral-600 animate-spin"
                   aria-hidden="true"
                 ></span>
                 <span>Searching…</span>
@@ -408,7 +410,7 @@
                   role="option"
                   aria-selected={i === safeMentionIndex}
                   class="flex items-center gap-2 px-3 py-1.5 cursor-pointer text-sm"
-                  class:bg-gray-100={i === safeMentionIndex}
+                  class:bg-neutral-100={i === safeMentionIndex}
                   onmousedown={(e) => {
                     e.preventDefault();
                     selectMention(entry);
@@ -426,17 +428,17 @@
                     />
                   {:else}
                     <span
-                      class="h-6 w-6 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-500 flex-shrink-0"
+                      class="h-6 w-6 rounded-full bg-neutral-200 flex items-center justify-center text-xs text-neutral-500 flex-shrink-0"
                       aria-hidden="true"
                     >
                       {profileLabel(entry)[0]?.toUpperCase() ?? "?"}
                     </span>
                   {/if}
-                  <span class="font-medium text-gray-700 truncate">
+                  <span class="font-medium text-neutral-700 truncate">
                     {profileLabel(entry)}
                   </span>
                   {#if profileSubLabel(entry)}
-                    <span class="text-xs text-gray-400 truncate">
+                    <span class="text-xs text-neutral-400 truncate">
                       {profileSubLabel(entry)}
                     </span>
                   {/if}
@@ -449,14 +451,14 @@
     </div>
   {/if}
   <div
-    class="flex flex-shrink-0 items-center gap-4 rounded-b border border-t-0 border-gray-200 bg-gray-50 px-3 py-2 text-sm"
+    class="flex flex-shrink-0 items-center gap-4 rounded-b border border-t-0 border-neutral-200 bg-neutral-50 px-3 py-2 text-sm"
   >
     <button
       type="button"
       onclick={onUploadClick}
       disabled={uploading || disabled || previewing || !BLOSSOM_URL}
       title={!BLOSSOM_URL ? "Blossom server not configured" : ""}
-      class="inline-flex items-center gap-1.5 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+      class="inline-flex items-center gap-1.5 text-neutral-600 hover:text-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed"
     >
       <svg
         width="16"
@@ -483,7 +485,7 @@
       onclick={togglePreview}
       disabled={disabled || uploading}
       aria-pressed={previewing}
-      class="ml-auto inline-flex items-center gap-1.5 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+      class="ml-auto inline-flex items-center gap-1.5 text-neutral-600 hover:text-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed"
     >
       <svg
         width="16"

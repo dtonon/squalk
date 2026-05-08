@@ -12,10 +12,10 @@
 <div class="flex flex-wrap items-center gap-1.5">
   {#each reactions as r}
     <button
-      class="flex items-center gap-1 rounded-full border border-gray-200 px-2 py-0.5 text-xs hover:bg-gray-50"
+      class="flex items-center gap-1 rounded-full border border-neutral-200 px-2 py-0.5 text-xs hover:bg-neutral-50"
     >
       <span>{r.emoji}</span>
-      <span class="text-gray-600">{r.count}</span>
+      <span class="text-neutral-600">{r.count}</span>
     </button>
   {/each}
   {#if zaps > 0}

@@ -149,7 +149,7 @@
 >
   <!-- First post date -->
   <div
-    class="text-xs text-gray-300 mb-1 text-right leading-tight whitespace-pre"
+    class="text-xs text-neutral-300 mb-1 text-right leading-tight whitespace-pre"
   >
     {firstPost ? formatDate(firstPost.createdAt) : ""}
   </div>
@@ -169,7 +169,7 @@
 
     <!-- Thumb -->
     <div
-      class="absolute rounded-full bg-brand hover:bg-gray-800 transition-colors cursor-grab active:cursor-grabbing touch-none"
+      class="absolute rounded-full bg-brand hover:bg-neutral-800 transition-colors cursor-grab active:cursor-grabbing touch-none"
       style="width: 4px; right: 3px; top: {thumbTop}px; height: {thumbHeight}px;"
       onpointerdown={onThumbPointerDown}
       onpointermove={onThumbPointerMove}
@@ -190,7 +190,7 @@
 
   <!-- Last post date -->
   <div
-    class="text-xs text-gray-300 mt-1 text-right leading-tight whitespace-pre"
+    class="text-xs text-neutral-300 mt-1 text-right leading-tight whitespace-pre"
   >
     {lastPost ? formatDate(lastPost.createdAt) : ""}
   </div>

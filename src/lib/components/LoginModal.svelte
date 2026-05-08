@@ -97,12 +97,12 @@
         type="button"
         onclick={onClose}
         aria-label="Close"
-        class="absolute right-3 top-3 text-2xl leading-none text-gray-400 hover:text-gray-700"
+        class="absolute right-3 top-3 text-2xl leading-none text-neutral-400 hover:text-neutral-700"
       >
         ×
       </button>
 
-      <h2 id="login-title" class="mb-4 text-lg font-semibold text-gray-900">
+      <h2 id="login-title" class="mb-4 text-lg font-semibold text-neutral-900">
         {view === "extension" ? "Log in" : "Log in with nsec"}
       </h2>
 
@@ -124,7 +124,7 @@
           {busy ? "Connecting…" : "Log in with extension"}
         </button>
         {#if !hasExtension}
-          <p class="mt-2 text-xs text-gray-500">
+          <p class="mt-2 text-xs text-neutral-500">
             No Nostr extension detected in this browser.
           </p>
         {/if}
@@ -149,7 +149,7 @@
           autocorrect="off"
           spellcheck="false"
           onkeydown={(e) => e.key === "Enter" && handleNsec()}
-          class="w-full rounded border border-gray-200 px-3 py-2 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-brand disabled:opacity-50"
+          class="w-full rounded border border-neutral-200 px-3 py-2 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-brand disabled:opacity-50"
         />
         <button
           onclick={handleNsec}
@@ -158,7 +158,7 @@
         >
           {busy ? "Logging in…" : "Log in"}
         </button>
-        <p class="mt-2 text-xs text-gray-500">
+        <p class="mt-2 text-xs text-neutral-500">
           Your key is kept in this browser. Use only for testing.
         </p>
         <button

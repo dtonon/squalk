@@ -47,15 +47,15 @@
         onclick={onClose}
         aria-label="Close"
         disabled={joinState.busy}
-        class="absolute right-3 top-3 text-2xl leading-none text-gray-400 hover:text-gray-700 disabled:opacity-50"
+        class="absolute right-3 top-3 text-2xl leading-none text-neutral-400 hover:text-neutral-700 disabled:opacity-50"
       >
         ×
       </button>
 
-      <h2 id="join-title" class="mb-2 text-lg font-semibold text-gray-900">
+      <h2 id="join-title" class="mb-2 text-lg font-semibold text-neutral-900">
         Join this group
       </h2>
-      <p class="mb-4 text-sm text-gray-600">
+      <p class="mb-4 text-sm text-neutral-600">
         {#if joinState.codeRequired}
           This community requires an invite code. Enter your code below to
           request access. If you don't have one, contact the admin.
@@ -87,7 +87,7 @@
           autocapitalize="off"
           spellcheck="false"
           onkeydown={(e) => e.key === "Enter" && onRetry()}
-          class="mb-3 w-full rounded border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand disabled:opacity-50"
+          class="mb-3 w-full rounded border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand disabled:opacity-50"
         />
       {/if}
 
@@ -96,15 +96,14 @@
           type="button"
           onclick={onClose}
           disabled={joinState.busy}
-          class="rounded px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+          class="rounded px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100 disabled:opacity-50"
         >
           Close
         </button>
         <button
           type="button"
           onclick={onRetry}
-          disabled={joinState.busy ||
-            (joinState.codeRequired && !code.trim())}
+          disabled={joinState.busy || (joinState.codeRequired && !code.trim())}
           class="rounded bg-brand px-3 py-2 text-sm font-medium text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
           {joinState.busy ? "Trying…" : "Retry"}

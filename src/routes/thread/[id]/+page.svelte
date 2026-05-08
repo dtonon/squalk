@@ -206,7 +206,7 @@
     />
   {:else}
     <span
-      class="w-12 h-12 flex items-center justify-center rounded-full bg-gray-200 text-lg font-semibold text-gray-500"
+      class="w-12 h-12 flex items-center justify-center rounded-full bg-neutral-200 text-lg font-semibold text-neutral-500"
     >
       {author.name[0].toUpperCase()}
     </span>
@@ -225,8 +225,8 @@
     </div>
     <div class="flex-1 min-w-0">
       <div class="flex items-baseline justify-between mb-2">
-        <span class="font-medium text-gray-600">{author.name}</span>
-        <span class="text-sm text-gray-400 ml-4 flex-shrink-0"
+        <span class="font-medium text-neutral-600">{author.name}</span>
+        <span class="text-sm text-neutral-400 ml-4 flex-shrink-0"
           >{formatDate(p.createdAt)}</span
         >
       </div>
@@ -236,7 +236,7 @@
       <div class="flex items-center justify-between mt-3">
         <Reactions reactions={[]} zaps={0} />
         <div
-          class="flex items-center gap-4 text-sm text-gray-400 flex-shrink-0"
+          class="flex items-center gap-4 text-sm text-neutral-400 flex-shrink-0"
         >
           <button
             onclick={() => quotePost(p)}
@@ -280,7 +280,7 @@
       </div>
 
       {#if detail.replies.length > 0}
-        <div class="divide-y divide-gray-100 border-t border-gray-100">
+        <div class="divide-y divide-neutral-100 border-t border-neutral-100">
           {#each detail.replies as reply, i}
             <div class="py-6" bind:this={replyEls[i]}>
               {@render post(reply, i + 1, () => {})}
@@ -289,7 +289,7 @@
         </div>
       {/if}
 
-      <div class="mt-8 border-t border-gray-200 pt-6 pl-18">
+      <div class="mt-8 border-t border-neutral-200 pt-6 pl-18">
         {#if auth.user}
           {#if replyError}
             <div
@@ -318,7 +318,7 @@
             </button>
           </div>
         {:else}
-          <p class=" text-gray-500 text-center">
+          <p class=" text-neutral-500 text-center">
             To participate and reply, please
             <button onclick={openLogin} class="text-brand hover:underline"
               >login now</button
@@ -336,7 +336,7 @@
     />
   </div>
 {:else}
-  <div class="py-12 text-center text-gray-400">Loading…</div>
+  <div class="py-12 text-center text-neutral-400">Loading…</div>
 {/if}
 
 {#if selectionTarget && auth.user}
@@ -345,7 +345,7 @@
     onmousedown={(e) => e.preventDefault()}
     onclick={quoteFromSelection}
     style="top: {selectionTarget.top}px; left: {selectionTarget.left}px;"
-    class="fixed -translate-x-1/2 -translate-y-full z-50 rounded bg-gray-900 px-3 py-1 text-xs font-medium text-white shadow-md hover:bg-gray-700"
+    class="fixed -translate-x-1/2 -translate-y-full z-50 rounded bg-neutral-900 px-3 py-1 text-xs font-medium text-white shadow-md hover:bg-neutral-700"
   >
     Quote
   </button>
