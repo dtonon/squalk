@@ -163,13 +163,13 @@
   >
     <!-- Track line -->
     <div
-      class="absolute top-0 bottom-0 rounded-full bg-brand"
+      class="absolute top-0 bottom-0 rounded-full bg-neutral-400"
       style="width: 2px; right: 4px;"
     ></div>
 
     <!-- Thumb -->
     <div
-      class="absolute rounded-full bg-brand hover:bg-neutral-800 transition-colors cursor-grab active:cursor-grabbing touch-none"
+      class="absolute rounded-full bg-brand hover:bg-neutral-600 transition-colors cursor-grab active:cursor-grabbing touch-none"
       style="width: 4px; right: 3px; top: {thumbTop}px; height: {thumbHeight}px;"
       onpointerdown={onThumbPointerDown}
       onpointermove={onThumbPointerMove}
@@ -180,7 +180,7 @@
 
     <!-- Current date label -->
     <div
-      class="absolute text-xs text-brand whitespace-nowrap pointer-events-none leading-tight"
+      class="absolute text-xs text-neutral-400 whitespace-nowrap pointer-events-none leading-tight"
       style="right: 18px; top: {thumbTop +
         thumbHeight / 2}px; transform: translateY(-50%);"
     >
