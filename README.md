@@ -1,22 +1,18 @@
-# sv
+# Squalk
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+**Warning: work in progress, early alpha state!**
 
-## Creating a project
+Squalk is a forum built on Nostr that permits to manage simple or large communities; in fact you can choose to setup it in "simple" or "full" mode. Simple mode expose a single forum, while in Full mode you can have as many forum as you like.  
+Each forum includes a chat feature in the right-hand sidebar, which is useful for quickly interacting with members.
 
-If you're seeing this, you've probably already done this step. Congrats!
+![](assets/screenshot01.png)
 
-```sh
-# create a new project
-npx sv create my-app
-```
+![](assets/screenshot02.png)
 
-To recreate this project with the same configuration:
+## Tech stack
 
-```sh
-# recreate this project
-npx sv@0.15.2 create --template minimal --types ts --add prettier eslint tailwindcss="plugins:typography,forms" --install npm squalk
-```
+Squalk is built on Nostr and implement [NIP-29](https://github.com/nostr-protocol/nips/blob/master/29.md) and [NIP-7D](https://github.com/nostr-protocol/nips/blob/master/7D.md).  
+It needs a personal relay that supports NIP-29 to host the group(s) and a Blossom server for the uploads; [Pyramid](https://github.com/fiatjaf/pyramid) includes both and is the suggested solution.
 
 ## Developing
 
