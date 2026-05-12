@@ -36,6 +36,11 @@ export function openDraft() {
 }
 
 export function iconizeDraft() {
+  // If nothing was entered, fully close instead of showing the resume pill
+  if (!draftState.hasDraft) {
+    discardDraft();
+    return;
+  }
   modalOpen = false;
   iconized = true;
 }
