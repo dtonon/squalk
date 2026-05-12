@@ -171,7 +171,7 @@
   <div
     bind:this={listEl}
     onscroll={onListScroll}
-    class="flex-1 overflow-y-auto flex flex-col"
+    class="flex-1 overflow-y-auto flex flex-col -mr-6 pr-6"
   >
     {#if messages.length === 0}
       <div class="m-auto text-center text-sm text-neutral-400 py-8">
