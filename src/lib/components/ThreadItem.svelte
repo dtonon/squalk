@@ -16,7 +16,6 @@
     repliers: Author[];
     lastActiveAuthor: Author;
     lastActivity: string;
-    score: number;
   };
 
   type Props = { thread: ThreadRow };
@@ -71,16 +70,11 @@
     </div>
   </div>
 
-  <!-- Col 3: replies | score | activity -->
+  <!-- Col 3: replies | activity -->
   <div class="flex shrink-0 items-center gap-6">
     <div class="flex flex-col items-center gap-0.5">
       <span class="text-neutral-800">{thread.replyCount}</span>
       <span class="text-sm text-neutral-400">replies</span>
-    </div>
-
-    <div class="flex flex-col items-center gap-0.5">
-      <span class="text-accent">{thread.score}</span>
-      <span class="text-sm text-neutral-400">score</span>
     </div>
 
     <div class="flex flex-col items-center gap-0.5">

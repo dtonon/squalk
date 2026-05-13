@@ -30,7 +30,6 @@
         .slice(0, 4),
       lastActiveAuthor: t.participants[t.participants.length - 1],
       lastActivity: t.lastActivity,
-      score: t.op.reactions.reduce((s, r) => s + r.count, 0) + t.op.zaps,
     };
   }
 

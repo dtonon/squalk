@@ -11,7 +11,6 @@
   import { auth, openLogin } from "$lib/auth.svelte";
   import { withJoin } from "$lib/join.svelte";
   import { RELAY_URL } from "$lib/config";
-  import Reactions from "$lib/components/Reactions.svelte";
   import ThreadScrubber from "$lib/components/ThreadScrubber.svelte";
   import MessageEditor from "$lib/components/MessageEditor.svelte";
   import PostContent from "$lib/components/PostContent.svelte";
@@ -224,8 +223,8 @@
       {@render avatar(author)}
     </div>
     <div class="flex-1 min-w-0">
-      <div class="flex items-baseline justify-between mb-2">
-        <span class="font-medium text-neutral-600">{author.name}</span>
+      <div class="flex items-baseline justify-between mb-3">
+        <span class="font-medium text-neutral-400">{author.name}</span>
         <span class="text-sm text-neutral-400 ml-4 flex-shrink-0"
           >{formatDate(p.createdAt)}</span
         >
@@ -233,20 +232,27 @@
       <div data-quote-post-index={index} id="post-{p.id}" class="scroll-mt-32">
         <PostContent content={p.content} {profiles} {threadEventAuthors} />
       </div>
-      <div class="flex items-center justify-between mt-3">
-        <Reactions reactions={[]} zaps={0} />
-        <div
-          class="flex items-center gap-4 text-sm text-neutral-400 flex-shrink-0"
+      <div class="flex items-center justify-start mt-6">
+        <button
+          onclick={() => quotePost(p)}
+          disabled={!auth.user}
+          class="flex items-center gap-1.5 text-neutral-300 cursor-pointer hover:text-brand transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <button
-            onclick={() => quotePost(p)}
-            disabled={!auth.user}
-            class="cursor-pointer hover:text-brand transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >Quote</button
+          <span>Quote post</span>
+          <svg
+            class="w-3"
+            viewBox="0 0 800 800"
+            version="1.1"
+            xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            xml:space="preserve"
+            style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;"
+            ><path
+              d="M101.286,748.313l199.143,0c109.981,0 199.142,-89.161 199.142,-199.142l0,-497.856m0,-0l199.143,199.142m-199.143,-199.142l-199.142,199.142"
+              style="fill:none;fill-rule:nonzero;stroke:currentColor;stroke-width:99.57px;"
+            /></svg
           >
-          <button class="hover:text-brand transition-colors">React</button>
-          <button class="hover:text-amber-500 transition-colors">⚡ Zap</button>
-        </div>
+        </button>
       </div>
     </div>
   </div>

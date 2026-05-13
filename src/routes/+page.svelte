@@ -55,7 +55,6 @@
       repliers: t.replierPubkeys.map((pk) => resolveAuthor(pk, profiles)),
       lastActiveAuthor: resolveAuthor(t.latestPubkey, profiles),
       lastActivity: relativeTime(t.latestAt),
-      score: 0,
     };
   }
 

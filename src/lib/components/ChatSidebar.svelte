@@ -247,16 +247,6 @@
                       class="absolute right-0 bottom-6 z-20 w-36 rounded-lg border border-neutral-100 bg-white py-1 shadow-lg text-sm"
                     >
                       <button
-                        disabled
-                        class="w-full px-3 py-1.5 text-left text-neutral-400 cursor-not-allowed"
-                        aria-disabled="true">React</button
-                      >
-                      <button
-                        disabled
-                        class="w-full px-3 py-1.5 text-left text-neutral-400 cursor-not-allowed"
-                        aria-disabled="true">Zap</button
-                      >
-                      <button
                         onclick={(e) => {
                           e.stopPropagation();
                           startReply(msg);
