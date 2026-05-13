@@ -3,6 +3,7 @@ import { loadNostrUser, type NostrUser } from "@nostr/gadgets/metadata";
 import { RELAY_URL, GROUP_ID } from "$lib/config";
 import { auth } from "$lib/auth.svelte";
 import { ingestNostrUser } from "$lib/profiles.svelte";
+import { extractMentionPubkeys, buildPTagHints } from "$lib/mentions";
 
 export type ChatMessageData = {
   id: string;
@@ -114,10 +115,21 @@ export async function sendChatMessage(
     .slice(-3)
     .map((m) => m.id.slice(0, 8));
 
+  const notifyPubkeys = new Set<string>();
+  for (const pk of extractMentionPubkeys(content)) notifyPubkeys.add(pk);
+  if (replyTo && replyTo.pubkey !== ownPubkey)
+    notifyPubkeys.add(replyTo.pubkey);
+  notifyPubkeys.delete(ownPubkey);
+
+  const hints = await buildPTagHints(notifyPubkeys);
+
   const tags: string[][] = [["h", GROUP_ID]];
   if (replyTo) {
     tags.push(["q", replyTo.id, RELAY_URL, replyTo.pubkey]);
-    if (replyTo.pubkey !== ownPubkey) tags.push(["p", replyTo.pubkey]);
+  }
+  for (const pk of notifyPubkeys) {
+    const hint = hints.get(pk);
+    tags.push(hint ? ["p", pk, hint] : ["p", pk]);
   }
   if (previousRefs.length > 0) tags.push(["previous", ...previousRefs]);
 

@@ -9,6 +9,8 @@
   import { auth, openLogin } from "$lib/auth.svelte";
   import { withJoin } from "$lib/join.svelte";
   import type { NostrUser } from "@nostr/gadgets/metadata";
+  import MentionAutocomplete from "$lib/components/MentionAutocomplete.svelte";
+  import ChatContent from "$lib/components/ChatContent.svelte";
 
   type Props = {
     expanded?: boolean;
@@ -19,7 +21,7 @@
 
   let asideEl: HTMLElement;
   let listEl = $state<HTMLDivElement | null>(null);
-  let inputEl = $state<HTMLTextAreaElement | null>(null);
+  let inputEl = $state<MentionAutocomplete | null>(null);
   let openMenuId = $state<string | null>(null);
   let replyTarget = $state<ChatMessageData | null>(null);
   let inputValue = $state("");
@@ -28,6 +30,9 @@
 
   const messages = $derived(chatStore.messages);
   const profiles = $derived(chatStore.profiles);
+
+  // Distinct authors of loaded messages — power the @ autocomplete context.
+  const contextPubkeys = $derived([...new Set(messages.map((m) => m.pubkey))]);
 
   function resolveAuthor(pubkey: string) {
     const u: NostrUser | undefined = profiles[pubkey];
@@ -45,7 +50,9 @@
   }
 
   function truncate(s: string, n = 60) {
-    const t = s.replace(/\s+/g, " ").trim();
+    // Collapse mentions to @… so the preview stays readable.
+    const stripped = s.replace(/nostr:(?:npub1|nprofile1)[a-z0-9]+/gi, "@…");
+    const t = stripped.replace(/\s+/g, " ").trim();
     return t.length > n ? t.slice(0, n) + "…" : t;
   }
 
@@ -137,14 +144,14 @@
 
 <aside
   bind:this={asideEl}
-  class="absolute right-0 top-2 h-[calc(100%-0.5rem)] z-10 flex flex-col rounded-tl-xl min-[1540px]:rounded-tr-xl bg-white transition-all duration-200
+  class="absolute top-2 right-0 z-10 flex h-[calc(100%-0.5rem)] flex-col rounded-tl-xl bg-white transition-all duration-200 min-[1540px]:rounded-tr-xl
 		{expanded ? 'w-150 shadow-2xl' : 'w-80 shadow-lg'} px-6 py-6"
 >
-  <div class="flex shrink-0 items-center justify-between mb-6">
-    <span class="text-[1.5rem] text-brand leading-7">Chat</span>
+  <div class="mb-6 flex shrink-0 items-center justify-between">
+    <span class="text-brand text-[1.5rem] leading-7">Chat</span>
     <button
       onclick={onToggle}
-      class="rounded bg-neutral-100 hover:bg-neutral-200 transition-colors"
+      class="rounded bg-neutral-100 transition-colors hover:bg-neutral-200"
       aria-label={expanded ? "Collapse chat" : "Expand chat"}
     >
       <svg
@@ -171,10 +178,10 @@
   <div
     bind:this={listEl}
     onscroll={onListScroll}
-    class="flex-1 overflow-y-auto flex flex-col -mr-6 pr-6"
+    class="-mr-6 flex flex-1 flex-col overflow-y-auto pr-6"
   >
     {#if messages.length === 0}
-      <div class="m-auto text-center text-sm text-neutral-400 py-8">
+      <div class="m-auto py-8 text-center text-sm text-neutral-400">
         No messages yet.
       </div>
     {:else}
@@ -184,7 +191,7 @@
           {@const parent = msg.replyToId ? getChatMessage(msg.replyToId) : null}
           {@const parentAuthor = parent ? resolveAuthor(parent.pubkey) : null}
           <div>
-            <div class="flex items-center gap-2 mb-1">
+            <div class="mb-1 flex items-center gap-2">
               {#if author.picture}
                 <img
                   src={author.picture}
@@ -193,7 +200,7 @@
                 />
               {:else}
                 <span
-                  class="h-6 w-6 shrink-0 rounded-full bg-neutral-200 flex items-center justify-center text-xs font-semibold text-neutral-500"
+                  class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-xs font-semibold text-neutral-500"
                 >
                   {author.name[0].toUpperCase()}
                 </span>
@@ -216,10 +223,8 @@
                   {/if}
                 </div>
               {/if}
-              <p
-                class="text-neutral-700 leading-5 whitespace-pre-wrap break-words"
-              >
-                {msg.content}
+              <p class="leading-5 text-neutral-700">
+                <ChatContent content={msg.content} {profiles} />
               </p>
               <div class="mt-0.5 flex items-center gap-2">
                 <div class="relative ml-auto">
@@ -228,7 +233,7 @@
                       e.stopPropagation();
                       openMenuId = openMenuId === msg.id ? null : msg.id;
                     }}
-                    class="flex items-center justify-center rounded p-0.5 text-neutral-300 hover:text-neutral-500 hover:bg-neutral-100 transition-colors"
+                    class="flex items-center justify-center rounded p-0.5 text-neutral-300 transition-colors hover:bg-neutral-100 hover:text-neutral-500"
                     aria-label="Message actions"
                   >
                     <svg
@@ -244,7 +249,7 @@
                   </button>
                   {#if openMenuId === msg.id}
                     <div
-                      class="absolute right-0 bottom-6 z-20 w-36 rounded-lg border border-neutral-100 bg-white py-1 shadow-lg text-sm"
+                      class="absolute right-0 bottom-6 z-20 w-36 rounded-lg border border-neutral-100 bg-white py-1 text-sm shadow-lg"
                     >
                       <button
                         onclick={(e) => {
@@ -271,7 +276,7 @@
       <div
         class="mb-2 flex items-start gap-2 rounded bg-neutral-50 px-2 py-1.5 text-xs text-neutral-600"
       >
-        <div class="flex-1 min-w-0">
+        <div class="min-w-0 flex-1">
           <span class="text-neutral-400">↳ Reply to </span>
           <span class="font-medium">{replyAuthor.name}</span>:
           <span class="text-neutral-500"
@@ -289,19 +294,20 @@
     {/if}
     {#if sendError}
       <div
-        class="mb-2 rounded bg-red-50 px-2 py-1.5 text-xs text-red-700 border border-red-200"
+        class="mb-2 rounded border border-red-200 bg-red-50 px-2 py-1.5 text-xs text-red-700"
       >
         {sendError}
       </div>
     {/if}
-    <textarea
+    <MentionAutocomplete
       bind:this={inputEl}
       bind:value={inputValue}
       onkeydown={onKeydown}
-      rows="1"
+      rows={1}
       disabled={sending}
       placeholder={auth.user ? "Message..." : "Login to send messages"}
-      class="w-full resize-none rounded border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand disabled:opacity-50"
-    ></textarea>
+      {contextPubkeys}
+      textareaClass="w-full resize-none rounded border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand disabled:opacity-50"
+    />
   </div>
 </aside>
