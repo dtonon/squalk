@@ -9,6 +9,8 @@ const PAGE_SIZE = 30;
 const WALK_LIMIT = 150; // Events per walk query (~5x PAGE_SIZE)
 const WALK_MAX_ITERS = 12;
 
+export type SortMode = "active" | "new";
+
 export type ThreadData = {
   id: string;
   title: string;
@@ -27,8 +29,10 @@ let exhausted = $state(false);
 let loading = $state(false);
 let loadingMore = $state(false);
 
-let cursor: number | null = null; // latestAt of the last loaded thread
+let sortMode: SortMode = "active";
+let cursor: number | null = null; // sort-key value of the last loaded thread
 let snapshotAt = 0; // upper time bound, frozen at initial load
+let reqId = 0; // supersedes in-flight loads when the sort/group changes
 
 export const threadStore = {
   get threads() {
@@ -138,6 +142,38 @@ async function fetchActivitySlice(
   return { items, nextCursor, done };
 }
 
+// Chronological-by-creation slice: just OPs ordered by created_at. No reply
+// data is needed to order them (stable cursor), keeping the path cheap; reply
+// counts are still attached later via enrichment.
+async function fetchNewSlice(
+  relay: Relay,
+  groupId: string,
+  until: number,
+  exclude: Set<string>,
+  n: number,
+): Promise<{ items: SliceItem[]; nextCursor: number | null; done: boolean }> {
+  const ops = await querySync(relay, {
+    kinds: [11],
+    "#h": [groupId],
+    until,
+    limit: n + 10, // headroom for boundary OPs re-read at the inclusive cursor
+  });
+  ops.sort((a, b) => b.created_at - a.created_at);
+  const fresh = ops.filter((e) => !exclude.has(e.id));
+  const slice = fresh.slice(0, n);
+
+  const items: SliceItem[] = slice.map((op) => ({
+    id: op.id,
+    latestAt: op.created_at,
+    latestPubkey: op.pubkey,
+    op,
+  }));
+  const done = ops.length < n + 10;
+  const last = slice[slice.length - 1] ?? ops[ops.length - 1];
+  const nextCursor = last ? last.created_at : null;
+  return { items, nextCursor, done };
+}
+
 // Reply enrichment (exact counts + sampled repliers), bounded by the frozen
 // snapshot. Isolated so the future creation-by-date view can skip it entirely.
 async function enrichWithReplies(
@@ -218,23 +254,26 @@ async function buildThreads(
   return out;
 }
 
-async function fetchInto(append: boolean, groupId: string) {
+async function runLoad(append: boolean, groupId: string) {
+  const id = ++reqId;
+  if (append) loadingMore = true;
+  else loading = true;
+
   const relay = await Relay.connect(RELAY_URL);
   try {
     const until = append ? (cursor ?? snapshotAt) : snapshotAt;
     const exclude = new Set(threads.map((t) => t.id));
-    const { items, nextCursor, done } = await fetchActivitySlice(
-      relay,
-      groupId,
-      until,
-      exclude,
-      PAGE_SIZE,
-    );
-    const built = await buildThreads(relay, groupId, items);
+    const slice =
+      sortMode === "new"
+        ? await fetchNewSlice(relay, groupId, until, exclude, PAGE_SIZE)
+        : await fetchActivitySlice(relay, groupId, until, exclude, PAGE_SIZE);
+    const built = await buildThreads(relay, groupId, slice.items);
+
+    if (id !== reqId) return; // Superseded by a newer load — discard results
 
     threads = append ? [...threads, ...built] : built;
-    cursor = nextCursor ?? cursor;
-    exhausted = done || built.length === 0;
+    cursor = slice.nextCursor ?? cursor;
+    exhausted = slice.done || built.length === 0;
 
     for (const t of built) {
       loadProfile(t.authorPubkey);
@@ -243,29 +282,23 @@ async function fetchInto(append: boolean, groupId: string) {
     }
   } finally {
     relay.close();
+    if (id === reqId) {
+      if (append) loadingMore = false;
+      else loading = false;
+    }
   }
 }
 
-export async function loadThreads(groupId: string) {
-  if (loading) return;
-  loading = true;
+export async function loadThreads(groupId: string, sort: SortMode = "active") {
+  sortMode = sort;
   threads = [];
   cursor = null;
   exhausted = false;
   snapshotAt = Math.floor(Date.now() / 1000);
-  try {
-    await fetchInto(false, groupId);
-  } finally {
-    loading = false;
-  }
+  await runLoad(false, groupId);
 }
 
 export async function loadMore(groupId: string) {
   if (loading || loadingMore || exhausted) return;
-  loadingMore = true;
-  try {
-    await fetchInto(true, groupId);
-  } finally {
-    loadingMore = false;
-  }
+  await runLoad(true, groupId);
 }

@@ -1,21 +1,41 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import {
     threadStore,
     loadThreads,
     loadMore,
     type ThreadData,
+    type SortMode,
   } from "$lib/threads.svelte";
   import ThreadItem, {
     type ThreadRow,
     type Author,
   } from "$lib/components/ThreadItem.svelte";
+  import SortToggle from "$lib/components/SortToggle.svelte";
   import type { NostrUser } from "@nostr/gadgets/metadata";
   import { auth, openLogin } from "$lib/auth.svelte";
   import { openDraft } from "$lib/draft.svelte";
   import { GROUP_ID } from "$lib/config";
+  import { sortPref } from "$lib/sort.svelte";
+  import { page } from "$app/state";
 
-  onMount(() => loadThreads(GROUP_ID));
+  function parseSort(v: string | null): SortMode | null {
+    return v === "new" ? "new" : v === "active" ? "active" : null;
+  }
+
+  // URL param is the explicit override; otherwise fall back to the saved
+  // preference so the sort survives Home/room navigation.
+  const urlSort = $derived(parseSort(page.url.searchParams.get("sort")));
+  const sort = $derived<SortMode>(urlSort ?? sortPref.value);
+
+  // Remember any explicit choice that arrives via the URL.
+  $effect(() => {
+    if (urlSort) sortPref.value = urlSort;
+  });
+
+  // Re-runs on mount and whenever the effective sort changes.
+  $effect(() => {
+    loadThreads(GROUP_ID, sort);
+  });
 
   function onNewTopic() {
     if (!auth.user) {
@@ -72,12 +92,15 @@
 <div class="mx-auto max-w-6xl">
   <div class="flex items-center justify-between py-2">
     <h1 class="text-[1.65rem] text-brand">Discussions</h1>
-    <button
-      onclick={onNewTopic}
-      class="rounded bg-brand px-6 py-1.5 text-sm font-medium text-white hover:bg-brand-hover"
-    >
-      New Topic
-    </button>
+    <div class="flex items-center gap-2">
+      <button
+        onclick={onNewTopic}
+        class="rounded bg-brand px-6 py-1.5 text-sm font-medium text-white hover:bg-brand-hover"
+      >
+        New Topic
+      </button>
+      <SortToggle {sort} />
+    </div>
   </div>
 
   <div>
