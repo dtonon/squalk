@@ -3,6 +3,7 @@
   import {
     threadStore,
     loadThreads,
+    loadMore,
     type ThreadData,
   } from "$lib/threads.svelte";
   import ThreadItem, {
@@ -12,8 +13,9 @@
   import type { NostrUser } from "@nostr/gadgets/metadata";
   import { auth, openLogin } from "$lib/auth.svelte";
   import { openDraft } from "$lib/draft.svelte";
+  import { GROUP_ID } from "$lib/config";
 
-  onMount(loadThreads);
+  onMount(() => loadThreads(GROUP_ID));
 
   function onNewTopic() {
     if (!auth.user) {
@@ -83,4 +85,21 @@
       <ThreadItem {thread} />
     {/each}
   </div>
+
+  {#if threadStore.loading && rows.length === 0}
+    <p class="py-6 text-center text-sm text-neutral-400">
+      Loading discussions…
+    </p>
+  {:else if !threadStore.exhausted}
+    <div class="flex justify-center py-6">
+      <button
+        onclick={() => loadMore(GROUP_ID)}
+        disabled={threadStore.loadingMore}
+        aria-busy={threadStore.loadingMore}
+        class="rounded border border-neutral-200 px-6 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50"
+      >
+        {threadStore.loadingMore ? "Loading…" : "Show more"}
+      </button>
+    </div>
+  {/if}
 </div>

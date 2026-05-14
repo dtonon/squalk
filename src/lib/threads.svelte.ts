@@ -2,11 +2,12 @@ import { Relay } from "@nostr/tools";
 import type { Event } from "@nostr/tools/core";
 import type { Filter } from "@nostr/tools/filter";
 import { loadNostrUser, type NostrUser } from "@nostr/gadgets/metadata";
-import { RELAY_URL, GROUP_ID } from "$lib/config";
+import { RELAY_URL } from "$lib/config";
 import { ingestNostrUser } from "$lib/profiles.svelte";
 
-const N_OPS = 50;
-const N_REPLY_WINDOW = 200;
+const PAGE_SIZE = 30;
+const WALK_LIMIT = 150; // Events per walk query (~5x PAGE_SIZE)
+const WALK_MAX_ITERS = 12;
 
 export type ThreadData = {
   id: string;
@@ -22,10 +23,29 @@ export type ThreadData = {
 
 let threads = $state<ThreadData[]>([]);
 let profiles = $state<Record<string, NostrUser>>({});
+let exhausted = $state(false);
+let loading = $state(false);
+let loadingMore = $state(false);
+
+let cursor: number | null = null; // latestAt of the last loaded thread
+let snapshotAt = 0; // upper time bound, frozen at initial load
 
 export const threadStore = {
-  get threads() { return threads; },
-  get profiles() { return profiles; },
+  get threads() {
+    return threads;
+  },
+  get profiles() {
+    return profiles;
+  },
+  get exhausted() {
+    return exhausted;
+  },
+  get loading() {
+    return loading;
+  },
+  get loadingMore() {
+    return loadingMore;
+  },
 };
 
 async function loadProfile(pubkey: string) {
@@ -53,96 +73,199 @@ function querySync(relay: Relay, filter: Filter): Promise<Event[]> {
   });
 }
 
-export async function loadThreads() {
+function threadIdOf(e: Event): string | undefined {
+  return e.kind === 11 ? e.id : e.tags.find((t) => t[0] === "E")?.[1];
+}
+
+type SliceItem = {
+  id: string;
+  latestAt: number;
+  latestPubkey: string;
+  op?: Event;
+};
+
+// Walk the combined OP + reply stream newest-first, collecting up to `n` unique
+// threads not already shown. The first event seen for a thread defines its
+// activity timestamp. Returns the slice plus the cursor for the next call.
+async function fetchActivitySlice(
+  relay: Relay,
+  groupId: string,
+  until: number,
+  exclude: Set<string>,
+  n: number,
+): Promise<{ items: SliceItem[]; nextCursor: number | null; done: boolean }> {
+  const collected = new Map<string, SliceItem>();
+  let cur = until;
+  let done = false;
+
+  for (let i = 0; i < WALK_MAX_ITERS && collected.size < n; i++) {
+    const events = await querySync(relay, {
+      kinds: [11, 1111],
+      "#h": [groupId],
+      until: cur,
+      limit: WALK_LIMIT,
+    });
+    if (events.length === 0) {
+      done = true;
+      break;
+    }
+
+    events.sort((a, b) => b.created_at - a.created_at);
+    let oldest = cur;
+    for (const e of events) {
+      oldest = Math.min(oldest, e.created_at);
+      const id = threadIdOf(e);
+      if (!id || exclude.has(id) || collected.has(id)) continue;
+      collected.set(id, {
+        id,
+        latestAt: e.created_at,
+        latestPubkey: e.pubkey,
+        op: e.kind === 11 ? e : undefined,
+      });
+      if (collected.size >= n) break;
+    }
+
+    if (events.length < WALK_LIMIT) {
+      done = true;
+      break;
+    }
+    if (oldest >= cur) break; // No progress (single timestamp floods the window)
+    cur = oldest; // Inclusive; thread-level dedupe absorbs re-reads
+  }
+
+  const items = [...collected.values()].sort((a, b) => b.latestAt - a.latestAt);
+  const nextCursor = items.length > 0 ? items[items.length - 1].latestAt : null;
+  return { items, nextCursor, done };
+}
+
+// Reply enrichment (exact counts + sampled repliers), bounded by the frozen
+// snapshot. Isolated so the future creation-by-date view can skip it entirely.
+async function enrichWithReplies(
+  relay: Relay,
+  groupId: string,
+  items: SliceItem[],
+): Promise<Map<string, { count: number; repliers: string[] }>> {
+  const result = new Map<string, { count: number; repliers: string[] }>();
+  if (items.length === 0) return result;
+
+  const replies = await querySync(relay, {
+    kinds: [1111],
+    "#h": [groupId],
+    "#E": items.map((it) => it.id),
+    until: snapshotAt,
+    limit: 5000,
+  });
+
+  const acc = new Map<string, { count: number; pubkeys: Set<string> }>();
+  for (const r of replies) {
+    const root = r.tags.find((t) => t[0] === "E")?.[1];
+    if (!root) continue;
+    let a = acc.get(root);
+    if (!a) {
+      a = { count: 0, pubkeys: new Set() };
+      acc.set(root, a);
+    }
+    a.count++;
+    a.pubkeys.add(r.pubkey);
+  }
+
+  for (const it of items) {
+    const a = acc.get(it.id);
+    const repliers = a
+      ? [...a.pubkeys].filter((p) => p !== it.op?.pubkey).slice(0, 4)
+      : [];
+    result.set(it.id, { count: a?.count ?? 0, repliers });
+  }
+  return result;
+}
+
+async function buildThreads(
+  relay: Relay,
+  groupId: string,
+  items: SliceItem[],
+): Promise<ThreadData[]> {
+  // Backfill OPs for threads first seen via a reply
+  const missing = items.filter((it) => !it.op).map((it) => it.id);
+  if (missing.length > 0) {
+    const ops = await querySync(relay, {
+      kinds: [11],
+      "#h": [groupId],
+      ids: missing,
+    });
+    const byId = new Map(ops.map((e) => [e.id, e]));
+    for (const it of items) if (!it.op) it.op = byId.get(it.id);
+  }
+
+  const enriched = await enrichWithReplies(relay, groupId, items);
+
+  const out: ThreadData[] = [];
+  for (const it of items) {
+    const op = it.op;
+    if (!op) continue; // OP missing (deleted/unavailable) — drop the row
+    const e = enriched.get(it.id);
+    out.push({
+      id: it.id,
+      title: op.tags.find((t) => t[0] === "title")?.[1] ?? "(untitled)",
+      labels: op.tags.filter((t) => t[0] === "t" && t[1]).map((t) => t[1]),
+      authorPubkey: op.pubkey,
+      createdAt: op.created_at,
+      replyCount: e?.count ?? 0,
+      latestAt: it.latestAt,
+      latestPubkey: it.latestPubkey,
+      replierPubkeys: e?.repliers ?? [],
+    });
+  }
+  return out;
+}
+
+async function fetchInto(append: boolean, groupId: string) {
   const relay = await Relay.connect(RELAY_URL);
   try {
-    // Parallel: latest OPs + latest replies window
-    const [opEvents, replyEvents] = await Promise.all([
-      querySync(relay, { kinds: [11], "#h": [GROUP_ID], limit: N_OPS }),
-      querySync(relay, { kinds: [1111], "#h": [GROUP_ID], limit: N_REPLY_WINDOW }),
-    ]);
+    const until = append ? (cursor ?? snapshotAt) : snapshotAt;
+    const exclude = new Set(threads.map((t) => t.id));
+    const { items, nextCursor, done } = await fetchActivitySlice(
+      relay,
+      groupId,
+      until,
+      exclude,
+      PAGE_SIZE,
+    );
+    const built = await buildThreads(relay, groupId, items);
 
-    // Aggregate reply data per root thread id
-    type ReplyAgg = {
-      latestAt: number;
-      latestPubkey: string;
-      pubkeys: Set<string>;
-    };
-    const replyMap = new Map<string, ReplyAgg>();
-    for (const r of replyEvents) {
-      const rootId = r.tags.find((t) => t[0] === "E")?.[1];
-      if (!rootId) continue;
-      let agg = replyMap.get(rootId);
-      if (!agg) {
-        agg = { latestAt: 0, latestPubkey: r.pubkey, pubkeys: new Set() };
-        replyMap.set(rootId, agg);
-      }
-      agg.pubkeys.add(r.pubkey);
-      if (r.created_at > agg.latestAt) {
-        agg.latestAt = r.created_at;
-        agg.latestPubkey = r.pubkey;
-      }
-    }
+    threads = append ? [...threads, ...built] : built;
+    cursor = nextCursor ?? cursor;
+    exhausted = done || built.length === 0;
 
-    // Backfill OPs that have recent replies but fell outside the OP window
-    const opIds = new Set(opEvents.map((e) => e.id));
-    const missingIds = [...replyMap.keys()].filter((id) => !opIds.has(id));
-    let extraOps: Event[] = [];
-    if (missingIds.length > 0) {
-      extraOps = await querySync(relay, {
-        kinds: [11],
-        "#h": [GROUP_ID],
-        ids: missingIds,
-      });
-    }
-
-    // Build candidate threads, computing latestAt from OP + reply window
-    const candidates: ThreadData[] = [...opEvents, ...extraOps].map((e) => {
-      const agg = replyMap.get(e.id);
-      const replierPubkeys = agg
-        ? [...agg.pubkeys].filter((p) => p !== e.pubkey).slice(0, 4)
-        : [];
-      return {
-        id: e.id,
-        title: e.tags.find((t) => t[0] === "title")?.[1] ?? "(untitled)",
-        labels: e.tags.filter((t) => t[0] === "t" && t[1]).map((t) => t[1]),
-        authorPubkey: e.pubkey,
-        createdAt: e.created_at,
-        replyCount: 0,
-        latestAt: agg ? Math.max(e.created_at, agg.latestAt) : e.created_at,
-        latestPubkey: agg ? agg.latestPubkey : e.pubkey,
-        replierPubkeys,
-      };
-    });
-
-    // Sort by last activity, keep top N_OPS
-    candidates.sort((a, b) => b.latestAt - a.latestAt);
-    const top = candidates.slice(0, N_OPS);
-    threads = top;
-
-    // Prefetch profiles
-    for (const t of top) {
+    for (const t of built) {
       loadProfile(t.authorPubkey);
+      loadProfile(t.latestPubkey);
       for (const p of t.replierPubkeys) loadProfile(p);
     }
-
-    // Exact reply counts: single follow-up query bucketed by root.
-    // (Pyramid's NIP-45 COUNT ignores group storage, so we count events directly.)
-    const topIds = top.map((t) => t.id);
-    const allReplies = await querySync(relay, {
-      kinds: [1111],
-      "#h": [GROUP_ID],
-      "#E": topIds,
-      limit: 5000,
-    });
-    const countMap = new Map<string, number>();
-    for (const r of allReplies) {
-      const rootId = r.tags.find((t) => t[0] === "E")?.[1];
-      if (!rootId) continue;
-      countMap.set(rootId, (countMap.get(rootId) ?? 0) + 1);
-    }
-    threads = top.map((t) => ({ ...t, replyCount: countMap.get(t.id) ?? 0 }));
   } finally {
     relay.close();
+  }
+}
+
+export async function loadThreads(groupId: string) {
+  if (loading) return;
+  loading = true;
+  threads = [];
+  cursor = null;
+  exhausted = false;
+  snapshotAt = Math.floor(Date.now() / 1000);
+  try {
+    await fetchInto(false, groupId);
+  } finally {
+    loading = false;
+  }
+}
+
+export async function loadMore(groupId: string) {
+  if (loading || loadingMore || exhausted) return;
+  loadingMore = true;
+  try {
+    await fetchInto(true, groupId);
+  } finally {
+    loadingMore = false;
   }
 }
