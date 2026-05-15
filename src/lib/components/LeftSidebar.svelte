@@ -60,10 +60,6 @@
           More
         </p>
         <a
-          href="/settings"
-          class="block py-1 text-neutral-500 hover:text-neutral-900">Settings</a
-        >
-        <a
           href="/contacts"
           class="block py-1 text-neutral-500 hover:text-neutral-900">Contacts</a
         >

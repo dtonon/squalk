@@ -22,7 +22,4 @@
     {/if}
     <span class="text-[1.7rem] font-medium text-neutral-900">{name}</span>
   </div>
-  <button class="text-sm text-neutral-500 hover:text-neutral-900"
-    >Create your own community</button
-  >
 </header>

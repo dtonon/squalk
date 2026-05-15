@@ -12,6 +12,8 @@ export type ProfileEntry = {
   nip05?: string;
   picture?: string;
   about?: string;
+  website?: string;
+  lud16?: string;
   fetchedAt: number;
 };
 
@@ -56,6 +58,8 @@ function parseProfileEvent(evt: Event): ProfileEntry | null {
     nip05?: string;
     picture?: string;
     about?: string;
+    website?: string;
+    lud16?: string;
   } = {};
   try {
     md = JSON.parse(evt.content);
@@ -70,6 +74,8 @@ function parseProfileEvent(evt: Event): ProfileEntry | null {
     nip05: md.nip05,
     picture: md.picture,
     about: md.about,
+    website: md.website,
+    lud16: md.lud16,
     fetchedAt: evt.created_at,
   };
 }
@@ -315,6 +321,8 @@ export function ingestNostrUser(user: NostrUser) {
     nip05: md.nip05,
     picture: md.picture ?? user.image,
     about: md.about,
+    website: md.website,
+    lud16: md.lud16,
     fetchedAt: user.lastUpdated || 0,
   };
   upsertProfile(entry);
