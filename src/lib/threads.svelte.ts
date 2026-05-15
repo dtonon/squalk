@@ -119,14 +119,21 @@ async function fetchActivitySlice(
     for (const e of events) {
       oldest = Math.min(oldest, e.created_at);
       const id = threadIdOf(e);
-      if (!id || exclude.has(id) || collected.has(id)) continue;
+      if (!id || exclude.has(id)) continue;
+      const seen = collected.get(id);
+      if (seen) {
+        // Grab the OP from the stream when a thread was first seen via a reply,
+        // so we avoid the by-id backfill the group relay truncates
+        if (!seen.op && e.kind === 11) seen.op = e;
+        continue;
+      }
+      if (collected.size >= n) continue; // Page full; keep scanning for OPs
       collected.set(id, {
         id,
         latestAt: e.created_at,
         latestPubkey: e.pubkey,
         op: e.kind === 11 ? e : undefined,
       });
-      if (collected.size >= n) break;
     }
 
     if (events.length < WALK_LIMIT) {
@@ -220,15 +227,17 @@ async function buildThreads(
   groupId: string,
   items: SliceItem[],
 ): Promise<ThreadData[]> {
-  // Backfill OPs for threads first seen via a reply
-  const missing = items.filter((it) => !it.op).map((it) => it.id);
+  // Backfill OPs that fell outside the activity window. The group relay
+  // truncates multi-id queries, so fetch each one on its own.
+  const missing = items.filter((it) => !it.op);
   if (missing.length > 0) {
-    const ops = await querySync(relay, {
-      kinds: [11],
-      "#h": [groupId],
-      ids: missing,
-    });
-    const byId = new Map(ops.map((e) => [e.id, e]));
+    const fetched = await Promise.all(
+      missing.map((it) =>
+        querySync(relay, { kinds: [11], "#h": [groupId], ids: [it.id] }),
+      ),
+    );
+    const byId = new Map<string, Event>();
+    for (const evs of fetched) for (const e of evs) byId.set(e.id, e);
     for (const it of items) if (!it.op) it.op = byId.get(it.id);
   }
 
