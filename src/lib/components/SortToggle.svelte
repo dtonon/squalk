@@ -61,7 +61,7 @@
     aria-haspopup="menu"
     aria-expanded={open}
     aria-label="Sort discussions, current: {currentLabel}"
-    class="flex items-center gap-2 rounded bg-neutral-800 px-4 py-1.5 text-sm font-medium text-white hover:bg-neutral-700"
+    class="flex items-center gap-2 rounded bg-neutral-800 px-4 py-1.5 md:text-sm font-medium text-white hover:bg-neutral-700"
   >
     <svg
       class="h-4 w-4"

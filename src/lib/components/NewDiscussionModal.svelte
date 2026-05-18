@@ -121,7 +121,7 @@
 <svelte:window onkeydown={onKeydown} />
 
 {#if draftState.modalOpen}
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-4">
     <button
       type="button"
       aria-label="Minimize draft"
@@ -130,7 +130,7 @@
       onclick={iconizeDraft}
     ></button>
     <div
-      class="relative w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl flex flex-col gap-4 max-h-[90vh] overflow-hidden"
+      class="relative flex h-full max-h-full w-full flex-col gap-4 overflow-y-auto bg-white p-6 shadow-xl md:h-auto md:max-h-[90vh] md:max-w-2xl md:overflow-hidden md:rounded-lg"
       role="dialog"
       aria-modal="true"
       aria-labelledby="newdisc-title"
@@ -284,7 +284,7 @@
           type="button"
           onclick={onDiscard}
           disabled={draftState.publishing}
-          class="rounded bg-neutral-700 px-5 py-1.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+          class="rounded bg-neutral-700 px-5 py-1.5 font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
         >
           Discard
         </button>
@@ -294,7 +294,7 @@
           disabled={draftState.publishing ||
             !draftState.title.trim() ||
             !draftState.content.trim()}
-          class="rounded bg-brand px-5 py-1.5 text-sm font-medium text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
+          class="rounded bg-brand px-5 py-1.5 font-medium text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
           {draftState.publishing ? "Publishing…" : "Publish discussion"}
         </button>

@@ -15,7 +15,7 @@
 </script>
 
 <aside
-  class="flex max-w-52 min-w-48 shrink-0 flex-col justify-between py-2 pl-8 pr-1 pb-8"
+  class="hidden max-w-52 min-w-48 shrink-0 flex-col justify-between py-2 pl-8 pr-1 pb-8 md:flex"
 >
   <div>
     <a
@@ -59,6 +59,10 @@
         >
           More
         </p>
+        <a
+          href="/about"
+          class="block py-1 text-neutral-500 hover:text-neutral-900">About</a
+        >
         <a
           href="/contacts"
           class="block py-1 text-neutral-500 hover:text-neutral-900">Contacts</a

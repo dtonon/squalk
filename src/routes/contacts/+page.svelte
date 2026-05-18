@@ -41,7 +41,7 @@
   <meta name="description" content="Admins and contacts for this community." />
 </svelte:head>
 
-<div class="mx-auto max-w-3xl">
+<div class="mx-auto max-w-6xl">
   <h1 class="py-2 text-[1.65rem] text-brand">Contacts</h1>
 
   {#if !groupStore.data}

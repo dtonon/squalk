@@ -125,6 +125,13 @@
     };
     main.addEventListener("scroll", onScroll, { passive: true });
 
+    // On mobile the document scrolls (not main), so clear the quote popup on
+    // window scroll too.
+    const onWinScroll = () => {
+      if (selectionTarget) selectionTarget = null;
+    };
+    window.addEventListener("scroll", onWinScroll, { passive: true });
+
     const onSelectionChange = () => {
       const sel = window.getSelection();
       if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
@@ -171,6 +178,7 @@
     return () => {
       main.classList.remove("no-scrollbar");
       main.removeEventListener("scroll", onScroll);
+      window.removeEventListener("scroll", onWinScroll);
       document.removeEventListener("selectionchange", onSelectionChange);
     };
   });
@@ -218,13 +226,22 @@
   bindEl: (el: HTMLElement | null) => void,
 )}
   {@const author = resolveAuthor(p.pubkey, profiles)}
-  <div use:bindEl class="flex gap-6 items-start">
-    <div class="flex-shrink-0">
+  <div use:bindEl class="md:flex md:gap-6 md:items-start">
+    <div class="hidden flex-shrink-0 md:block">
       {@render avatar(author)}
     </div>
     <div class="flex-1 min-w-0">
-      <div class="flex items-baseline justify-between mb-3">
-        <span class="font-medium text-neutral-400">{author.name}</span>
+      <div
+        class="mb-4 flex items-center justify-between md:mb-3 md:items-baseline"
+      >
+        <div class="flex min-w-0 items-center gap-3">
+          <div class="flex-shrink-0 md:hidden">
+            {@render avatar(author)}
+          </div>
+          <span class="truncate font-medium text-neutral-400"
+            >{author.name}</span
+          >
+        </div>
         <span class="text-sm text-neutral-400 ml-4 flex-shrink-0"
           >{formatDate(p.createdAt)}</span
         >
@@ -232,37 +249,39 @@
       <div data-quote-post-index={index} id="post-{p.id}" class="scroll-mt-32">
         <PostContent content={p.content} {profiles} {threadEventAuthors} />
       </div>
-      <div class="flex items-center justify-start mt-6">
-        <button
-          onclick={() => quotePost(p)}
-          disabled={!auth.user}
-          class="flex items-center gap-1.5 text-neutral-300 cursor-pointer hover:text-brand transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <span>Quote post</span>
-          <svg
-            class="w-3"
-            viewBox="0 0 800 800"
-            version="1.1"
-            xmlns="http://www.w3.org/2000/svg"
-            xmlns:xlink="http://www.w3.org/1999/xlink"
-            xml:space="preserve"
-            style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;"
-            ><path
-              d="M101.286,748.313l199.143,0c109.981,0 199.142,-89.161 199.142,-199.142l0,-497.856m0,-0l199.143,199.142m-199.143,-199.142l-199.142,199.142"
-              style="fill:none;fill-rule:nonzero;stroke:currentColor;stroke-width:99.57px;"
-            /></svg
+      {#if auth.user}
+        <div class="flex items-center justify-start mt-6">
+          <button
+            onclick={() => quotePost(p)}
+            disabled={!auth.user}
+            class="flex items-center gap-1.5 text-neutral-300 cursor-pointer hover:text-brand transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-        </button>
-      </div>
+            <span>Quote post</span>
+            <svg
+              class="w-3"
+              viewBox="0 0 800 800"
+              version="1.1"
+              xmlns="http://www.w3.org/2000/svg"
+              xmlns:xlink="http://www.w3.org/1999/xlink"
+              xml:space="preserve"
+              style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;"
+              ><path
+                d="M101.286,748.313l199.143,0c109.981,0 199.142,-89.161 199.142,-199.142l0,-497.856m0,-0l199.143,199.142m-199.143,-199.142l-199.142,199.142"
+                style="fill:none;fill-rule:nonzero;stroke:currentColor;stroke-width:99.57px;"
+              /></svg
+            >
+          </button>
+        </div>
+      {/if}
     </div>
   </div>
 {/snippet}
 
 {#if detail}
   <div class="flex gap-6 items-start">
-    <div class="flex-1 min-w-0" class:pr-18={!scrubberVisible}>
+    <div class="flex-1 min-w-0 {!scrubberVisible ? 'md:pr-18' : ''}">
       <div
-        class="sticky -top-6 bg-white z-10 pb-1 -mx-10 px-10 pt-6 -mt-6 relative"
+        class="relative z-10 bg-white pb-1 md:sticky md:-top-6 md:-mx-10 md:px-10 md:pt-6 md:-mt-6"
       >
         <h1 class="text-[1.65rem] text-brand leading-7">{detail.title}</h1>
         {#if isScrolled}
@@ -295,7 +314,7 @@
         </div>
       {/if}
 
-      <div class="mt-8 border-t border-neutral-200 pt-6 pl-18">
+      <div class="mt-8 border-t border-neutral-200 pt-6 md:pl-18">
         {#if auth.user}
           {#if replyError}
             <div
@@ -314,13 +333,13 @@
             contextPubkeys={allPosts.map((p) => p.pubkey)}
             {threadEventAuthors}
           />
-          <div class="mt-2 flex justify-end">
+          <div class="mt-4 flex justify-end">
             <button
               onclick={submitReply}
               disabled={replying || !replyContent.trim()}
               class="rounded bg-brand px-6 py-1.5 font-medium text-white hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {replying ? "Posting…" : "Reply"}
+              {replying ? "Posting…" : "post reply"}
             </button>
           </div>
         {:else}

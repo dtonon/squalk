@@ -36,7 +36,7 @@
 
 <a
   href="/thread/{thread.id}"
-  class="flex items-center gap-6 border-b border-neutral-100 py-4 hover:bg-neutral-50"
+  class="flex items-center gap-3 border-b border-neutral-100 py-4 hover:bg-neutral-50 sm:gap-6"
 >
   <!-- Col 1: title + byline -->
   <div class="flex-1 min-w-0">
@@ -71,7 +71,7 @@
   </div>
 
   <!-- Col 3: replies | activity -->
-  <div class="flex shrink-0 items-center gap-6">
+  <div class="flex shrink-0 items-center gap-4 sm:gap-6">
     <div class="flex flex-col items-center gap-0.5">
       <span class="text-neutral-800">{thread.replyCount}</span>
       <span class="text-sm text-neutral-400">replies</span>

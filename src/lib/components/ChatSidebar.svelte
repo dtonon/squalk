@@ -15,9 +15,10 @@
   type Props = {
     expanded?: boolean;
     onToggle: () => void;
+    mobileActive?: boolean;
   };
 
-  let { expanded = false, onToggle }: Props = $props();
+  let { expanded = false, onToggle, mobileActive = false }: Props = $props();
 
   let asideEl: HTMLElement;
   let listEl = $state<HTMLDivElement | null>(null);
@@ -144,14 +145,15 @@
 
 <aside
   bind:this={asideEl}
-  class="absolute top-2 right-0 z-10 flex h-[calc(100%-0.5rem)] flex-col rounded-tl-xl bg-white transition-all duration-200 min-[1540px]:rounded-tr-xl
-		{expanded ? 'w-150 shadow-2xl' : 'w-80 shadow-lg'} px-6 py-6"
+  class="flex-1 flex-col bg-white px-4 pt-4 pb-20 md:absolute md:top-2 md:right-0 md:z-10 md:h-[calc(100%-0.5rem)] md:flex-none md:rounded-tl-xl md:px-6 md:py-6 md:transition-all md:duration-200 min-[1540px]:rounded-tr-xl
+		{mobileActive ? 'flex' : 'hidden'} md:flex
+		{expanded ? 'md:w-150 md:shadow-2xl' : 'md:w-80 md:shadow-lg'}"
 >
   <div class="mb-6 flex shrink-0 items-center justify-between">
     <span class="text-brand text-[1.5rem] leading-7">Chat</span>
     <button
       onclick={onToggle}
-      class="rounded bg-neutral-100 transition-colors hover:bg-neutral-200"
+      class="hidden rounded bg-neutral-100 transition-colors hover:bg-neutral-200 md:block"
       aria-label={expanded ? "Collapse chat" : "Expand chat"}
     >
       <svg

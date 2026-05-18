@@ -90,14 +90,14 @@
 </svelte:head>
 
 <div class="mx-auto max-w-6xl">
-  <div class="flex items-center justify-between py-2">
+  <div class="flex flex-wrap items-center justify-between gap-2 py-2">
     <h1 class="text-[1.65rem] text-brand">Discussions</h1>
     <div class="flex items-center gap-2">
       <button
         onclick={onNewTopic}
-        class="rounded bg-brand px-6 py-1.5 text-sm font-medium text-white hover:bg-brand-hover"
+        class="rounded bg-brand px-4 py-1.5 md:text-sm font-medium text-white hover:bg-brand-hover md:px-6"
       >
-        New Topic
+        New discussion
       </button>
       <SortToggle {sort} />
     </div>

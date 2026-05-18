@@ -45,9 +45,9 @@
     <h1 class="text-[1.65rem] text-brand leading-7">{room?.name ?? slug}</h1>
     <button
       onclick={onNewTopic}
-      class="rounded bg-brand px-6 py-1.5 text-sm font-medium text-white hover:bg-brand-hover"
+      class="rounded bg-brand px-6 py-1.5 md:text-sm font-medium text-white hover:bg-brand-hover"
     >
-      New Topic
+      New discussion
     </button>
   </div>
 

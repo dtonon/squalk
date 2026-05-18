@@ -141,10 +141,10 @@
 </script>
 
 <div
-  class="sticky self-start flex-shrink-0 flex flex-col items-end select-none pt-1"
-  style="top: calc({topOffset}px - 1.5rem); height: 50vh; width: 72px; display: {isOverflowing
+  class="sticky self-start flex-shrink-0 flex-col items-end select-none pt-1 max-md:hidden {isOverflowing
     ? 'flex'
-    : 'none'};"
+    : 'hidden'}"
+  style="top: calc({topOffset}px - 1.5rem); height: 50vh; width: 72px;"
   aria-hidden="true"
 >
   <!-- First post date -->
