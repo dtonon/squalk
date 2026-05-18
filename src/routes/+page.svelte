@@ -124,5 +124,7 @@
         {threadStore.loadingMore ? "Loading…" : "Show more"}
       </button>
     </div>
+  {:else if rows.length > 0}
+    <p class="py-6 text-center text-sm text-neutral-400">No more discussions</p>
   {/if}
 </div>
