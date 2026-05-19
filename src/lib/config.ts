@@ -1,6 +1,7 @@
 import {
   PUBLIC_RELAY_URL,
   PUBLIC_GROUP_ID,
+  PUBLIC_TITLE,
   PUBLIC_MODE,
   PUBLIC_JOINCODE,
   PUBLIC_LABELS,
@@ -9,6 +10,7 @@ import {
 
 export const RELAY_URL = PUBLIC_RELAY_URL;
 export const GROUP_ID = PUBLIC_GROUP_ID;
+export const TITLE = PUBLIC_TITLE ?? "";
 export const MODE: "simple" | "full" =
   PUBLIC_MODE === "full" ? "full" : "simple";
 export const JOINCODE_REQUIRED = PUBLIC_JOINCODE === "yes";

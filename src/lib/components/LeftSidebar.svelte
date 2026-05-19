@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { rooms } from "$lib/mock";
   import { auth, openLogin, logout } from "$lib/auth.svelte";
   import { groupStore } from "$lib/group.svelte";
+  import { groupsStore } from "$lib/groups.svelte";
   import { draftState, resumeDraft } from "$lib/draft.svelte";
 
   type Props = {
@@ -11,7 +11,10 @@
 
   let { mode, activeRoom }: Props = $props();
 
-  const groups = [...new Set(rooms.map((r) => r.group))];
+  // The description of the room currently being viewed (full mode).
+  const activeAbout = $derived(
+    groupsStore.list.find((g) => g.id === activeRoom)?.about ?? "",
+  );
 </script>
 
 <aside
@@ -20,7 +23,7 @@
   <div>
     <a
       href="/"
-      class="flex items-center gap-2 py-1 hover:bg-neutral-100 text-neutral-700}"
+      class="flex items-center gap-2 py-1 hover:bg-neutral-100 text-neutral-700"
     >
       Home
     </a>
@@ -30,26 +33,30 @@
         <p class="text-sm text-neutral-500">{groupStore.data?.about ?? ""}</p>
       </div>
     {:else}
-      <nav class="flex-auto mt-6">
-        {#each groups as group}
-          <div class="mb-8">
-            <p
-              class="pb-1 text-xs font-semibold uppercase tracking-wider text-neutral-400"
-            >
-              {group}
-            </p>
-            {#each rooms.filter((r) => r.group === group) as room}
-              <a
-                href="/room/{room.slug}"
-                class="flex items-center gap-2 py-1 hover:bg-neutral-100
-								{activeRoom === room.slug ? ' text-brand' : 'text-neutral-700'}"
-              >
-                {room.name}
-              </a>
-            {/each}
-          </div>
+      <nav class="flex-auto mt-6" aria-label="Rooms">
+        <p
+          class="pb-1 text-xs font-semibold uppercase tracking-wider text-neutral-400"
+        >
+          Rooms
+        </p>
+        {#if groupsStore.list.length === 0 && !groupsStore.loaded}
+          <p class="py-1 text-sm text-neutral-400">Loading rooms…</p>
+        {/if}
+        {#each groupsStore.list as room}
+          <a
+            href="/room/{room.id}"
+            class="flex items-center gap-2 py-1 hover:bg-neutral-100
+							{activeRoom === room.id ? ' text-brand' : 'text-neutral-700'}"
+          >
+            {room.name}
+          </a>
         {/each}
       </nav>
+      {#if activeAbout}
+        <div class="mt-6">
+          <p class="text-sm text-neutral-500">{activeAbout}</p>
+        </div>
+      {/if}
     {/if}
 
     <nav class="flex-auto mt-6">

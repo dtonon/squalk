@@ -5,6 +5,7 @@
   import LeftSidebar from "$lib/components/LeftSidebar.svelte";
   import MobileMenu from "$lib/components/MobileMenu.svelte";
   import ChatSidebar from "$lib/components/ChatSidebar.svelte";
+  import LatestDiscussions from "$lib/components/LatestDiscussions.svelte";
   import LoginModal from "$lib/components/LoginModal.svelte";
   import JoinModal from "$lib/components/JoinModal.svelte";
   import NewDiscussionModal from "$lib/components/NewDiscussionModal.svelte";
@@ -12,8 +13,10 @@
   import { onMount } from "svelte";
   import { auth, restoreSession } from "$lib/auth.svelte";
   import { loadGroup } from "$lib/group.svelte";
+  import { loadGroups } from "$lib/groups.svelte";
   import { seedProfiles } from "$lib/profiles.svelte";
   import { startChat } from "$lib/chat.svelte";
+  import { activeGroup, setActiveGroup } from "$lib/active.svelte";
   import { MODE } from "$lib/config";
 
   let { children } = $props();
@@ -22,16 +25,38 @@
   const chatEnabled = true;
 
   onMount(async () => {
-    await Promise.all([restoreSession(), loadGroup()]);
+    const tasks = [restoreSession(), loadGroup()];
+    if (mode === "full") tasks.push(loadGroups());
+    await Promise.all(tasks);
     seedProfiles(auth.user?.pubkey ?? null);
-    if (chatEnabled) startChat();
+  });
+
+  // Full mode: the room route defines the active group. Thread pages set it
+  // themselves from the thread's own group, so only track the slug here.
+  $effect(() => {
+    if (mode === "full" && page.params.slug) setActiveGroup(page.params.slug);
+  });
+
+  // Chat follows the active group, re-subscribing whenever the room changes.
+  $effect(() => {
+    if (chatEnabled && activeGroup.id) startChat(activeGroup.id);
   });
 
   let chatExpanded = $state(false);
   let menuOpen = $state(false);
   let mobileView = $state<"forum" | "chat">("forum");
 
-  const activeRoom = $derived(page.params.slug ?? "");
+  // Room pages highlight via their slug; thread pages highlight the room the
+  // thread belongs to (tracked in activeGroup).
+  const activeRoom = $derived(
+    page.params.slug ??
+      (page.url.pathname.startsWith("/thread/") ? activeGroup.id : ""),
+  );
+
+  // The full-mode landing page renders its own right column (latest
+  // discussions) and has no single room to chat in, so suppress room chat there.
+  const isHomeFull = $derived(mode === "full" && page.url.pathname === "/");
+  const showChat = $derived(chatEnabled && !isHomeFull);
 
   // On mobile a route change should always land on the forum pane, so opening
   // a thread or room from the menu never leaves the user stranded on chat.
@@ -60,21 +85,30 @@
   >
     <LeftSidebar {mode} {activeRoom} />
     <main
-      class="min-h-[calc(100dvh_-_4rem)] bg-white px-6 pt-8 pb-20 shadow-lg md:min-h-0 md:flex-1 md:overflow-y-auto md:rounded-t-xl md:px-10 md:pt-6
+      class="min-h-[calc(100dvh_-_4rem)] bg-white px-6 pt-8 pb-20 shadow-lg md:min-h-0 md:overflow-y-auto md:rounded-t-xl md:px-10 md:pt-6 {isHomeFull
+        ? 'md:flex-[3]'
+        : 'md:flex-1'}
 			{mobileView === 'chat' ? 'hidden md:block' : 'block'}"
     >
       {@render children()}
     </main>
-    {#if chatEnabled}
+    {#if showChat}
       <div class="hidden w-80 shrink-0 md:block" aria-hidden="true"></div>
       <ChatSidebar
         expanded={chatExpanded}
         onToggle={() => (chatExpanded = !chatExpanded)}
         mobileActive={mobileView === "chat"}
       />
+    {:else if isHomeFull}
+      <!-- Own panel (40%) so the gray gutter matches the main↔chat gap. -->
+      <div
+        class="mt-2 min-w-0 bg-white px-6 pt-8 pb-20 shadow-lg md:mt-0 md:flex-[2] md:overflow-y-auto md:rounded-t-xl md:px-8 md:pt-6"
+      >
+        <LatestDiscussions />
+      </div>
     {/if}
   </div>
-  {#if chatEnabled}
+  {#if showChat}
     <nav
       class="fixed inset-x-0 bottom-0 z-30 flex border-t border-neutral-200 bg-neutral-100 md:hidden"
       aria-label="Switch view"

@@ -23,6 +23,7 @@ type ThreadDetail = {
   id: string;
   title: string;
   labels: string[];
+  groupId: string; // the thread's NIP-29 group (its `h` tag)
   op: PostData;
   replies: PostData[];
 };
@@ -50,6 +51,7 @@ function loadMockThread(id: string) {
     id: t.id,
     title: t.title,
     labels: t.tags.map((tag) => tag.label),
+    groupId: GROUP_ID,
     op: { id: t.op.id, pubkey: t.op.author.pubkey, createdAt: toUnix(t.op.createdAt), content: t.op.content },
     replies: (t.op.replies ?? []).map((r) => ({
       id: r.id, pubkey: r.author.pubkey, createdAt: toUnix(r.createdAt), content: r.content,
@@ -87,6 +89,7 @@ export async function loadThread(id: string) {
       id: event.id,
       title: event.tags.find((t) => t[0] === "title")?.[1] ?? "(untitled)",
       labels: event.tags.filter((t) => t[0] === "t" && t[1]).map((t) => t[1]),
+      groupId: event.tags.find((t) => t[0] === "h")?.[1] ?? GROUP_ID,
       op: {
         id: event.id,
         pubkey: event.pubkey,
@@ -133,7 +136,7 @@ export async function sendReply(content: string, ownPubkey: string) {
   const opHint = hints.get(detail.op.pubkey) ?? RELAY_URL;
 
   const tags: string[][] = [
-    ["h", GROUP_ID],
+    ["h", detail.groupId],
     ["E", detail.id, opHint, detail.op.pubkey],
     ["K", "11"],
     ["P", detail.op.pubkey, opHint],

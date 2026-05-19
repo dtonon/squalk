@@ -1,6 +1,6 @@
 <script lang="ts">
   import { fly, fade } from "svelte/transition";
-  import { rooms } from "$lib/mock";
+  import { groupsStore } from "$lib/groups.svelte";
   import { auth, openLogin, logout } from "$lib/auth.svelte";
   import { draftState, resumeDraft } from "$lib/draft.svelte";
 
@@ -12,8 +12,6 @@
   };
 
   let { open, onClose, mode, activeRoom }: Props = $props();
-
-  const groups = [...new Set(rooms.map((r) => r.group))];
 
   function onLogin() {
     onClose();
@@ -115,25 +113,24 @@
         >
 
         {#if mode === "full"}
-          <nav class="mt-4">
-            {#each groups as group}
-              <div class="mb-5">
-                <p
-                  class="pb-1 text-xs font-semibold uppercase tracking-wider text-neutral-400"
-                >
-                  {group}
-                </p>
-                {#each rooms.filter((r) => r.group === group) as room}
-                  <a
-                    href="/room/{room.slug}"
-                    onclick={onClose}
-                    class="block py-1.5 text-lg
-											{activeRoom === room.slug ? 'text-brand' : 'text-neutral-700 hover:text-brand'}"
-                  >
-                    {room.name}
-                  </a>
-                {/each}
-              </div>
+          <nav class="mt-4" aria-label="Rooms">
+            <p
+              class="pb-1 text-xs font-semibold uppercase tracking-wider text-neutral-400"
+            >
+              Rooms
+            </p>
+            {#if groupsStore.list.length === 0 && !groupsStore.loaded}
+              <p class="py-1.5 text-base text-neutral-400">Loading rooms…</p>
+            {/if}
+            {#each groupsStore.list as room}
+              <a
+                href="/room/{room.id}"
+                onclick={onClose}
+                class="block py-1.5 text-lg
+									{activeRoom === room.id ? 'text-brand' : 'text-neutral-700 hover:text-brand'}"
+              >
+                {room.name}
+              </a>
             {/each}
           </nav>
         {/if}

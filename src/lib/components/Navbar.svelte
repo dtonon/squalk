@@ -1,11 +1,11 @@
 <script lang="ts">
   import { groupStore } from "$lib/group.svelte";
-  import { GROUP_ID } from "$lib/config";
+  import { GROUP_ID, TITLE } from "$lib/config";
 
   type Props = { onMenuToggle: () => void };
   let { onMenuToggle }: Props = $props();
 
-  const name = $derived(groupStore.data?.name ?? GROUP_ID);
+  const name = $derived(TITLE || groupStore.data?.name || GROUP_ID);
 </script>
 
 <header

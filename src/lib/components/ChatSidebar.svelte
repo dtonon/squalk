@@ -8,6 +8,7 @@
   } from "$lib/chat.svelte";
   import { auth, openLogin } from "$lib/auth.svelte";
   import { withJoin } from "$lib/join.svelte";
+  import { activeGroup } from "$lib/active.svelte";
   import type { NostrUser } from "@nostr/gadgets/metadata";
   import MentionAutocomplete from "$lib/components/MentionAutocomplete.svelte";
   import ChatContent from "$lib/components/ChatContent.svelte";
@@ -80,7 +81,7 @@
       ? { id: replyTarget.id, pubkey: replyTarget.pubkey }
       : undefined;
     try {
-      await withJoin(async () => {
+      await withJoin(activeGroup.id, async () => {
         await sendChatMessage(content, reply);
         inputValue = "";
         replyTarget = null;

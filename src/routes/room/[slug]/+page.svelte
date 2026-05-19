@@ -1,59 +1,12 @@
 <script lang="ts">
-  import { threads, rooms, type Thread } from "$lib/mock";
-  import ThreadItem, {
-    type ThreadRow,
-  } from "$lib/components/ThreadItem.svelte";
+  import DiscussionsFeed from "$lib/components/DiscussionsFeed.svelte";
+  import { groupsStore } from "$lib/groups.svelte";
   import { page } from "$app/state";
-  import { auth, openLogin } from "$lib/auth.svelte";
-  import { openDraft } from "$lib/draft.svelte";
 
-  const slug = $derived(page.params.slug);
-
-  function onNewTopic() {
-    if (!auth.user) {
-      openLogin();
-      return;
-    }
-    openDraft();
-  }
-  const room = $derived(rooms.find((r) => r.slug === slug));
-
-  function mockToRow(t: Thread): ThreadRow {
-    return {
-      id: t.id,
-      title: t.title,
-      labels: t.tags.map((tag) => tag.label),
-      author: t.op.author,
-      replyCount: t.replyCount,
-      repliers: t.participants
-        .filter((p) => p.pubkey !== t.op.author.pubkey)
-        .slice(0, 4),
-      lastActiveAuthor: t.participants[t.participants.length - 1],
-      lastActivity: t.lastActivity,
-    };
-  }
-
-  const rows = $derived(threads.map(mockToRow));
+  // The slug is the NIP-29 group id; resolve its name from the loaded list.
+  const slug = $derived(page.params.slug ?? "");
+  const room = $derived(groupsStore.list.find((g) => g.id === slug));
+  const title = $derived(room?.name ?? slug);
 </script>
 
-<svelte:head>
-  <title>{room?.name ?? "Room"}</title>
-</svelte:head>
-
-<div class="mx-auto max-w-6xl">
-  <div class="flex items-center justify-between pb-2">
-    <h1 class="text-[1.65rem] text-brand leading-7">{room?.name ?? slug}</h1>
-    <button
-      onclick={onNewTopic}
-      class="rounded bg-brand px-6 py-1.5 md:text-sm font-medium text-white hover:bg-brand-hover"
-    >
-      New discussion
-    </button>
-  </div>
-
-  <div>
-    {#each rows as thread}
-      <ThreadItem {thread} />
-    {/each}
-  </div>
-</div>
+<DiscussionsFeed groupId={slug} {title} />

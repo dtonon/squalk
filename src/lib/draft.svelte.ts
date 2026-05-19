@@ -1,7 +1,8 @@
 import { SimplePool } from "@nostr/tools";
 import { auth } from "$lib/auth.svelte";
 import { withJoin } from "$lib/join.svelte";
-import { GROUP_ID, RELAY_URL } from "$lib/config";
+import { activeGroup } from "$lib/active.svelte";
+import { RELAY_URL } from "$lib/config";
 import { extractMentionPubkeys, buildPTagHints } from "$lib/mentions";
 
 let modalOpen = $state(false);
@@ -81,6 +82,11 @@ export async function publishDraft(): Promise<{ ok: boolean; threadId?: string }
     publishError = "Title and content are required";
     return { ok: false };
   }
+  const groupId = activeGroup.id;
+  if (!groupId) {
+    publishError = "No room selected";
+    return { ok: false };
+  }
 
   publishing = true;
   publishError = null;
@@ -91,9 +97,9 @@ export async function publishDraft(): Promise<{ ok: boolean; threadId?: string }
   const hints = await buildPTagHints(mentionPubkeys);
 
   try {
-    const success = await withJoin(async () => {
+    const success = await withJoin(groupId, async () => {
       const tags: string[][] = [
-        ["h", GROUP_ID],
+        ["h", groupId],
         ["title", t],
       ];
       for (const l of labels) tags.push(["t", l]);

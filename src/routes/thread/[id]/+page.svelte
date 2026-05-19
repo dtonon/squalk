@@ -10,7 +10,8 @@
   } from "$lib/thread.svelte";
   import { auth, openLogin } from "$lib/auth.svelte";
   import { withJoin } from "$lib/join.svelte";
-  import { RELAY_URL } from "$lib/config";
+  import { setActiveGroup } from "$lib/active.svelte";
+  import { RELAY_URL, MODE } from "$lib/config";
   import ThreadScrubber from "$lib/components/ThreadScrubber.svelte";
   import MessageEditor from "$lib/components/MessageEditor.svelte";
   import PostContent from "$lib/components/PostContent.svelte";
@@ -85,10 +86,11 @@
     if (!auth.user || !replyContent.trim()) return;
     const content = replyContent.trim();
     const pubkey = auth.user.pubkey;
+    if (!detail) return;
     replying = true;
     replyError = null;
     try {
-      await withJoin(async () => {
+      await withJoin(detail.groupId, async () => {
         await sendReply(content, pubkey);
         replyContent = "";
       });
@@ -113,6 +115,12 @@
   // Reload when navigating between threads
   $effect(() => {
     if (page.params.id) loadThread(page.params.id);
+  });
+
+  // A thread belongs to its own group; make that the active group so chat and
+  // replies target the right room.
+  $effect(() => {
+    if (detail?.groupId) setActiveGroup(detail.groupId);
   });
 
   onMount(() => {
@@ -284,7 +292,7 @@
         class="relative z-10 bg-white pb-1 md:sticky md:-top-6 md:-mx-10 md:px-10 md:pt-6 md:-mt-6"
       >
         <a
-          href="/"
+          href={MODE === "full" ? `/room/${detail.groupId}` : "/"}
           class="mb-1 inline-flex items-center gap-1 text-sm text-neutral-400 hover:text-brand"
         >
           <svg

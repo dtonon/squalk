@@ -9,14 +9,24 @@
     removeLabel,
     publishDraft,
   } from "$lib/draft.svelte";
-  import { LABELS } from "$lib/config";
+  import { LABELS, MODE } from "$lib/config";
   import { groupStore } from "$lib/group.svelte";
+  import { groupsStore } from "$lib/groups.svelte";
+  import { activeGroup } from "$lib/active.svelte";
   import MessageEditor from "$lib/components/MessageEditor.svelte";
 
   let labelInput = $state("");
   let labelInputEl = $state<HTMLInputElement | null>(null);
   let suggestOpen = $state(false);
   let titleEl = $state<HTMLInputElement | null>(null);
+
+  // The discussion posts to the active room, so show that room's name.
+  const targetName = $derived(
+    MODE === "full"
+      ? (groupsStore.list.find((g) => g.id === activeGroup.id)?.name ??
+        groupStore.data?.name)
+      : groupStore.data?.name,
+  );
 
   const available = $derived(
     LABELS.filter((l) => !draftState.labels.includes(l)),
@@ -138,8 +148,8 @@
       <!-- Header -->
       <div class="flex items-start justify-between">
         <div>
-          {#if groupStore.data?.name}
-            <p class="text-sm text-neutral-700">{groupStore.data.name}</p>
+          {#if targetName}
+            <p class="text-sm text-neutral-700">{targetName}</p>
           {/if}
           <h2 id="newdisc-title" class="text-2xl text-brand">New discussion</h2>
         </div>

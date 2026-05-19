@@ -1,17 +1,17 @@
 import { Relay, SimplePool } from "@nostr/tools";
 import { auth } from "$lib/auth.svelte";
-import { GROUP_ID, RELAY_URL, JOINCODE_REQUIRED } from "$lib/config";
+import { GROUP_ID, MODE, RELAY_URL, JOINCODE_REQUIRED } from "$lib/config";
 
-let joined = $state(false);
+// Membership is per-group: full mode lets a user belong to some rooms but not
+// others, so we track joined group ids rather than a single boolean.
+let joinedGroups = new Set<string>();
 let modalOpen = $state(false);
 let modalError = $state<string | null>(null);
 let busy = $state(false);
 let pendingAction: (() => Promise<void>) | null = null;
+let pendingGroup: string | null = null;
 
 export const joinState = {
-  get joined() {
-    return joined;
-  },
   get modalOpen() {
     return modalOpen;
   },
@@ -27,11 +27,12 @@ export const joinState = {
 };
 
 export function resetJoinState() {
-  joined = false;
+  joinedGroups = new Set();
   modalOpen = false;
   modalError = null;
   busy = false;
   pendingAction = null;
+  pendingGroup = null;
 }
 
 // Checks group membership: kind:9000 (per-user put-user event, lightweight)
@@ -67,36 +68,44 @@ function queryHasMatch(
   });
 }
 
-export async function initJoinForUser(pubkey: string) {
+// Membership signal for one group: kind:9000 (per-user put-user event,
+// lightweight) first, falling back to kind:39002 (full members list, heavier).
+async function checkMembership(
+  pubkey: string,
+  groupId: string,
+): Promise<boolean> {
   let relay: Relay;
   try {
     relay = await Relay.connect(RELAY_URL);
   } catch {
-    return;
+    return false;
   }
   try {
     const has9000 = await queryHasMatch(relay, {
       kinds: [9000],
-      "#h": [GROUP_ID],
+      "#h": [groupId],
       "#p": [pubkey],
       limit: 1,
     });
-    if (has9000) {
-      joined = true;
-      return;
-    }
-    const has39002 = await queryHasMatch(relay, {
+    if (has9000) return true;
+    return await queryHasMatch(relay, {
       kinds: [39002],
-      "#d": [GROUP_ID],
+      "#d": [groupId],
       "#p": [pubkey],
       limit: 1,
     });
-    if (has39002) joined = true;
   } finally {
     try {
       relay.close();
     } catch {}
   }
+}
+
+// Simple mode pre-checks the single configured group at login so the first post
+// skips the 9021. Full mode checks lazily per room when the user first acts.
+export async function initJoinForUser(pubkey: string) {
+  if (MODE !== "simple") return;
+  if (await checkMembership(pubkey, GROUP_ID)) joinedGroups.add(GROUP_ID);
 }
 
 export function closeJoinModal() {
@@ -106,9 +115,9 @@ export function closeJoinModal() {
   pendingAction = null;
 }
 
-async function publishJoinRequest(code?: string) {
+async function publishJoinRequest(groupId: string, code?: string) {
   if (!auth.signer) throw new Error("Not logged in");
-  const tags: string[][] = [["h", GROUP_ID]];
+  const tags: string[][] = [["h", groupId]];
   if (code) tags.push(["code", code]);
   const event = await auth.signer.signEvent({
     kind: 9021,
@@ -130,22 +139,33 @@ async function publishJoinRequest(code?: string) {
   }
 }
 
-// Wraps a group action. If not yet joined, sends kind:9021 first, then the
-// action. On failure, opens the join modal so the user can retry (with code if
-// configured). Returns true on success, false if the modal was opened.
-export async function withJoin(action: () => Promise<void>): Promise<boolean> {
-  if (joined) {
+// Wraps an action that posts to `groupId`. If the user isn't known to be a
+// member, checks membership first, then sends kind:9021 before the action. On
+// failure, opens the join modal so the user can retry (with code if configured).
+// Returns true on success, false if the modal was opened.
+export async function withJoin(
+  groupId: string,
+  action: () => Promise<void>,
+): Promise<boolean> {
+  if (joinedGroups.has(groupId)) {
     await action();
     return true;
   }
   busy = true;
   try {
-    await publishJoinRequest();
+    const pubkey = auth.user?.pubkey;
+    if (pubkey && (await checkMembership(pubkey, groupId))) {
+      joinedGroups.add(groupId);
+      await action();
+      return true;
+    }
+    await publishJoinRequest(groupId);
     await action();
-    joined = true;
+    joinedGroups.add(groupId);
     return true;
   } catch (e) {
     pendingAction = action;
+    pendingGroup = groupId;
     modalError = e instanceof Error ? e.message : "Could not join the group";
     modalOpen = true;
     return false;
@@ -155,15 +175,16 @@ export async function withJoin(action: () => Promise<void>): Promise<boolean> {
 }
 
 export async function retryJoin(code?: string) {
-  if (!pendingAction || busy) return;
+  if (!pendingAction || !pendingGroup || busy) return;
   busy = true;
   modalError = null;
   try {
-    await publishJoinRequest(code);
+    await publishJoinRequest(pendingGroup, code);
     await pendingAction();
-    joined = true;
+    joinedGroups.add(pendingGroup);
     modalOpen = false;
     pendingAction = null;
+    pendingGroup = null;
   } catch (e) {
     modalError = e instanceof Error ? e.message : "Could not join the group";
   } finally {

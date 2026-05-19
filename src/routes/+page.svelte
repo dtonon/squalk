@@ -1,130 +1,96 @@
 <script lang="ts">
-  import {
-    threadStore,
-    loadThreads,
-    loadMore,
-    type ThreadData,
-    type SortMode,
-  } from "$lib/threads.svelte";
-  import ThreadItem, {
-    type ThreadRow,
-    type Author,
-  } from "$lib/components/ThreadItem.svelte";
-  import SortToggle from "$lib/components/SortToggle.svelte";
+  import DiscussionsFeed from "$lib/components/DiscussionsFeed.svelte";
+  import { groupsStore } from "$lib/groups.svelte";
+  import { overviewStore, loadOverview } from "$lib/overview.svelte";
+  import { MODE, GROUP_ID } from "$lib/config";
   import type { NostrUser } from "@nostr/gadgets/metadata";
-  import { auth, openLogin } from "$lib/auth.svelte";
-  import { openDraft } from "$lib/draft.svelte";
-  import { GROUP_ID } from "$lib/config";
-  import { sortPref } from "$lib/sort.svelte";
-  import { page } from "$app/state";
 
-  function parseSort(v: string | null): SortMode | null {
-    return v === "new" ? "new" : v === "active" ? "active" : null;
-  }
-
-  // URL param is the explicit override; otherwise fall back to the saved
-  // preference so the sort survives Home/room navigation.
-  const urlSort = $derived(parseSort(page.url.searchParams.get("sort")));
-  const sort = $derived<SortMode>(urlSort ?? sortPref.value);
-
-  // Remember any explicit choice that arrives via the URL.
+  // Full mode: load per-room activity + recent threads once the rooms are known.
   $effect(() => {
-    if (urlSort) sortPref.value = urlSort;
+    if (MODE !== "full") return;
+    const ids = groupsStore.list.map((g) => g.id);
+    if (ids.length > 0) loadOverview(ids);
   });
-
-  // Re-runs on mount and whenever the effective sort changes.
-  $effect(() => {
-    loadThreads(GROUP_ID, sort);
-  });
-
-  function onNewTopic() {
-    if (!auth.user) {
-      openLogin();
-      return;
-    }
-    openDraft();
-  }
 
   function relativeTime(ts: number): string {
     const diff = Math.floor(Date.now() / 1000) - ts;
+    if (diff < 60) return "now";
     if (diff < 3600) return `${Math.floor(diff / 60)}m`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
     return `${Math.floor(diff / 86400)}d`;
   }
 
-  function resolveAuthor(
-    pubkey: string,
-    profiles: Record<string, NostrUser>,
-  ): Author {
-    const user = profiles[pubkey];
+  function authorOf(pubkey: string) {
+    const u: NostrUser | undefined = overviewStore.profiles[pubkey];
     return {
-      pubkey,
-      name: user?.shortName ?? pubkey.slice(0, 8),
-      picture: user?.metadata.picture,
+      name: u?.shortName ?? pubkey.slice(0, 8),
+      picture: u?.metadata?.picture,
     };
   }
-
-  function toRow(
-    t: ThreadData,
-    profiles: Record<string, NostrUser>,
-  ): ThreadRow {
-    return {
-      id: t.id,
-      title: t.title,
-      labels: t.labels,
-      author: resolveAuthor(t.authorPubkey, profiles),
-      replyCount: t.replyCount,
-      repliers: t.replierPubkeys.map((pk) => resolveAuthor(pk, profiles)),
-      lastActiveAuthor: resolveAuthor(t.latestPubkey, profiles),
-      lastActivity: relativeTime(t.latestAt),
-    };
-  }
-
-  const rows = $derived(
-    threadStore.threads.map((t) => toRow(t, threadStore.profiles)),
-  );
 </script>
 
 <svelte:head>
-  <title>Discussions</title>
+  <title>{MODE === "full" ? "Rooms" : "Discussions"}</title>
 </svelte:head>
 
-<div class="mx-auto max-w-6xl">
-  <div class="flex flex-wrap items-center justify-between gap-2 py-2">
-    <h1 class="text-[1.65rem] text-brand">Discussions</h1>
-    <div class="flex items-center gap-2">
-      <button
-        onclick={onNewTopic}
-        class="rounded bg-brand px-4 py-1.5 md:text-sm font-medium text-white hover:bg-brand-hover md:px-6"
-      >
-        New discussion
-      </button>
-      <SortToggle {sort} />
-    </div>
-  </div>
+{#snippet pic(a: { name: string; picture?: string })}
+  {#if a.picture}
+    <img src={a.picture} alt="" class="h-5 w-5 rounded-full object-cover" />
+  {:else}
+    <span
+      class="flex h-5 w-5 items-center justify-center rounded-full bg-neutral-200 text-[10px] font-semibold text-neutral-500"
+      aria-hidden="true"
+    >
+      {a.name[0].toUpperCase()}
+    </span>
+  {/if}
+{/snippet}
 
-  <div>
-    {#each rows as thread}
-      <ThreadItem {thread} />
+{#if MODE === "simple"}
+  <DiscussionsFeed groupId={GROUP_ID} title="Discussions" />
+{:else}
+  <h1 class="py-2 text-[1.65rem] text-brand">Rooms</h1>
+
+  {#if groupsStore.list.length === 0}
+    <p class="py-6 text-sm text-neutral-400">
+      {groupsStore.loaded ? "No rooms available yet." : "Loading rooms…"}
+    </p>
+  {/if}
+
+  <div class="divide-y divide-neutral-100">
+    {#each groupsStore.list as room}
+      {@const act = overviewStore.activity[room.id]}
+      {@const adminPk = overviewStore.admins[room.id]}
+      {@const admin = adminPk ? authorOf(adminPk) : null}
+      {@const last = act ? authorOf(act.latestPubkey) : null}
+      <a
+        href="/room/{room.id}"
+        class="group flex items-start justify-between gap-4 py-5"
+      >
+        <div class="min-w-0">
+          <h2 class="text-2xl text-neutral-800 group-hover:text-brand">
+            {room.name}
+          </h2>
+          {#if room.about}
+            <p class="mt-1 text-neutral-600 leading-5">{room.about}</p>
+          {/if}
+          {#if admin}
+            <div class="mt-2 flex items-center gap-2 text-sm text-neutral-500">
+              <span>Admin</span>
+              {@render pic(admin)}
+            </div>
+          {/if}
+        </div>
+        {#if act && last}
+          <div class="flex shrink-0 flex-col items-center gap-0.5">
+            <div class="flex items-center gap-1">
+              {@render pic(last)}
+              <span class="text-neutral-800">{relativeTime(act.latestAt)}</span>
+            </div>
+            <span class="text-sm text-neutral-400">activity</span>
+          </div>
+        {/if}
+      </a>
     {/each}
   </div>
-
-  {#if threadStore.loading && rows.length === 0}
-    <p class="py-6 text-center text-sm text-neutral-400">
-      Loading discussions…
-    </p>
-  {:else if !threadStore.exhausted}
-    <div class="flex justify-center py-6">
-      <button
-        onclick={() => loadMore(GROUP_ID)}
-        disabled={threadStore.loadingMore}
-        aria-busy={threadStore.loadingMore}
-        class="rounded border border-neutral-200 px-6 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50"
-      >
-        {threadStore.loadingMore ? "Loading…" : "Show more"}
-      </button>
-    </div>
-  {:else if rows.length > 0}
-    <p class="py-6 text-center text-sm text-neutral-400">No more discussions</p>
-  {/if}
-</div>
+{/if}

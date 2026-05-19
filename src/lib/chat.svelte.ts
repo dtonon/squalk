@@ -1,6 +1,6 @@
 import { SimplePool, type Event } from "@nostr/tools";
 import { loadNostrUser, type NostrUser } from "@nostr/gadgets/metadata";
-import { RELAY_URL, GROUP_ID } from "$lib/config";
+import { RELAY_URL } from "$lib/config";
 import { auth } from "$lib/auth.svelte";
 import { ingestNostrUser } from "$lib/profiles.svelte";
 import { extractMentionPubkeys, buildPTagHints } from "$lib/mentions";
@@ -16,7 +16,8 @@ export type ChatMessageData = {
 
 let messages = $state<ChatMessageData[]>([]);
 let profiles = $state<Record<string, NostrUser>>({});
-let started = false;
+let currentGroup: string | null = null;
+let chatReq = 0; // supersedes an in-flight load when the room changes
 let livePool: SimplePool | null = null;
 let liveSub: { close(): void } | null = null;
 
@@ -65,17 +66,28 @@ function ingestEvent(ev: Event) {
   loadProfile(ev.pubkey);
 }
 
-export async function startChat() {
-  if (started) return;
-  started = true;
+// (Re)start chat for a group. Switching rooms tears down the previous live
+// subscription, clears its messages, and reloads — a req token discards a load
+// that was superseded mid-flight.
+export async function startChat(groupId: string) {
+  if (!groupId || groupId === currentGroup) return;
+  currentGroup = groupId;
+  const req = ++chatReq;
+
+  liveSub?.close();
+  livePool?.close([RELAY_URL]);
+  liveSub = null;
+  livePool = null;
+  messages = [];
 
   const pool = new SimplePool();
   try {
     const events = await pool.querySync([RELAY_URL], {
       kinds: [9],
-      "#h": [GROUP_ID],
+      "#h": [groupId],
       limit: 100,
     });
+    if (req !== chatReq) return;
     for (const ev of events) ingestEvent(ev);
   } catch (e) {
     console.error("[chat] initial load failed", e);
@@ -83,12 +95,14 @@ export async function startChat() {
     pool.close([RELAY_URL]);
   }
 
+  if (req !== chatReq) return;
+
   livePool = new SimplePool();
   liveSub = livePool.subscribeMany(
     [RELAY_URL],
     {
       kinds: [9],
-      "#h": [GROUP_ID],
+      "#h": [groupId],
       since: Math.floor(Date.now() / 1000),
     },
     { onevent: (ev) => ingestEvent(ev) },
@@ -96,11 +110,13 @@ export async function startChat() {
 }
 
 export function stopChat() {
+  chatReq++;
   liveSub?.close();
   livePool?.close([RELAY_URL]);
   liveSub = null;
   livePool = null;
-  started = false;
+  currentGroup = null;
+  messages = [];
 }
 
 export async function sendChatMessage(
@@ -108,6 +124,7 @@ export async function sendChatMessage(
   replyTo?: { id: string; pubkey: string },
 ) {
   if (!auth.signer) throw new Error("Not logged in");
+  if (!currentGroup) throw new Error("No room selected");
   const ownPubkey = await auth.signer.getPublicKey();
 
   const previousRefs = messages
@@ -123,7 +140,7 @@ export async function sendChatMessage(
 
   const hints = await buildPTagHints(notifyPubkeys);
 
-  const tags: string[][] = [["h", GROUP_ID]];
+  const tags: string[][] = [["h", currentGroup]];
   if (replyTo) {
     tags.push(["q", replyTo.id, RELAY_URL, replyTo.pubkey]);
   }

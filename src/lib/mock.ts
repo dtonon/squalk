@@ -1,9 +1,3 @@
-export type Room = {
-  slug: string;
-  name: string;
-  group: string;
-};
-
 export type Author = {
   pubkey: string;
   name: string;
@@ -41,16 +35,6 @@ export const community = {
   about:
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 };
-
-export const rooms: Room[] = [
-  { slug: "off-topics-cafe", name: "Off topics cafe", group: "Groups" },
-  { slug: "proposals", name: "Proposals", group: "Groups" },
-  { slug: "development", name: "Development", group: "Groups" },
-  { slug: "announcements", name: "Announcements", group: "Groups" },
-  { slug: "off-topics", name: "Off topics", group: "Groups" },
-  { slug: "about", name: "About", group: "Resources" },
-  { slug: "help-center", name: "Help center", group: "Resources" },
-];
 
 const alice: Author = {
   pubkey: "npub1alice",
