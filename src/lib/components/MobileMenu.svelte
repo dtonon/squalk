@@ -1,6 +1,7 @@
 <script lang="ts">
   import { fly, fade } from "svelte/transition";
   import { groupsStore } from "$lib/groups.svelte";
+  import { resourcesStore } from "$lib/resources.svelte";
   import { auth, openLogin, logout } from "$lib/auth.svelte";
   import { draftState, resumeDraft } from "$lib/draft.svelte";
 
@@ -115,7 +116,7 @@
         {#if mode === "full"}
           <nav class="mt-4" aria-label="Rooms">
             <p
-              class="pb-1 text-xs font-semibold uppercase tracking-wider text-neutral-400"
+              class="pb-1 font-semibold uppercase tracking-wider text-neutral-400"
             >
               Rooms
             </p>
@@ -126,7 +127,7 @@
               <a
                 href="/room/{room.id}"
                 onclick={onClose}
-                class="block py-1.5 text-lg
+                class="block py-1.5 text-xl
 									{activeRoom === room.id ? 'text-brand' : 'text-neutral-700 hover:text-brand'}"
               >
                 {room.name}
@@ -135,16 +136,27 @@
           </nav>
         {/if}
 
-        <a
-          href="/about"
-          onclick={onClose}
-          class="py-2 text-xl text-neutral-700 hover:text-brand">About</a
-        >
-        <a
-          href="/contacts"
-          onclick={onClose}
-          class="py-2 text-xl text-neutral-700 hover:text-brand">Contacts</a
-        >
+        <nav class="mt-4" aria-label="Resources">
+          <p
+            class="pb-1 font-semibold uppercase tracking-wider text-neutral-400"
+          >
+            Resources
+          </p>
+          {#each resourcesStore.list as r (r.slug)}
+            <a
+              href="/resource/{r.slug}"
+              onclick={onClose}
+              class="block py-1.5 text-xl text-neutral-700 hover:text-brand"
+              >{r.title}</a
+            >
+          {/each}
+          <a
+            href="/contacts"
+            onclick={onClose}
+            class="block py-1.5 text-lg text-neutral-700 hover:text-brand"
+            >Contacts</a
+          >
+        </nav>
 
         <div class="mt-4 flex flex-col gap-2 border-t border-neutral-100 pt-4">
           {#if draftState.iconized}
@@ -177,9 +189,12 @@
                   {auth.user.shortName.slice(0, 1).toUpperCase()}
                 </span>
               {/if}
-              <span class="truncate text-lg font-medium">{auth.user.shortName}</span
+              <span class="truncate text-lg font-medium"
+                >{auth.user.shortName}</span
               >
-              <span class="ml-auto shrink-0 text-sm text-neutral-400">Log out</span>
+              <span class="ml-auto shrink-0 text-sm text-neutral-400"
+                >Log out</span
+              >
             </button>
           {:else}
             <button

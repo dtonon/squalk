@@ -2,6 +2,7 @@
   import { auth, openLogin, logout } from "$lib/auth.svelte";
   import { groupStore } from "$lib/group.svelte";
   import { groupsStore } from "$lib/groups.svelte";
+  import { resourcesStore } from "$lib/resources.svelte";
   import { draftState, resumeDraft } from "$lib/draft.svelte";
 
   type Props = {
@@ -54,27 +55,33 @@
       </nav>
       {#if activeAbout}
         <div class="mt-6">
+          <p
+            class="pb-1 text-xs font-semibold uppercase tracking-wider text-neutral-400"
+          >
+            About
+          </p>
           <p class="text-sm text-neutral-500">{activeAbout}</p>
         </div>
       {/if}
     {/if}
 
-    <nav class="flex-auto mt-6">
-      <div class="">
-        <p
-          class="pb-1 text-xs font-semibold uppercase tracking-wider text-neutral-400"
-        >
-          More
-        </p>
+    <nav class="flex-auto mt-6" aria-label="Resources">
+      <p
+        class="pb-1 text-xs font-semibold uppercase tracking-wider text-neutral-400"
+      >
+        Resources
+      </p>
+      {#each resourcesStore.list as r (r.slug)}
         <a
-          href="/about"
-          class="block py-1 text-neutral-500 hover:text-neutral-900">About</a
+          href="/resource/{r.slug}"
+          class="block py-1 text-neutral-500 hover:text-neutral-900"
+          >{r.title}</a
         >
-        <a
-          href="/contacts"
-          class="block py-1 text-neutral-500 hover:text-neutral-900">Contacts</a
-        >
-      </div>
+      {/each}
+      <a
+        href="/contacts"
+        class="block py-1 text-neutral-500 hover:text-neutral-900">Contacts</a
+      >
     </nav>
   </div>
 

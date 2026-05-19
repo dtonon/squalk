@@ -15,9 +15,18 @@
     content: string;
     profiles?: Record<string, NostrUser>;
     threadEventAuthors?: Record<string, string>;
+    // Added to each heading level. Thread posts demote by 1 (the post title is
+    // a separate h1, so content headings start at h2); standalone articles
+    // pass 0 to keep their real levels.
+    headingOffset?: number;
   };
 
-  let { content, profiles = {}, threadEventAuthors = {} }: Props = $props();
+  let {
+    content,
+    profiles = {},
+    threadEventAuthors = {},
+    headingOffset = 1,
+  }: Props = $props();
 
   // Curated TLD list: gTLDs, popular new gTLDs, common ccTLDs
   const TLDS = [
@@ -675,7 +684,7 @@
         {@render renderBlocks(block.blocks)}
       </blockquote>
     {:else if block.type === "heading"}
-      {@const tag = `h${Math.min(block.level + 2, 6)}`}
+      {@const tag = `h${Math.max(1, Math.min(block.level + headingOffset, 6))}`}
       <svelte:element this={tag}>
         {@render renderInlines(block.inlines)}
       </svelte:element>

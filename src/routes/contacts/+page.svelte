@@ -2,7 +2,11 @@
   import * as nip19 from "@nostr/tools/nip19";
   import { groupStore } from "$lib/group.svelte";
   import { groupsStore } from "$lib/groups.svelte";
-  import { roomAdminsStore, loadRoomAdmins } from "$lib/admins.svelte";
+  import {
+    roomAdminsStore,
+    loadRoomAdmins,
+    adminPubkeys,
+  } from "$lib/admins.svelte";
   import { MODE } from "$lib/config";
   import {
     profileStore,
@@ -17,15 +21,9 @@
     if (ids.length > 0) loadRoomAdmins(ids);
   });
 
-  const adminPubkeys = $derived<string[]>(
-    MODE === "full"
-      ? [...new Set(Object.values(roomAdminsStore.byRoom).flat())]
-      : (groupStore.data?.admins ?? []),
-  );
-
   // Group data is loaded by the layout; profiles stream in reactively.
   $effect(() => {
-    for (const pk of adminPubkeys) ensureProfile(pk);
+    for (const pk of adminPubkeys.list) ensureProfile(pk);
   });
 
   // Rooms a given admin manages (full mode only).
@@ -45,7 +43,7 @@
   type Contact = { pubkey: string; npub: string; entry?: ProfileEntry };
 
   const contacts = $derived<Contact[]>(
-    adminPubkeys.map((pk) => {
+    adminPubkeys.list.map((pk) => {
       const entry = profileStore.profiles.get(pk);
       return { pubkey: pk, npub: entry?.npub ?? nip19.npubEncode(pk), entry };
     }),

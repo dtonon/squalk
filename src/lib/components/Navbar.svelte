@@ -1,11 +1,15 @@
 <script lang="ts">
   import { groupStore } from "$lib/group.svelte";
-  import { GROUP_ID, TITLE } from "$lib/config";
+  import { GROUP_ID, TITLE, MODE } from "$lib/config";
 
   type Props = { onMenuToggle: () => void };
   let { onMenuToggle }: Props = $props();
 
-  const name = $derived(TITLE || groupStore.data?.name || GROUP_ID);
+  // PUBLIC_TITLE always wins when set. Without it, simple mode shows the room's
+  // own name; full mode has no single room, so it falls back to GROUP_ID.
+  const name = $derived(
+    TITLE || (MODE === "simple" ? (groupStore.data?.name ?? GROUP_ID) : GROUP_ID),
+  );
 </script>
 
 <header

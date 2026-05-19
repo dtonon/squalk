@@ -1,5 +1,6 @@
 import { SimplePool } from "@nostr/tools";
-import { RELAY_URL } from "$lib/config";
+import { RELAY_URL, MODE } from "$lib/config";
+import { groupStore } from "$lib/group.svelte";
 
 // room id -> admin pubkeys (NIP-29 kind 39001 `p` tags), across all rooms.
 let byRoom = $state<Record<string, string[]>>({});
@@ -12,6 +13,19 @@ export const roomAdminsStore = {
   },
   get loaded() {
     return loaded;
+  },
+};
+
+// Single source of truth for "who is an admin": the union of every room's
+// admins in full mode, or the one group's admins in simple mode.
+export const adminPubkeys = {
+  get list(): string[] {
+    return MODE === "full"
+      ? [...new Set(Object.values(byRoom).flat())]
+      : (groupStore.data?.admins ?? []);
+  },
+  get loaded(): boolean {
+    return MODE === "full" ? loaded : groupStore.loaded;
   },
 };
 

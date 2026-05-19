@@ -11,10 +11,14 @@ export type GroupMetadata = {
 };
 
 let group = $state<GroupMetadata | null>(null);
+let loaded = $state(false);
 
 export const groupStore = {
   get data() {
     return group;
+  },
+  get loaded() {
+    return loaded;
   },
 };
 
@@ -40,6 +44,7 @@ export async function loadGroup() {
       admins,
     };
   } finally {
+    loaded = true;
     pool.close([RELAY_URL]);
   }
 }

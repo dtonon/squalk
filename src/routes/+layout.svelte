@@ -13,7 +13,9 @@
   import { onMount } from "svelte";
   import { auth, restoreSession } from "$lib/auth.svelte";
   import { loadGroup } from "$lib/group.svelte";
-  import { loadGroups } from "$lib/groups.svelte";
+  import { loadGroups, groupsStore } from "$lib/groups.svelte";
+  import { loadResources } from "$lib/resources.svelte";
+  import { loadRoomAdmins } from "$lib/admins.svelte";
   import { seedProfiles } from "$lib/profiles.svelte";
   import { startChat } from "$lib/chat.svelte";
   import { activeGroup, setActiveGroup } from "$lib/active.svelte";
@@ -25,9 +27,13 @@
   const chatEnabled = true;
 
   onMount(async () => {
+    loadResources();
     const tasks = [restoreSession(), loadGroup()];
     if (mode === "full") tasks.push(loadGroups());
     await Promise.all(tasks);
+    // Resources are filtered by the admin set; in full mode that means every
+    // room's admins, needed on every page for the sidebar.
+    if (mode === "full") loadRoomAdmins(groupsStore.list.map((g) => g.id));
     seedProfiles(auth.user?.pubkey ?? null);
   });
 
@@ -53,10 +59,14 @@
       (page.url.pathname.startsWith("/thread/") ? activeGroup.id : ""),
   );
 
-  // The full-mode landing page renders its own right column (latest
-  // discussions) and has no single room to chat in, so suppress room chat there.
-  const isHomeFull = $derived(mode === "full" && page.url.pathname === "/");
-  const showChat = $derived(chatEnabled && !isHomeFull);
+  // Article pages (both modes) and the full-mode landing have no single room to
+  // chat in, so they render the latest-discussions panel instead of room chat.
+  // The simple-mode home keeps its room chat, like every full-mode room.
+  const isArticle = $derived(page.url.pathname.startsWith("/resource/"));
+  const showDiscussions = $derived(
+    isArticle || (mode === "full" && page.url.pathname === "/"),
+  );
+  const showChat = $derived(chatEnabled && !showDiscussions);
 
   // On mobile a route change should always land on the forum pane, so opening
   // a thread or room from the menu never leaves the user stranded on chat.
@@ -85,7 +95,7 @@
   >
     <LeftSidebar {mode} {activeRoom} />
     <main
-      class="min-h-[calc(100dvh_-_4rem)] bg-white px-6 pt-8 pb-20 shadow-lg md:min-h-0 md:overflow-y-auto md:rounded-t-xl md:px-10 md:pt-6 {isHomeFull
+      class="min-h-[calc(100dvh_-_4rem)] bg-white px-6 pt-8 pb-20 shadow-lg md:min-h-0 md:overflow-y-auto md:rounded-t-xl md:px-10 md:pt-6 {showDiscussions
         ? 'md:flex-[3]'
         : 'md:flex-1'}
 			{mobileView === 'chat' ? 'hidden md:block' : 'block'}"
@@ -99,10 +109,11 @@
         onToggle={() => (chatExpanded = !chatExpanded)}
         mobileActive={mobileView === "chat"}
       />
-    {:else if isHomeFull}
-      <!-- Own panel (40%) so the gray gutter matches the main↔chat gap. -->
+    {:else if showDiscussions}
+      <!-- Own panel (40%) so the gray gutter matches the main↔chat gap.
+           Hidden on mobile — it's supplementary to the main column. -->
       <div
-        class="mt-2 min-w-0 bg-white px-6 pt-8 pb-20 shadow-lg md:mt-0 md:flex-[2] md:overflow-y-auto md:rounded-t-xl md:px-8 md:pt-6"
+        class="hidden min-w-0 bg-white px-6 pt-8 pb-20 shadow-lg md:mt-0 md:block md:flex-[2] md:overflow-y-auto md:rounded-t-xl md:px-8 md:pt-6"
       >
         <LatestDiscussions />
       </div>

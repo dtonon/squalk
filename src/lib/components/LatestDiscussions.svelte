@@ -1,7 +1,18 @@
 <script lang="ts">
-  import { overviewStore } from "$lib/overview.svelte";
+  import { overviewStore, loadOverview } from "$lib/overview.svelte";
   import { groupsStore } from "$lib/groups.svelte";
+  import { MODE, GROUP_ID } from "$lib/config";
   import type { NostrUser } from "@nostr/gadgets/metadata";
+
+  // Self-load so the panel works wherever it's mounted (home, article pages).
+  // Simple mode has the single configured group; full mode spans every room.
+  // loadOverview dedupes on the room-id set, so this is safe alongside the
+  // landing page's own call.
+  $effect(() => {
+    const ids =
+      MODE === "full" ? groupsStore.list.map((g) => g.id) : [GROUP_ID];
+    if (ids.length > 0) loadOverview(ids);
+  });
 
   function roomName(id: string) {
     return groupsStore.list.find((g) => g.id === id)?.name ?? id;
@@ -51,8 +62,10 @@
                   {author.name[0].toUpperCase()}
                 </span>
               {/if}
-              <span aria-hidden="true">in</span>
-              <span class="truncate">{roomName(t.groupId)}</span>
+              {#if MODE === "full"}
+                <span aria-hidden="true">in</span>
+                <span class="truncate">{roomName(t.groupId)}</span>
+              {/if}
             </div>
           </a>
         </li>
