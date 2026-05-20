@@ -679,7 +679,7 @@
       />
     {:else if block.type === "blockquote"}
       <blockquote
-        class="my-3 pb-1 mb-0 border-l-3 border-neutral-200 pl-3 text-neutral-500"
+        class="my-3 pb-1 mb-3 border-l-3 border-neutral-200 pl-3 text-neutral-500"
       >
         {@render renderBlocks(block.blocks)}
       </blockquote>
