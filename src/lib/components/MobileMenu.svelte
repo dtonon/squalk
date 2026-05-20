@@ -10,9 +10,18 @@
     onClose: () => void;
     mode: "simple" | "full";
     activeRoom?: string;
+    activeResource?: string;
+    contactsActive?: boolean;
   };
 
-  let { open, onClose, mode, activeRoom }: Props = $props();
+  let {
+    open,
+    onClose,
+    mode,
+    activeRoom,
+    activeResource,
+    contactsActive,
+  }: Props = $props();
 
   function onLogin() {
     onClose();
@@ -110,7 +119,8 @@
         <a
           href="/"
           onclick={onClose}
-          class="py-2 text-xl text-neutral-700 hover:text-brand">Home</a
+          class="py-2 text-xl text-neutral-700 hover:text-brand"
+          >{mode === "simple" ? "Discussions" : "Home"}</a
         >
 
         {#if mode === "full"}
@@ -146,14 +156,18 @@
             <a
               href="/resource/{r.slug}"
               onclick={onClose}
-              class="block py-1.5 text-xl text-neutral-700 hover:text-brand"
+              aria-current={activeResource === r.slug ? "page" : undefined}
+              class="block py-1.5 text-xl hover:text-brand
+                {activeResource === r.slug ? 'text-brand' : 'text-neutral-700'}"
               >{r.title}</a
             >
           {/each}
           <a
             href="/contacts"
             onclick={onClose}
-            class="block py-1.5 text-lg text-neutral-700 hover:text-brand"
+            aria-current={contactsActive ? "page" : undefined}
+            class="block py-1.5 text-lg hover:text-brand
+              {contactsActive ? 'text-brand' : 'text-neutral-700'}"
             >Contacts</a
           >
         </nav>

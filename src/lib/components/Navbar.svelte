@@ -15,7 +15,11 @@
 <header
   class="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between gap-2 bg-neutral-100 px-4 md:static md:px-8"
 >
-  <div class="flex min-w-0 items-center gap-2">
+  <a
+    href="/"
+    class="flex min-w-0 items-center gap-2 hover:opacity-90"
+    aria-label="{name} — home"
+  >
     {#if groupStore.data?.picture}
       <img
         src={groupStore.data.picture}
@@ -32,7 +36,7 @@
     <span class="truncate text-2xl font-medium text-neutral-900 md:text-[1.7rem]"
       >{name}</span
     >
-  </div>
+  </a>
   <button
     type="button"
     onclick={onMenuToggle}

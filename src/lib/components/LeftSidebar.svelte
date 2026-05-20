@@ -8,9 +8,11 @@
   type Props = {
     mode: "simple" | "full";
     activeRoom?: string;
+    activeResource?: string;
+    contactsActive?: boolean;
   };
 
-  let { mode, activeRoom }: Props = $props();
+  let { mode, activeRoom, activeResource, contactsActive }: Props = $props();
 
   // The description of the room currently being viewed (full mode).
   const activeAbout = $derived(
@@ -26,7 +28,7 @@
       href="/"
       class="flex items-center gap-2 py-1 hover:bg-neutral-100 text-neutral-700"
     >
-      Home
+      {mode === "simple" ? "Discussions" : "Home"}
     </a>
 
     {#if mode === "simple"}
@@ -74,13 +76,17 @@
       {#each resourcesStore.list as r (r.slug)}
         <a
           href="/resource/{r.slug}"
-          class="block py-1 text-neutral-500 hover:text-neutral-900"
+          aria-current={activeResource === r.slug ? "page" : undefined}
+          class="block py-1 hover:text-neutral-900
+            {activeResource === r.slug ? 'text-brand' : 'text-neutral-500'}"
           >{r.title}</a
         >
       {/each}
       <a
         href="/contacts"
-        class="block py-1 text-neutral-500 hover:text-neutral-900">Contacts</a
+        aria-current={contactsActive ? "page" : undefined}
+        class="block py-1 hover:text-neutral-900
+          {contactsActive ? 'text-brand' : 'text-neutral-500'}">Contacts</a
       >
     </nav>
   </div>

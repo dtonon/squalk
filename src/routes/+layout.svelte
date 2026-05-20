@@ -53,11 +53,21 @@
   let mobileView = $state<"forum" | "chat">("forum");
 
   // Room pages highlight via their slug; thread pages highlight the room the
-  // thread belongs to (tracked in activeGroup).
+  // thread belongs to (tracked in activeGroup). Scoped to those routes so a
+  // resource slug (same [slug] param name) never highlights a room.
   const activeRoom = $derived(
-    page.params.slug ??
-      (page.url.pathname.startsWith("/thread/") ? activeGroup.id : ""),
+    page.url.pathname.startsWith("/room/")
+      ? (page.params.slug ?? "")
+      : page.url.pathname.startsWith("/thread/")
+        ? activeGroup.id
+        : "",
   );
+
+  // Resource pages highlight the open article in the Resources menu.
+  const activeResource = $derived(
+    page.url.pathname.startsWith("/resource/") ? (page.params.slug ?? "") : "",
+  );
+  const contactsActive = $derived(page.url.pathname === "/contacts");
 
   // Article pages (both modes) and the full-mode landing have no single room to
   // chat in, so they render the latest-discussions panel instead of room chat.
@@ -93,7 +103,7 @@
       ? 'flex flex-1 overflow-hidden'
       : ''}"
   >
-    <LeftSidebar {mode} {activeRoom} />
+    <LeftSidebar {mode} {activeRoom} {activeResource} {contactsActive} />
     <main
       class="min-h-[calc(100dvh_-_4rem)] bg-white px-6 pt-8 pb-20 shadow-lg md:min-h-0 md:overflow-y-auto md:rounded-t-xl md:px-10 md:pt-6 {showDiscussions
         ? 'md:flex-[3]'
@@ -181,6 +191,8 @@
   onClose={() => (menuOpen = false)}
   {mode}
   {activeRoom}
+  {activeResource}
+  {contactsActive}
 />
 
 <LoginModal />
