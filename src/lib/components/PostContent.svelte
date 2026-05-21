@@ -262,6 +262,9 @@
     const d = dest.trim();
     if (/^https?:\/\//i.test(d)) return d;
     if (/^mailto:/i.test(d)) return d;
+    // Root-relative internal link. The negative lookahead rejects
+    // protocol-relative URLs (//host), which the browser treats as external.
+    if (/^\/(?!\/)/.test(d)) return d;
     if (/^[a-z][a-z0-9+.-]*:/i.test(d)) return null;
     if (/\S\.\S/.test(d)) return `https://${d}`;
     return null;
@@ -585,10 +588,11 @@
 {#snippet renderInlines(inlines: Inline[])}
   {#each inlines as inline (inline)}
     {#if inline.type === "link"}
+      {@const internal = inline.href.startsWith("/")}
       <a
         href={inline.href}
-        target="_blank"
-        rel="noopener noreferrer"
+        target={internal ? undefined : "_blank"}
+        rel={internal ? undefined : "noopener noreferrer"}
         class="text-brand hover:underline break-all">{inline.label}</a
       >
     {:else if inline.type === "mention"}
