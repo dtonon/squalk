@@ -69,12 +69,14 @@
   );
   const contactsActive = $derived(page.url.pathname === "/contacts");
 
-  // Article pages (both modes) and the full-mode landing have no single room to
-  // chat in, so they render the latest-discussions panel instead of room chat.
-  // The simple-mode home keeps its room chat, like every full-mode room.
+  // Standalone pages (articles, contacts) and the full-mode landing have no
+  // single room to chat in, so they render the latest-discussions panel instead
+  // of room chat. The simple-mode home keeps its room chat, like every room.
   const isArticle = $derived(page.url.pathname.startsWith("/resource/"));
   const showDiscussions = $derived(
-    isArticle || (mode === "full" && page.url.pathname === "/"),
+    isArticle ||
+      contactsActive ||
+      (mode === "full" && page.url.pathname === "/"),
   );
   const showChat = $derived(chatEnabled && !showDiscussions);
 
