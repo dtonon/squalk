@@ -95,7 +95,7 @@
 </svelte:head>
 
 <div
-  class="mx-auto flex max-w-[1540px] flex-col md:h-screen md:overflow-hidden {mobileView ===
+  class="mx-auto flex max-w-[1540px] flex-col md:h-screen md:overflow-hidden md:pt-4 {mobileView ===
   'chat'
     ? 'h-dvh overflow-hidden'
     : ''}"

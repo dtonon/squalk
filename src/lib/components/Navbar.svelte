@@ -12,8 +12,9 @@
   );
 </script>
 
+<!-- Mobile only: on desktop the logo lives at the top of the left sidebar. -->
 <header
-  class="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between gap-2 bg-neutral-100 px-4 md:static md:px-8"
+  class="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between gap-2 bg-neutral-100 px-4 md:hidden"
 >
   <a
     href="/"

@@ -4,6 +4,7 @@
   import { groupsStore } from "$lib/groups.svelte";
   import { resourcesStore } from "$lib/resources.svelte";
   import { draftState, resumeDraft } from "$lib/draft.svelte";
+  import { GROUP_ID, TITLE } from "$lib/config";
 
   type Props = {
     mode: "simple" | "full";
@@ -14,6 +15,14 @@
 
   let { mode, activeRoom, activeResource, contactsActive }: Props = $props();
 
+  // Brand at the top: logo when set, otherwise the title/name as text. Mirrors
+  // the mobile header's name logic (PUBLIC_TITLE wins; simple mode falls back to
+  // the room name, full mode to GROUP_ID).
+  const name = $derived(
+    TITLE ||
+      (mode === "simple" ? (groupStore.data?.name ?? GROUP_ID) : GROUP_ID),
+  );
+
   // The description of the room currently being viewed (full mode).
   const activeAbout = $derived(
     groupsStore.list.find((g) => g.id === activeRoom)?.about ?? "",
@@ -21,9 +30,26 @@
 </script>
 
 <aside
-  class="hidden max-w-52 min-w-48 shrink-0 flex-col justify-between py-2 pl-8 pr-1 pb-8 md:flex"
+  class="hidden max-w-52 min-w-48 shrink-0 flex-col justify-between pl-8 pr-1 pb-8 md:flex"
 >
   <div>
+    <a
+      href="/"
+      class="mb-6 mt-3 flex flex-col min-w-0 hover:opacity-90"
+      aria-label="{name} — home"
+    >
+      {#if groupStore.data?.picture}
+        <img
+          src={groupStore.data.picture}
+          alt={name}
+          class="max-w-[90%] shrink-0 object-cover"
+        />
+      {/if}
+      <span class="text-[1.3rem] font-medium text-neutral-900 mt-2 leading-6"
+        >{name}</span
+      >
+    </a>
+
     <a
       href="/"
       class="flex items-center gap-2 py-1 hover:bg-neutral-100 text-neutral-700"
