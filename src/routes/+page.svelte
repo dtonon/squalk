@@ -1,9 +1,13 @@
 <script lang="ts">
   import DiscussionsFeed from "$lib/components/DiscussionsFeed.svelte";
+  import PostContent from "$lib/components/PostContent.svelte";
   import { groupsStore } from "$lib/groups.svelte";
   import { overviewStore, loadOverview } from "$lib/overview.svelte";
+  import { partialsStore } from "$lib/partials.svelte";
   import { MODE, GROUP_ID } from "$lib/config";
   import type { NostrUser } from "@nostr/gadgets/metadata";
+
+  const partial = $derived(partialsStore.get("home"));
 
   // Full mode: load per-room activity + recent threads once the rooms are known.
   $effect(() => {
@@ -45,6 +49,12 @@
     </span>
   {/if}
 {/snippet}
+
+{#if partial}
+  <div class="mt-4 mb-8">
+    <PostContent content={partial.content} headingOffset={0} />
+  </div>
+{/if}
 
 {#if MODE === "simple"}
   <DiscussionsFeed groupId={GROUP_ID} title="Discussions" />

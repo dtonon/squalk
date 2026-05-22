@@ -15,6 +15,7 @@
   import { loadGroup } from "$lib/group.svelte";
   import { loadGroups, groupsStore } from "$lib/groups.svelte";
   import { loadResources } from "$lib/resources.svelte";
+  import { loadPartials } from "$lib/partials.svelte";
   import { loadRoomAdmins } from "$lib/admins.svelte";
   import { seedProfiles } from "$lib/profiles.svelte";
   import { startChat } from "$lib/chat.svelte";
@@ -28,6 +29,7 @@
 
   onMount(async () => {
     loadResources();
+    loadPartials();
     const tasks = [restoreSession(), loadGroup()];
     if (mode === "full") tasks.push(loadGroups());
     await Promise.all(tasks);

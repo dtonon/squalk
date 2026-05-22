@@ -13,6 +13,10 @@
     ensureProfile,
     type ProfileEntry,
   } from "$lib/profiles.svelte";
+  import { partialsStore } from "$lib/partials.svelte";
+  import PostContent from "$lib/components/PostContent.svelte";
+
+  const partial = $derived(partialsStore.get("contacts"));
 
   // Full mode pulls admins from every room; simple mode uses the one group.
   $effect(() => {
@@ -69,6 +73,12 @@
 
 <div class="mx-auto max-w-6xl">
   <h1 class="py-2 text-[1.65rem] text-brand">Contacts</h1>
+
+  {#if partial}
+    <div class="mb-8">
+      <PostContent content={partial.content} headingOffset={0} />
+    </div>
+  {/if}
 
   {#if loading}
     <p class="py-6 text-center text-neutral-400">Loading…</p>
