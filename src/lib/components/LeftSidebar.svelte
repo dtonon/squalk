@@ -30,7 +30,7 @@
 </script>
 
 <aside
-  class="hidden max-w-52 min-w-48 shrink-0 flex-col justify-between pl-8 pr-1 pb-8 md:flex"
+  class="hidden max-w-52 min-w-48 shrink-0 flex-col justify-between pl-8 pr-1 pb-8 md:flex md:pt-6"
 >
   <div>
     <a

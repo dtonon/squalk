@@ -126,7 +126,6 @@
   onMount(() => {
     const main = document.querySelector("main");
     if (!main) return;
-    main.classList.add("no-scrollbar");
     const onScroll = () => {
       isScrolled = main.scrollTop > 0;
       if (selectionTarget) selectionTarget = null;
@@ -184,7 +183,6 @@
     document.addEventListener("selectionchange", onSelectionChange);
 
     return () => {
-      main.classList.remove("no-scrollbar");
       main.removeEventListener("scroll", onScroll);
       window.removeEventListener("scroll", onWinScroll);
       document.removeEventListener("selectionchange", onSelectionChange);

@@ -146,7 +146,7 @@
 
 <aside
   bind:this={asideEl}
-  class="flex-1 flex-col bg-white px-4 pt-4 pb-20 md:absolute md:top-2 md:right-0 md:z-10 md:h-[calc(100%-0.5rem)] md:flex-none md:rounded-tl-xl md:px-6 md:py-6 md:transition-all md:duration-200 min-[1540px]:rounded-tr-xl
+  class="flex-1 flex-col bg-white px-4 pt-4 pb-20 md:absolute md:top-6 md:right-0 md:z-10 md:h-[calc(100%-1.5rem)] md:flex-none md:rounded-tl-xl md:px-6 md:py-6 md:transition-all md:duration-200 min-[1540px]:rounded-tr-xl
 		{mobileActive ? 'flex' : 'hidden'} md:flex
 		{expanded ? 'md:w-150 md:shadow-2xl' : 'md:w-80 md:shadow-lg'}"
 >
@@ -181,7 +181,7 @@
   <div
     bind:this={listEl}
     onscroll={onListScroll}
-    class="-mr-6 flex flex-1 flex-col overflow-y-auto pr-6"
+    class="no-scrollbar -mr-6 flex flex-1 flex-col overflow-y-auto pr-6"
   >
     {#if messages.length === 0}
       <div class="m-auto py-8 text-center text-sm text-neutral-400">

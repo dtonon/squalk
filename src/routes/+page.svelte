@@ -51,7 +51,7 @@
 {/snippet}
 
 {#if partial}
-  <div class="mt-4 mb-8">
+  <div class="mt-2 mb-8">
     <PostContent content={partial.content} headingOffset={0} />
   </div>
 {/if}
