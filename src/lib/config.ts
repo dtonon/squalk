@@ -1,21 +1,19 @@
-import {
-  PUBLIC_RELAY_URL,
-  PUBLIC_GROUP_ID,
-  PUBLIC_TITLE,
-  PUBLIC_MODE,
-  PUBLIC_JOINCODE,
-  PUBLIC_LABELS,
-  PUBLIC_BLOSSOM_URL,
-} from "$env/static/public";
+import { PUBLIC_RELAY_URL, PUBLIC_GROUP_ID } from "$env/static/public";
+import { env } from "$env/dynamic/public";
 
+// Required: a missing relay or group id is a misconfiguration, so let the
+// static import fail loudly (and keep them typed as string).
 export const RELAY_URL = PUBLIC_RELAY_URL;
 export const GROUP_ID = PUBLIC_GROUP_ID;
-export const TITLE = PUBLIC_TITLE ?? "";
+
+// Optional: read dynamically so an unset var is undefined and falls back to its
+// default, instead of breaking the static-import contract at load time.
+export const TITLE = env.PUBLIC_TITLE ?? "";
 export const MODE: "simple" | "full" =
-  PUBLIC_MODE === "full" ? "full" : "simple";
-export const JOINCODE_REQUIRED = PUBLIC_JOINCODE === "yes";
-export const LABELS = (PUBLIC_LABELS ?? "")
+  env.PUBLIC_MODE === "full" ? "full" : "simple";
+export const JOINCODE_REQUIRED = env.PUBLIC_JOINCODE === "yes";
+export const LABELS = (env.PUBLIC_LABELS ?? "")
   .split(",")
   .map((l) => l.trim())
   .filter(Boolean);
-export const BLOSSOM_URL = (PUBLIC_BLOSSOM_URL ?? "").replace(/\/$/, "");
+export const BLOSSOM_URL = (env.PUBLIC_BLOSSOM_URL ?? "").replace(/\/$/, "");
