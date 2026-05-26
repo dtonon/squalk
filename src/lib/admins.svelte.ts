@@ -29,6 +29,18 @@ export const adminPubkeys = {
   },
 };
 
+// Per-group admin check. NIP-29 roles are scoped to a group, so a delete
+// button must gate on the post's own group, not the cross-room union above.
+export function isGroupAdmin(
+  pubkey: string | undefined,
+  groupId: string | undefined,
+): boolean {
+  if (!pubkey || !groupId) return false;
+  return MODE === "full"
+    ? (byRoom[groupId]?.includes(pubkey) ?? false)
+    : (groupStore.data?.admins?.includes(pubkey) ?? false);
+}
+
 export async function loadRoomAdmins(roomIds: string[]) {
   if (roomIds.length === 0) return;
   const key = [...roomIds].sort().join(",");

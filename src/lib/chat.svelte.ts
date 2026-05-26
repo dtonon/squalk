@@ -34,6 +34,10 @@ export function getChatMessage(id: string): ChatMessageData | undefined {
   return messages.find((m) => m.id === id);
 }
 
+export function removeChatMessage(id: string) {
+  messages = messages.filter((m) => m.id !== id);
+}
+
 async function loadProfile(pubkey: string) {
   if (profiles[pubkey]) return;
   try {

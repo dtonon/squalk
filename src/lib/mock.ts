@@ -340,7 +340,10 @@ export const chatMessages: ChatMessage[] = [
     content:
       "Proin vitae ex iaculis, luctus elit in, fermentum turpis. Pellentesque sagittis congue quam.",
     createdAt: "2025-01-15T13:05:00Z",
-    reactions: [{ emoji: "❤️", count: 2 }, { emoji: "🎉", count: 1 }],
+    reactions: [
+      { emoji: "❤️", count: 2 },
+      { emoji: "🎉", count: 1 },
+    ],
   },
   {
     id: "c4",

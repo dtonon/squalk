@@ -129,7 +129,11 @@ export function searchLocalProfiles(
       p.nip05?.toLowerCase().startsWith(ql)
         ? 1
         : 0;
-    matches.push({ entry: p, rank: rankFor(p.pubkey, opts?.contextPubkeys), prefix });
+    matches.push({
+      entry: p,
+      rank: rankFor(p.pubkey, opts?.contextPubkeys),
+      prefix,
+    });
   }
   matches.sort((a, b) => {
     if (a.prefix !== b.prefix) return b.prefix - a.prefix;
@@ -230,10 +234,7 @@ async function doSeedProfiles(userPubkey: string | null) {
       else unknown.push(pk);
     }
 
-    const lastSync = parseInt(
-      localStorage.getItem(LAST_SYNC_KEY) ?? "0",
-      10,
-    );
+    const lastSync = parseInt(localStorage.getItem(LAST_SYNC_KEY) ?? "0", 10);
 
     const fetches: Promise<Event[]>[] = [];
     for (const batch of chunk(known, FETCH_BATCH_SIZE)) {
@@ -264,10 +265,7 @@ async function doSeedProfiles(userPubkey: string | null) {
     }
     console.log(`[profiles] seeded ${count} kind:0 events into cache`);
 
-    localStorage.setItem(
-      LAST_SYNC_KEY,
-      String(Math.floor(Date.now() / 1000)),
-    );
+    localStorage.setItem(LAST_SYNC_KEY, String(Math.floor(Date.now() / 1000)));
   } finally {
     pool.close([RELAY_URL, ...PROFILE_RELAYS]);
   }

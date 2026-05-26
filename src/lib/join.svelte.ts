@@ -128,7 +128,10 @@ async function publishJoinRequest(groupId: string, code?: string) {
   const pool = new SimplePool();
   try {
     const timeout = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error("Relay did not respond in time")), 8000),
+      setTimeout(
+        () => reject(new Error("Relay did not respond in time")),
+        8000,
+      ),
     );
     await Promise.race([
       Promise.all(pool.publish([RELAY_URL], event)),

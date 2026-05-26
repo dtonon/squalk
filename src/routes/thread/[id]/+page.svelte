@@ -1,14 +1,19 @@
 <script lang="ts">
   import { onMount, tick } from "svelte";
   import { page } from "$app/state";
+  import { goto } from "$app/navigation";
   import * as nip19 from "@nostr/tools/nip19";
   import {
     threadDetailStore,
     loadThread,
     sendReply,
+    removeReply,
     type PostData,
   } from "$lib/thread.svelte";
   import { auth, openLogin } from "$lib/auth.svelte";
+  import { isGroupAdmin } from "$lib/admins.svelte";
+  import { requestDelete } from "$lib/moderation.svelte";
+  import { showToast } from "$lib/toast.svelte";
   import { withJoin } from "$lib/join.svelte";
   import { setActiveGroup } from "$lib/active.svelte";
   import { RELAY_URL, MODE } from "$lib/config";
@@ -105,6 +110,50 @@
 
   const detail = $derived(threadDetailStore.detail);
   const profiles = $derived(threadDetailStore.profiles);
+
+  const canModerate = $derived(
+    !!auth.user && !!detail && isGroupAdmin(auth.user.pubkey, detail.groupId),
+  );
+
+  let openMenuId = $state<string | null>(null);
+
+  function toggleMenu(id: string, e: MouseEvent) {
+    e.stopPropagation();
+    openMenuId = openMenuId === id ? null : id;
+  }
+
+  // Deleting the OP removes the whole thread, so leave the page; a reply just
+  // disappears in place.
+  function requestDeletePost(p: PostData, isOp: boolean) {
+    if (!detail) return;
+    const groupId = detail.groupId;
+    openMenuId = null;
+    requestDelete(
+      { eventId: p.id, groupId, label: isOp ? "discussion" : "reply" },
+      () => {
+        if (isOp) {
+          showToast("Discussion deleted");
+          goto(MODE === "full" ? `/room/${groupId}` : "/");
+        } else {
+          removeReply(p.id);
+        }
+      },
+    );
+  }
+
+  $effect(() => {
+    if (!openMenuId) return;
+    const close = () => (openMenuId = null);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") openMenuId = null;
+    };
+    document.addEventListener("click", close);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("click", close);
+      document.removeEventListener("keydown", onKey);
+    };
+  });
 
   const allPosts = $derived(detail ? [detail.op, ...detail.replies] : []);
   const postEls = $derived([opEl, ...replyEls]);
@@ -244,13 +293,52 @@
           <div class="flex-shrink-0 md:hidden">
             {@render avatar(author)}
           </div>
-          <span class="truncate font-medium text-neutral-400"
+          <span class="truncate font-medium text-neutral-500"
             >{author.name}</span
           >
         </div>
-        <span class="text-sm text-neutral-400 ml-4 flex-shrink-0"
-          >{formatDate(p.createdAt)}</span
-        >
+        <div class="ml-4 flex flex-shrink-0 items-center gap-1">
+          {#if canModerate}
+            <div class="relative">
+              <button
+                onclick={(e) => toggleMenu(p.id, e)}
+                class="flex items-center justify-center rounded p-1 text-neutral-300 transition-colors hover:bg-neutral-100 hover:text-neutral-500"
+                aria-label="Post actions"
+                aria-haspopup="menu"
+                aria-expanded={openMenuId === p.id}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"
+                  />
+                </svg>
+              </button>
+              {#if openMenuId === p.id}
+                <div
+                  role="menu"
+                  class="absolute right-0 top-7 z-20 w-36 rounded-lg border border-neutral-100 bg-white py-1 text-sm shadow-lg"
+                >
+                  <button
+                    role="menuitem"
+                    onclick={(e) => {
+                      e.stopPropagation();
+                      requestDeletePost(p, index === 0);
+                    }}
+                    class="w-full px-3 py-1.5 text-left text-red-600 hover:bg-red-50"
+                    >Delete</button
+                  >
+                </div>
+              {/if}
+            </div>
+          {/if}
+          <span class="text-sm text-neutral-400">{formatDate(p.createdAt)}</span
+          >
+        </div>
       </div>
       <div data-quote-post-index={index} id="post-{p.id}" class="scroll-mt-32">
         <PostContent content={p.content} {profiles} {threadEventAuthors} />

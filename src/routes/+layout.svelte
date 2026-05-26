@@ -9,6 +9,8 @@
   import LoginModal from "$lib/components/LoginModal.svelte";
   import JoinModal from "$lib/components/JoinModal.svelte";
   import NewDiscussionModal from "$lib/components/NewDiscussionModal.svelte";
+  import DeleteModal from "$lib/components/DeleteModal.svelte";
+  import Toast from "$lib/components/Toast.svelte";
   import { page } from "$app/state";
   import { onMount } from "svelte";
   import { auth, restoreSession } from "$lib/auth.svelte";
@@ -214,3 +216,5 @@
 <LoginModal />
 <JoinModal />
 <NewDiscussionModal />
+<DeleteModal />
+<Toast />

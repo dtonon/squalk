@@ -31,11 +31,11 @@ export function extractQuotedEvents(content: string): QuotedEvent[] {
     try {
       const decoded = nip19.decode(m[1]);
       if (decoded.type === "note") {
-        if (!seen.has(decoded.data)) seen.set(decoded.data, { id: decoded.data });
+        if (!seen.has(decoded.data))
+          seen.set(decoded.data, { id: decoded.data });
       } else if (decoded.type === "nevent") {
         const { id, relays, author } = decoded.data;
-        if (!seen.has(id))
-          seen.set(id, { id, relay: relays?.[0], author });
+        if (!seen.has(id)) seen.set(id, { id, relay: relays?.[0], author });
       }
     } catch {
       // Invalid bech32, skip
@@ -44,7 +44,9 @@ export function extractQuotedEvents(content: string): QuotedEvent[] {
   return [...seen.values()];
 }
 
-export async function relayHintFor(pubkey: string): Promise<string | undefined> {
+export async function relayHintFor(
+  pubkey: string,
+): Promise<string | undefined> {
   try {
     const TIMEOUT = Symbol();
     const result = await Promise.race([
@@ -60,7 +62,9 @@ export async function relayHintFor(pubkey: string): Promise<string | undefined> 
   }
 }
 
-export async function buildPTagHints(pubkeys: Iterable<string>): Promise<Map<string, string>> {
+export async function buildPTagHints(
+  pubkeys: Iterable<string>,
+): Promise<Map<string, string>> {
   const hints = new Map<string, string>();
   await Promise.all(
     [...pubkeys].map(async (pk) => {

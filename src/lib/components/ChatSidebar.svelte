@@ -4,9 +4,12 @@
     chatStore,
     getChatMessage,
     sendChatMessage,
+    removeChatMessage,
     type ChatMessageData,
   } from "$lib/chat.svelte";
   import { auth, openLogin } from "$lib/auth.svelte";
+  import { isGroupAdmin } from "$lib/admins.svelte";
+  import { requestDelete } from "$lib/moderation.svelte";
   import { withJoin } from "$lib/join.svelte";
   import { activeGroup } from "$lib/active.svelte";
   import type { NostrUser } from "@nostr/gadgets/metadata";
@@ -25,6 +28,9 @@
   let listEl = $state<HTMLDivElement | null>(null);
   let inputEl = $state<MentionAutocomplete | null>(null);
   let openMenuId = $state<string | null>(null);
+  let menuPos = $state<{ top?: number; bottom?: number; right: number } | null>(
+    null,
+  );
   let replyTarget = $state<ChatMessageData | null>(null);
   let inputValue = $state("");
   let sending = $state(false);
@@ -32,6 +38,36 @@
 
   const messages = $derived(chatStore.messages);
   const profiles = $derived(chatStore.profiles);
+
+  const canModerate = $derived(
+    !!auth.user && isGroupAdmin(auth.user.pubkey, activeGroup.id),
+  );
+
+  function requestDeleteMessage(msg: ChatMessageData) {
+    openMenuId = null;
+    requestDelete(
+      { eventId: msg.id, groupId: activeGroup.id, label: "message" },
+      () => removeChatMessage(msg.id),
+    );
+  }
+
+  // The message list clips overflow, so an absolute menu gets cut off by the top
+  // bar or the input. Anchor it with fixed coords from the button instead,
+  // opening upward unless there isn't room above.
+  function toggleMenu(id: string, e: MouseEvent) {
+    e.stopPropagation();
+    if (openMenuId === id) {
+      openMenuId = null;
+      return;
+    }
+    const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const right = window.innerWidth - r.right;
+    menuPos =
+      r.top > 96
+        ? { bottom: window.innerHeight - r.top + 4, right }
+        : { top: r.bottom + 4, right };
+    openMenuId = id;
+  }
 
   // Distinct authors of loaded messages — power the @ autocomplete context.
   const contextPubkeys = $derived([...new Set(messages.map((m) => m.pubkey))]);
@@ -111,6 +147,7 @@
 
   function onListScroll() {
     if (!listEl) return;
+    if (openMenuId) openMenuId = null;
     const distance =
       listEl.scrollHeight - listEl.scrollTop - listEl.clientHeight;
     userScrolledUp = distance > 100;
@@ -139,8 +176,15 @@
     function closeMenu() {
       openMenuId = null;
     }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") openMenuId = null;
+    }
     document.addEventListener("click", closeMenu);
-    return () => document.removeEventListener("click", closeMenu);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("click", closeMenu);
+      document.removeEventListener("keydown", onKey);
+    };
   });
 </script>
 
@@ -188,7 +232,7 @@
         No messages yet.
       </div>
     {:else}
-      <div class="mt-auto space-y-4 pb-4">
+      <div class="mt-auto space-y-5 pb-4">
         {#each messages as msg (msg.id)}
           {@const author = resolveAuthor(msg.pubkey)}
           {@const parent = msg.replyToId ? getChatMessage(msg.replyToId) : null}
@@ -208,10 +252,60 @@
                   {author.name[0].toUpperCase()}
                 </span>
               {/if}
-              <span class="font-medium text-neutral-600">{author.name}</span>
-              <span class="ml-auto text-xs text-neutral-400"
-                >{formatTime(msg.createdAt)}</span
-              >
+              <span class="font-medium text-neutral-500">{author.name}</span>
+              <div class="ml-auto flex items-center gap-1">
+                <div class="relative">
+                  <button
+                    onclick={(e) => toggleMenu(msg.id, e)}
+                    class="flex items-center justify-center rounded p-0.5 text-neutral-300 transition-colors hover:bg-neutral-100 hover:text-neutral-500"
+                    aria-label="Message actions"
+                    aria-haspopup="menu"
+                    aria-expanded={openMenuId === msg.id}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-4 w-4"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"
+                      />
+                    </svg>
+                  </button>
+                  {#if openMenuId === msg.id && menuPos}
+                    <div
+                      role="menu"
+                      style={`${menuPos.top !== undefined ? `top:${menuPos.top}px` : `bottom:${menuPos.bottom}px`};right:${menuPos.right}px`}
+                      class="fixed z-50 w-36 rounded-lg border border-neutral-100 bg-white py-1 text-sm shadow-lg"
+                    >
+                      <button
+                        role="menuitem"
+                        onclick={(e) => {
+                          e.stopPropagation();
+                          startReply(msg);
+                        }}
+                        class="w-full px-3 py-1.5 text-left hover:bg-neutral-50"
+                        >Reply</button
+                      >
+                      {#if canModerate}
+                        <button
+                          role="menuitem"
+                          onclick={(e) => {
+                            e.stopPropagation();
+                            requestDeleteMessage(msg);
+                          }}
+                          class="w-full px-3 py-1.5 text-left text-red-600 hover:bg-red-50"
+                          >Delete</button
+                        >
+                      {/if}
+                    </div>
+                  {/if}
+                </div>
+                <span class="text-xs text-neutral-400"
+                  >{formatTime(msg.createdAt)}</span
+                >
+              </div>
             </div>
             <div class="mt-0.5">
               {#if msg.replyToId}
@@ -229,43 +323,6 @@
               <p class="leading-5 text-neutral-700">
                 <ChatContent content={msg.content} {profiles} />
               </p>
-              <div class="mt-0.5 flex items-center gap-2">
-                <div class="relative ml-auto">
-                  <button
-                    onclick={(e) => {
-                      e.stopPropagation();
-                      openMenuId = openMenuId === msg.id ? null : msg.id;
-                    }}
-                    class="flex items-center justify-center rounded p-0.5 text-neutral-300 transition-colors hover:bg-neutral-100 hover:text-neutral-500"
-                    aria-label="Message actions"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-4 w-4"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"
-                      />
-                    </svg>
-                  </button>
-                  {#if openMenuId === msg.id}
-                    <div
-                      class="absolute right-0 bottom-6 z-20 w-36 rounded-lg border border-neutral-100 bg-white py-1 text-sm shadow-lg"
-                    >
-                      <button
-                        onclick={(e) => {
-                          e.stopPropagation();
-                          startReply(msg);
-                        }}
-                        class="w-full px-3 py-1.5 text-left hover:bg-neutral-50"
-                        >Reply</button
-                      >
-                    </div>
-                  {/if}
-                </div>
-              </div>
             </div>
           </div>
         {/each}

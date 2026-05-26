@@ -32,8 +32,12 @@ let detail = $state<ThreadDetail | null>(null);
 let profiles = $state<Record<string, NostrUser>>({});
 
 export const threadDetailStore = {
-  get detail() { return detail; },
-  get profiles() { return profiles; },
+  get detail() {
+    return detail;
+  },
+  get profiles() {
+    return profiles;
+  },
 };
 
 async function loadProfile(pubkey: string) {
@@ -52,15 +56,29 @@ function loadMockThread(id: string) {
     title: t.title,
     labels: t.tags.map((tag) => tag.label),
     groupId: GROUP_ID,
-    op: { id: t.op.id, pubkey: t.op.author.pubkey, createdAt: toUnix(t.op.createdAt), content: t.op.content },
+    op: {
+      id: t.op.id,
+      pubkey: t.op.author.pubkey,
+      createdAt: toUnix(t.op.createdAt),
+      content: t.op.content,
+    },
     replies: (t.op.replies ?? []).map((r) => ({
-      id: r.id, pubkey: r.author.pubkey, createdAt: toUnix(r.createdAt), content: r.content,
+      id: r.id,
+      pubkey: r.author.pubkey,
+      createdAt: toUnix(r.createdAt),
+      content: r.content,
     })),
   };
-  const allAuthors = [t.op.author, ...(t.op.replies ?? []).map((r) => r.author)];
+  const allAuthors = [
+    t.op.author,
+    ...(t.op.replies ?? []).map((r) => r.author),
+  ];
   for (const a of allAuthors) {
     profiles[a.pubkey] = {
-      pubkey: a.pubkey, npub: a.pubkey, shortName: a.name, image: a.picture,
+      pubkey: a.pubkey,
+      npub: a.pubkey,
+      shortName: a.name,
+      image: a.picture,
       metadata: { name: a.name, picture: a.picture },
       lastUpdated: 0,
     } as NostrUser;
@@ -71,7 +89,11 @@ export async function loadThread(id: string) {
   detail = null;
   profiles = {};
 
-  if (!isNostrId(id)) { await Promise.resolve(); loadMockThread(id); return; }
+  if (!isNostrId(id)) {
+    await Promise.resolve();
+    loadMockThread(id);
+    return;
+  }
 
   const pool = new SimplePool();
   try {
@@ -108,6 +130,11 @@ export async function loadThread(id: string) {
   } finally {
     pool.close([RELAY_URL]);
   }
+}
+
+export function removeReply(id: string) {
+  if (!detail) return;
+  detail = { ...detail, replies: detail.replies.filter((r) => r.id !== id) };
 }
 
 export async function sendReply(content: string, ownPubkey: string) {
@@ -167,9 +194,15 @@ export async function sendReply(content: string, ownPubkey: string) {
   const pool = new SimplePool();
   try {
     const timeout = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error("Relay did not respond in time")), 8000)
+      setTimeout(
+        () => reject(new Error("Relay did not respond in time")),
+        8000,
+      ),
     );
-    await Promise.race([Promise.all(pool.publish([RELAY_URL], signed)), timeout]);
+    await Promise.race([
+      Promise.all(pool.publish([RELAY_URL], signed)),
+      timeout,
+    ]);
   } finally {
     pool.destroy();
   }

@@ -14,19 +14,37 @@ let publishing = $state(false);
 let publishError = $state<string | null>(null);
 
 export const draftState = {
-  get modalOpen() { return modalOpen; },
-  get iconized() { return iconized; },
-  get title() { return title; },
-  set title(v: string) { title = v; },
-  get labels() { return labels; },
-  get content() { return content; },
-  set content(v: string) { content = v; },
-  get publishing() { return publishing; },
-  get publishError() { return publishError; },
+  get modalOpen() {
+    return modalOpen;
+  },
+  get iconized() {
+    return iconized;
+  },
+  get title() {
+    return title;
+  },
+  set title(v: string) {
+    title = v;
+  },
+  get labels() {
+    return labels;
+  },
+  get content() {
+    return content;
+  },
+  set content(v: string) {
+    content = v;
+  },
+  get publishing() {
+    return publishing;
+  },
+  get publishError() {
+    return publishError;
+  },
   get hasDraft() {
-    return title.trim().length > 0 ||
-      content.trim().length > 0 ||
-      labels.length > 0;
+    return (
+      title.trim().length > 0 || content.trim().length > 0 || labels.length > 0
+    );
   },
 };
 
@@ -71,7 +89,10 @@ export function removeLabel(l: string) {
   labels = labels.filter((x) => x !== l);
 }
 
-export async function publishDraft(): Promise<{ ok: boolean; threadId?: string }> {
+export async function publishDraft(): Promise<{
+  ok: boolean;
+  threadId?: string;
+}> {
   if (!auth.signer) {
     publishError = "Not logged in";
     return { ok: false };
@@ -93,7 +114,9 @@ export async function publishDraft(): Promise<{ ok: boolean; threadId?: string }
   let threadId: string | undefined;
 
   const ownPubkey = auth.user?.pubkey;
-  const mentionPubkeys = extractMentionPubkeys(c).filter((pk) => pk !== ownPubkey);
+  const mentionPubkeys = extractMentionPubkeys(c).filter(
+    (pk) => pk !== ownPubkey,
+  );
   const hints = await buildPTagHints(mentionPubkeys);
 
   try {
@@ -118,7 +141,10 @@ export async function publishDraft(): Promise<{ ok: boolean; threadId?: string }
       const pool = new SimplePool();
       try {
         const timeout = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error("Relay did not respond in time")), 8000),
+          setTimeout(
+            () => reject(new Error("Relay did not respond in time")),
+            8000,
+          ),
         );
         await Promise.race([
           Promise.all(pool.publish([RELAY_URL], event)),
