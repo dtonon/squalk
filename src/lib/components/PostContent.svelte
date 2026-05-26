@@ -679,7 +679,7 @@
         src={block.src}
         alt={block.alt}
         loading="lazy"
-        class="block mx-auto w-full max-h-[80vh] object-contain rounded"
+        class="block -mx-6 w-[calc(100%_+_3rem)] max-w-none max-h-[80vh] object-contain rounded-none md:mx-auto md:w-full md:max-w-full md:rounded"
       />
     {:else if block.type === "blockquote"}
       <blockquote
@@ -752,7 +752,7 @@
 {/snippet}
 
 <div
-  class="prose leading-5 max-w-none text-neutral-700 [&_p]:my-3 [&_img]:my-5 [&_table]:my-0 [&_pre]:bg-neutral-100 [&_pre]:text-neutral-800 [&_:not(pre)>code]:rounded [&_:not(pre)>code]:bg-neutral-100 [&_:not(pre)>code]:px-1 [&_:not(pre)>code]:py-0.5 [&_blockquote_p]:before:content-none [&_blockquote_p]:after:content-none [&_code]:before:content-none [&_code]:after:content-none"
+  class="prose leading-5 max-w-none text-neutral-700 [&_p]:my-3 [&_img]:my-5 [&_blockquote_img]:mx-0 [&_blockquote_img]:w-full [&_blockquote_img]:max-w-full [&_blockquote_img]:rounded [&_table]:my-0 [&_pre]:bg-neutral-100 [&_pre]:text-neutral-800 [&_:not(pre)>code]:rounded [&_:not(pre)>code]:bg-neutral-100 [&_:not(pre)>code]:px-1 [&_:not(pre)>code]:py-0.5 [&_blockquote_p]:before:content-none [&_blockquote_p]:after:content-none [&_code]:before:content-none [&_code]:after:content-none"
 >
   {@render renderBlocks(blocks)}
 </div>

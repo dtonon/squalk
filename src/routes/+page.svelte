@@ -59,7 +59,11 @@
 {#if MODE === "simple"}
   <DiscussionsFeed groupId={GROUP_ID} title="Discussions" />
 {:else}
-  <h1 class="py-2 text-[1.65rem] text-brand">Rooms</h1>
+  {#if partial}
+    <hr class="text-neutral-300" />
+  {:else}
+    <h1 class="py-2 text-[1.65rem] text-brand">Forum rooms</h1>
+  {/if}
 
   {#if groupsStore.list.length === 0}
     <p class="py-6 text-sm text-neutral-400">
