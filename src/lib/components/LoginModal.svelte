@@ -88,7 +88,7 @@
       onclick={onClose}
     ></button>
     <div
-      class="relative w-full max-w-sm rounded-lg bg-white p-6 shadow-xl"
+      class="relative w-full max-w-sm rounded-lg bg-white dark:bg-neutral-900 p-6 shadow-xl"
       role="dialog"
       aria-modal="true"
       aria-labelledby="login-title"
@@ -97,12 +97,12 @@
         type="button"
         onclick={onClose}
         aria-label="Close"
-        class="absolute top-3 right-3 text-2xl leading-none text-neutral-400 hover:text-neutral-700"
+        class="absolute top-3 right-3 text-2xl leading-none text-neutral-400 dark:text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
       >
         ×
       </button>
 
-      <h2 id="login-title" class="mb-4 text-lg font-semibold text-neutral-900">
+      <h2 id="login-title" class="mb-4 text-lg font-semibold text-neutral-900 dark:text-neutral-100">
         {view === "extension" ? "Log in" : "Log in with nsec"}
       </h2>
 
@@ -124,7 +124,7 @@
           {busy ? "Connecting…" : "Log in with extension"}
         </button>
         {#if !hasExtension}
-          <p class="mt-2 text-xs text-neutral-500">
+          <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
             No Nostr extension detected in this browser.
           </p>
         {/if}
@@ -149,7 +149,7 @@
           autocorrect="off"
           spellcheck="false"
           onkeydown={(e) => e.key === "Enter" && handleNsec()}
-          class="focus:ring-brand w-full rounded border border-neutral-200 px-3 py-2 font-mono text-sm focus:ring-1 focus:outline-none disabled:opacity-50"
+          class="focus:ring-brand w-full rounded border border-neutral-200 dark:border-neutral-700 px-3 py-2 font-mono text-sm focus:ring-1 focus:outline-none disabled:opacity-50"
         />
         <button
           onclick={handleNsec}
@@ -158,7 +158,7 @@
         >
           {busy ? "Logging in…" : "Log in"}
         </button>
-        <p class="mt-2 text-xs text-neutral-500">
+        <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
           Your key is kept in this browser. Use only for testing.
         </p>
         <button

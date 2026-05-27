@@ -15,7 +15,7 @@
 
 <!-- Mobile only: on desktop the logo lives at the top of the left sidebar. -->
 <header
-  class="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between gap-2 bg-neutral-100 px-4 md:hidden"
+  class="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between gap-2 bg-neutral-100 dark:bg-neutral-800 px-4 md:hidden"
 >
   <a
     href="/"
@@ -36,14 +36,14 @@
       </div>
     {/if}
     <span
-      class="truncate text-2xl font-medium text-neutral-900 md:text-[1.7rem]"
+      class="truncate text-2xl font-medium text-neutral-900 dark:text-neutral-100 md:text-[1.7rem]"
       >{name}</span
     >
   </a>
   <button
     type="button"
     onclick={onMenuToggle}
-    class="-mr-1 shrink-0 rounded p-1.5 text-neutral-700 hover:bg-neutral-200 md:hidden"
+    class="-mr-1 shrink-0 rounded p-1.5 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700 md:hidden"
     aria-label="Open menu"
   >
     <svg

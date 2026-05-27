@@ -116,7 +116,7 @@
   </div>
 
   {#if threadStore.loading && rows.length === 0}
-    <p class="py-6 text-center text-sm text-neutral-400">
+    <p class="py-6 text-center text-sm text-neutral-400 dark:text-neutral-500">
       Loading discussions…
     </p>
   {:else if !threadStore.exhausted}
@@ -125,12 +125,12 @@
         onclick={() => loadMore(groupId)}
         disabled={threadStore.loadingMore}
         aria-busy={threadStore.loadingMore}
-        class="rounded border border-neutral-200 px-6 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50"
+        class="rounded border border-neutral-200 dark:border-neutral-700 px-6 py-1.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 disabled:opacity-50"
       >
         {threadStore.loadingMore ? "Loading…" : "Show more"}
       </button>
     </div>
   {:else if rows.length > 0}
-    <p class="py-6 text-center text-sm text-neutral-400">No more discussions</p>
+    <p class="py-6 text-center text-sm text-neutral-400 dark:text-neutral-500">No more discussions</p>
   {/if}
 </div>

@@ -38,15 +38,15 @@
       onclick={cancelDelete}
     ></button>
     <div
-      class="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
+      class="relative w-full max-w-md rounded-lg bg-white dark:bg-neutral-900 p-6 shadow-xl"
       role="dialog"
       aria-modal="true"
       aria-labelledby="delete-title"
     >
-      <h2 id="delete-title" class="mb-2 text-lg font-semibold text-neutral-900">
+      <h2 id="delete-title" class="mb-2 text-lg font-semibold text-neutral-900 dark:text-neutral-100">
         Delete {deleteState.target.label}?
       </h2>
-      <p class="mb-4 text-sm text-neutral-600">
+      <p class="mb-4 text-sm text-neutral-600 dark:text-neutral-400">
         This asks the relay to remove the {deleteState.target.label} for everyone.
         It can't be undone.
       </p>
@@ -60,7 +60,7 @@
         </div>
       {/if}
 
-      <label for="delete-reason" class="mb-1 block text-sm text-neutral-600"
+      <label for="delete-reason" class="mb-1 block text-sm text-neutral-600 dark:text-neutral-400"
         >Reason (optional)</label
       >
       <textarea
@@ -70,7 +70,7 @@
         disabled={deleteState.busy}
         rows="2"
         placeholder="Recorded with the deletion"
-        class="focus:ring-brand mb-4 w-full resize-none rounded border border-neutral-200 px-3 py-2 text-sm focus:ring-1 focus:outline-none disabled:opacity-50"
+        class="focus:ring-brand mb-4 w-full resize-none rounded border border-neutral-200 dark:border-neutral-700 px-3 py-2 text-sm focus:ring-1 focus:outline-none disabled:opacity-50"
       ></textarea>
 
       <div class="flex justify-end gap-2">
@@ -78,7 +78,7 @@
           type="button"
           onclick={cancelDelete}
           disabled={deleteState.busy}
-          class="rounded px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100 disabled:opacity-50"
+          class="rounded px-3 py-2 text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-50"
         >
           Cancel
         </button>

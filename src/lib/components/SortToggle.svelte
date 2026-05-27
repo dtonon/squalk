@@ -93,7 +93,7 @@
     bind:this={menuEl}
     role="menu"
     aria-label="Sort discussions"
-    class="absolute right-0 z-10 mt-1 min-w-48 rounded border border-neutral-200 bg-white py-1 shadow-lg {open
+    class="absolute right-0 z-10 mt-1 min-w-48 rounded border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 py-1 shadow-lg {open
       ? 'block'
       : 'hidden'}"
   >
@@ -103,10 +103,10 @@
         role="menuitem"
         aria-current={o.value === sort ? "true" : undefined}
         onclick={() => closeMenu()}
-        class="flex items-center gap-2 px-3 py-2 text-sm hover:bg-neutral-50 {o.value ===
+        class="flex items-center gap-2 px-3 py-2 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-800 {o.value ===
         sort
-          ? 'font-semibold text-neutral-900'
-          : 'text-neutral-600'}"
+          ? 'font-semibold text-neutral-900 dark:text-neutral-100'
+          : 'text-neutral-600 dark:text-neutral-400'}"
       >
         <span class="w-4 text-center" aria-hidden="true"
           >{o.value === sort ? "✓" : ""}</span

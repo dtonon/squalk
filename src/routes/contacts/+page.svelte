@@ -81,14 +81,14 @@
   {/if}
 
   {#if loading}
-    <p class="py-6 text-center text-neutral-400">Loading…</p>
+    <p class="py-6 text-center text-neutral-400 dark:text-neutral-500">Loading…</p>
   {:else if contacts.length === 0}
-    <p class="py-6 text-center text-neutral-400">No admins listed.</p>
+    <p class="py-6 text-center text-neutral-400 dark:text-neutral-500">No admins listed.</p>
   {:else}
     <ul class="mt-2 space-y-3">
       {#each contacts as c (c.pubkey)}
         <li
-          class="flex gap-4 rounded-lg border border-neutral-100 p-4 shadow-sm"
+          class="flex gap-4 rounded-lg border border-neutral-100 dark:border-neutral-800 p-4 shadow-sm"
         >
           {#if c.entry?.picture}
             <img
@@ -98,7 +98,7 @@
             />
           {:else}
             <span
-              class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-lg font-semibold text-neutral-500"
+              class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 text-lg font-semibold text-neutral-500 dark:text-neutral-400"
             >
               {displayName(c)[0].toUpperCase()}
             </span>
@@ -107,11 +107,11 @@
           <div class="min-w-0 flex-1">
             <div class="flex items-start justify-between gap-3">
               <div class="min-w-0">
-                <p class="truncate text-2xl font-medium text-neutral-900">
+                <p class="truncate text-2xl font-medium text-neutral-900 dark:text-neutral-100">
                   {displayName(c)}
                 </p>
                 {#if c.entry?.nip05}
-                  <p class="truncate text-neutral-400">
+                  <p class="truncate text-neutral-400 dark:text-neutral-500">
                     {c.entry.nip05}
                   </p>
                 {/if}
@@ -127,7 +127,7 @@
             </div>
 
             {#if c.entry?.about}
-              <p class="mt-2 whitespace-pre-line text-neutral-600">
+              <p class="mt-2 whitespace-pre-line text-neutral-600 dark:text-neutral-400">
                 {c.entry.about}
               </p>
             {/if}
@@ -145,7 +145,7 @@
                   </a>
                 {/if}
                 {#if c.entry?.lud16}
-                  <span class="text-neutral-500" title="Lightning address">
+                  <span class="text-neutral-500 dark:text-neutral-400" title="Lightning address">
                     ⚡ {c.entry.lud16}
                   </span>
                 {/if}
@@ -155,8 +155,8 @@
             {#if MODE === "full"}
               {@const rooms = roomsOf(c.pubkey)}
               {#if rooms.length > 0}
-                <p class="mt-2 text-neutral-500">
-                  <span class="text-neutral-400">Manages:</span>
+                <p class="mt-2 text-neutral-500 dark:text-neutral-400">
+                  <span class="text-neutral-400 dark:text-neutral-500">Manages:</span>
                   {#each rooms as r, i}<a
                       href="/room/{r.id}"
                       class="text-brand hover:underline">{r.name}</a

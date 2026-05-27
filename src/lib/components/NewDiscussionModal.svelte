@@ -140,7 +140,7 @@
       onclick={iconizeDraft}
     ></button>
     <div
-      class="relative flex h-full max-h-full w-full flex-col gap-4 overflow-y-auto bg-white p-6 shadow-xl md:h-auto md:max-h-[90vh] md:max-w-2xl md:overflow-hidden md:rounded-lg"
+      class="relative flex h-full max-h-full w-full flex-col gap-4 overflow-y-auto bg-white dark:bg-neutral-900 p-6 shadow-xl md:h-auto md:max-h-[90vh] md:max-w-2xl md:overflow-hidden md:rounded-lg"
       role="dialog"
       aria-modal="true"
       aria-labelledby="newdisc-title"
@@ -149,7 +149,7 @@
       <div class="flex items-start justify-between">
         <div>
           {#if targetName}
-            <p class="text-sm text-neutral-700">{targetName}</p>
+            <p class="text-sm text-neutral-700 dark:text-neutral-300">{targetName}</p>
           {/if}
           <h2 id="newdisc-title" class="text-brand text-2xl">New discussion</h2>
         </div>
@@ -157,7 +157,7 @@
           type="button"
           onclick={iconizeDraft}
           aria-label="Minimize draft"
-          class="rounded bg-neutral-50 p-1.5 text-neutral-700 hover:bg-neutral-100"
+          class="rounded bg-neutral-50 dark:bg-neutral-800 p-1.5 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
         >
           <svg
             width="20"
@@ -179,7 +179,7 @@
       <div>
         <label
           for="newdisc-title-input"
-          class="mb-1 block text-xs font-semibold tracking-wider text-neutral-400 uppercase"
+          class="mb-1 block text-xs font-semibold tracking-wider text-neutral-400 dark:text-neutral-500 uppercase"
         >
           Title
         </label>
@@ -190,7 +190,7 @@
           bind:value={draftState.title}
           disabled={draftState.publishing}
           maxlength="72"
-          class="focus:ring-brand w-full rounded border border-neutral-200 px-3 py-2 focus:ring-1 focus:outline-none disabled:opacity-50"
+          class="focus:ring-brand w-full rounded border border-neutral-200 dark:border-neutral-700 px-3 py-2 focus:ring-1 focus:outline-none disabled:opacity-50"
         />
       </div>
 
@@ -199,12 +199,12 @@
         <div class="relative">
           <label
             for="newdisc-labels-input"
-            class="mb-1 block text-xs font-semibold tracking-wider text-neutral-400 uppercase"
+            class="mb-1 block text-xs font-semibold tracking-wider text-neutral-400 dark:text-neutral-500 uppercase"
           >
             Labels
           </label>
           <div
-            class="focus-within:ring-brand flex min-h-[2.5rem] flex-wrap items-center gap-1.5 rounded border border-neutral-200 px-3 py-1.5 focus-within:ring-1"
+            class="focus-within:ring-brand flex min-h-[2.5rem] flex-wrap items-center gap-1.5 rounded border border-neutral-200 dark:border-neutral-700 px-3 py-1.5 focus-within:ring-1"
           >
             {#each draftState.labels as l}
               <span
@@ -238,7 +238,7 @@
               />
               {#if suggestion}
                 <span
-                  class="pointer-events-none absolute inset-0 flex items-center text-sm text-neutral-400"
+                  class="pointer-events-none absolute inset-0 flex items-center text-sm text-neutral-400 dark:text-neutral-500"
                   aria-hidden="true"
                 >
                   <span class="invisible">{labelInput}</span><span
@@ -250,7 +250,7 @@
           </div>
           {#if suggestOpen && filtered.length > 0}
             <div
-              class="absolute right-0 left-0 z-20 mt-1 flex flex-wrap gap-1.5 rounded border border-neutral-200 bg-white p-3 shadow-lg"
+              class="absolute right-0 left-0 z-20 mt-1 flex flex-wrap gap-1.5 rounded border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-3 shadow-lg"
             >
               {#each filtered as l}
                 <button
@@ -265,7 +265,7 @@
             </div>
           {/if}
           {#if suggestion}
-            <p class="mt-1 text-xs text-neutral-400">
+            <p class="mt-1 text-xs text-neutral-400 dark:text-neutral-500">
               Press Tab or Enter to add “{suggestion}”
             </p>
           {/if}

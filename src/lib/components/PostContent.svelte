@@ -607,7 +607,7 @@
       {@const u = profiles[inline.pubkey] ?? resolvedUsers[inline.pubkey]}
       <a
         href="#post-{inline.eventId}"
-        class="-ml-3 block bg-neutral-100 py-1 pl-3 leading-4 font-normal no-underline hover:bg-neutral-200"
+        class="-ml-3 block bg-neutral-100 dark:bg-neutral-800 py-1 pl-3 leading-4 font-normal text-neutral-700 dark:text-neutral-300 no-underline hover:bg-neutral-200 dark:hover:bg-neutral-700"
         >{u?.shortName ?? inline.pubkey.slice(0, 8)} said
         <svg
           class="mb-0.5 inline w-3"
@@ -619,7 +619,7 @@
           style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;"
           ><path
             d="M101.286,748.313l199.143,0c109.981,0 199.142,-89.161 199.142,-199.142l0,-497.856m0,-0l199.143,199.142m-199.143,-199.142l-199.142,199.142"
-            style="fill:none;fill-rule:nonzero;stroke:#000;stroke-width:99.57px;"
+            style="fill:none;fill-rule:nonzero;stroke:currentColor;stroke-width:99.57px;"
           /></svg
         >
       </a>
@@ -683,7 +683,7 @@
       />
     {:else if block.type === "blockquote"}
       <blockquote
-        class="my-3 mb-3 border-l-3 border-neutral-200 pb-1 pl-3 text-neutral-500"
+        class="my-3 mb-3 border-l-3 border-neutral-200 dark:border-neutral-700 pb-1 pl-3 text-neutral-500 dark:text-neutral-400"
       >
         {@render renderBlocks(block.blocks)}
       </blockquote>
@@ -752,7 +752,7 @@
 {/snippet}
 
 <div
-  class="prose max-w-none leading-5 text-neutral-700 [&_:not(pre)>code]:rounded [&_:not(pre)>code]:bg-neutral-100 [&_:not(pre)>code]:px-1 [&_:not(pre)>code]:py-0.5 [&_blockquote_img]:mx-0 [&_blockquote_img]:w-full [&_blockquote_img]:max-w-full [&_blockquote_img]:rounded [&_blockquote_p]:before:content-none [&_blockquote_p]:after:content-none [&_code]:before:content-none [&_code]:after:content-none [&_img]:my-5 [&_p]:my-3 [&_pre]:bg-neutral-100 [&_pre]:text-neutral-800 [&_table]:my-0"
+  class="prose max-w-none leading-5 text-neutral-700 dark:text-neutral-300 [&_:not(pre)>code]:rounded [&_:not(pre)>code]:bg-neutral-100 [&_:not(pre)>code]:px-1 [&_:not(pre)>code]:py-0.5 dark:[&_:not(pre)>code]:bg-neutral-800 dark:[&_:not(pre)>code]:text-neutral-200 [&_blockquote_img]:mx-0 [&_blockquote_img]:w-full [&_blockquote_img]:max-w-full [&_blockquote_img]:rounded [&_blockquote_p]:before:content-none [&_blockquote_p]:after:content-none [&_code]:before:content-none [&_code]:after:content-none [&_img]:my-5 [&_p]:my-3 [&_pre]:bg-neutral-100 [&_pre]:text-neutral-800 dark:[&_pre]:bg-neutral-800 dark:[&_pre]:text-neutral-200 [&_table]:my-0"
 >
   {@render renderBlocks(blocks)}
 </div>

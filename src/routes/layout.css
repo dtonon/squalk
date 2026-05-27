@@ -2,6 +2,10 @@
 @plugin "@tailwindcss/forms";
 @plugin "@tailwindcss/typography";
 
+/* Class-based dark mode: the FOUC script in app.html and the theme store add
+   `dark` to <html> so `dark:` utilities apply without relying on prefers-color-scheme. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 html {
   font-size: 16px;
 }
@@ -9,12 +13,29 @@ html {
 body {
   background-color: var(--color-neutral-100);
 }
+:where(.dark) body {
+  background-color: var(--color-neutral-800);
+}
 
 .no-scrollbar {
   scrollbar-width: none;
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* Form inputs in dark mode — the forms plugin defaults to a white background,
+   which would punch holes through panels. Override at the element level so we
+   don't have to add `dark:bg-neutral-800` to every <input>/<textarea>. */
+:where(.dark) input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]):not([type="submit"]):not([type="reset"]):not([type="button"]),
+:where(.dark) textarea,
+:where(.dark) select {
+  background-color: var(--color-neutral-800);
+  color: var(--color-neutral-100);
+}
+:where(.dark) input::placeholder,
+:where(.dark) textarea::placeholder {
+  color: var(--color-neutral-500);
 }
 
 /* Tighter heading rhythm for all rendered (prose) content. Overrides the
@@ -33,6 +54,21 @@ body {
 }
 .prose > :first-child {
   margin-top: 0;
+}
+
+/* Prose headings/strong/links default to dark text colors; flip them in dark mode. */
+:where(.dark) .prose :is(h1, h2, h3, h4, h5, h6, strong, th) {
+  color: var(--color-neutral-100);
+}
+:where(.dark) .prose :is(h1) {
+  color: var(--color-brand);
+}
+:where(.dark) .prose :is(blockquote) {
+  color: var(--color-neutral-400);
+  border-left-color: var(--color-neutral-700);
+}
+:where(.dark) .prose :is(hr, thead, tbody tr) {
+  border-color: var(--color-neutral-700);
 }
 
 @theme {

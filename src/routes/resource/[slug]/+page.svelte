@@ -31,7 +31,7 @@
 <div class="mx-auto max-w-6xl">
   <a
     href="/"
-    class="hover:text-brand mb-1 inline-flex items-center gap-1 text-sm text-neutral-400"
+    class="hover:text-brand mb-1 inline-flex items-center gap-1 text-sm text-neutral-400 dark:text-neutral-500"
   >
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -56,8 +56,8 @@
       <PostContent content={resource.content} headingOffset={0} />
     </div>
   {:else if notFound}
-    <p class="py-12 text-center text-neutral-400">Resource not found.</p>
+    <p class="py-12 text-center text-neutral-400 dark:text-neutral-500">Resource not found.</p>
   {:else}
-    <p class="py-12 text-center text-neutral-400">Loading…</p>
+    <p class="py-12 text-center text-neutral-400 dark:text-neutral-500">Loading…</p>
   {/if}
 </div>

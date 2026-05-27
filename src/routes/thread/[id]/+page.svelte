@@ -268,7 +268,7 @@
     />
   {:else}
     <span
-      class="flex h-12 w-12 items-center justify-center rounded-full bg-neutral-200 text-lg font-semibold text-neutral-500"
+      class="flex h-12 w-12 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 text-lg font-semibold text-neutral-500 dark:text-neutral-400"
     >
       {author.name[0].toUpperCase()}
     </span>
@@ -293,7 +293,7 @@
           <div class="flex-shrink-0 md:hidden">
             {@render avatar(author)}
           </div>
-          <span class="truncate font-medium text-neutral-500"
+          <span class="truncate font-medium text-neutral-500 dark:text-neutral-400"
             >{author.name}</span
           >
         </div>
@@ -302,7 +302,7 @@
             <div class="relative">
               <button
                 onclick={(e) => toggleMenu(p.id, e)}
-                class="flex items-center justify-center rounded p-1 text-neutral-300 transition-colors hover:bg-neutral-100 hover:text-neutral-500"
+                class="flex items-center justify-center rounded p-1 text-neutral-300 dark:text-neutral-600 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-500 dark:hover:text-neutral-400"
                 aria-label="Post actions"
                 aria-haspopup="menu"
                 aria-expanded={openMenuId === p.id}
@@ -321,7 +321,7 @@
               {#if openMenuId === p.id}
                 <div
                   role="menu"
-                  class="absolute top-7 right-0 z-20 w-36 rounded-lg border border-neutral-100 bg-white py-1 text-sm shadow-lg"
+                  class="absolute top-7 right-0 z-20 w-36 rounded-lg border border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 py-1 text-sm shadow-lg"
                 >
                   <button
                     role="menuitem"
@@ -336,7 +336,7 @@
               {/if}
             </div>
           {/if}
-          <span class="text-sm text-neutral-400">{formatDate(p.createdAt)}</span
+          <span class="text-sm text-neutral-400 dark:text-neutral-500">{formatDate(p.createdAt)}</span
           >
         </div>
       </div>
@@ -348,7 +348,7 @@
           <button
             onclick={() => quotePost(p)}
             disabled={!auth.user}
-            class="hover:text-brand flex cursor-pointer items-center gap-1.5 text-neutral-300 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+            class="hover:text-brand flex cursor-pointer items-center gap-1.5 text-neutral-300 dark:text-neutral-600 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           >
             <span>Quote post</span>
             <svg
@@ -375,11 +375,11 @@
   <div class="flex items-start gap-6">
     <div class="min-w-0 flex-1 {!scrubberVisible ? 'md:pr-18' : ''}">
       <div
-        class="relative z-10 bg-white pb-1 md:sticky md:-top-6 md:-mx-10 md:-mt-6 md:px-10 md:pt-6"
+        class="relative z-10 bg-white dark:bg-neutral-900 pb-1 md:sticky md:-top-6 md:-mx-10 md:-mt-6 md:px-10 md:pt-6"
       >
         <a
           href={MODE === "full" ? `/room/${detail.groupId}` : "/"}
-          class="hover:text-brand mb-1 inline-flex items-center gap-1 text-sm text-neutral-400"
+          class="hover:text-brand mb-1 inline-flex items-center gap-1 text-sm text-neutral-400 dark:text-neutral-500"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -401,8 +401,8 @@
         <h1 class="text-brand text-[1.65rem] leading-7">{detail.title}</h1>
         {#if isScrolled}
           <div
-            class="pointer-events-none absolute right-0 left-0 h-8 transition-opacity duration-200"
-            style="top: 100%; background: linear-gradient(to bottom, white, transparent);"
+            class="pointer-events-none absolute right-0 left-0 h-8 bg-gradient-to-b from-white to-transparent transition-opacity duration-200 dark:from-neutral-900"
+            style="top: 100%;"
           ></div>
         {/if}
       </div>
@@ -420,7 +420,7 @@
       </div>
 
       {#if detail.replies.length > 0}
-        <div class="divide-y divide-neutral-100 border-t border-neutral-100">
+        <div class="divide-y divide-neutral-100 dark:divide-neutral-800 border-t border-neutral-100 dark:border-neutral-800">
           {#each detail.replies as reply, i}
             <div class="py-6" bind:this={replyEls[i]}>
               {@render post(reply, i + 1, () => {})}
@@ -429,7 +429,7 @@
         </div>
       {/if}
 
-      <div class="mt-8 border-t border-neutral-200 pt-6 md:pl-18">
+      <div class="mt-8 border-t border-neutral-200 dark:border-neutral-700 pt-6 md:pl-18">
         {#if auth.user}
           {#if replyError}
             <div
@@ -458,7 +458,7 @@
             </button>
           </div>
         {:else}
-          <p class=" text-center text-neutral-500">
+          <p class=" text-center text-neutral-500 dark:text-neutral-400">
             To participate and reply, please
             <button onclick={openLogin} class="text-brand hover:underline"
               >login now</button
@@ -476,7 +476,7 @@
     />
   </div>
 {:else}
-  <div class="py-12 text-center text-neutral-400">Loading…</div>
+  <div class="py-12 text-center text-neutral-400 dark:text-neutral-500">Loading…</div>
 {/if}
 
 {#if selectionTarget && auth.user}
@@ -485,7 +485,7 @@
     onmousedown={(e) => e.preventDefault()}
     onclick={quoteFromSelection}
     style="top: {selectionTarget.top}px; left: {selectionTarget.left}px;"
-    class="fixed z-50 -translate-x-1/2 -translate-y-full rounded bg-neutral-900 px-3 py-1 text-xs font-medium text-white shadow-md hover:bg-neutral-700"
+    class="bg-brand hover:bg-brand-hover fixed z-50 -translate-x-1/2 -translate-y-full rounded px-3 py-1 text-xs font-medium text-white shadow-md"
   >
     Quote
   </button>

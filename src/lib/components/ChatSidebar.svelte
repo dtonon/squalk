@@ -190,7 +190,7 @@
 
 <aside
   bind:this={asideEl}
-  class="flex-1 flex-col bg-white px-4 pt-4 pb-20 min-[1540px]:rounded-tr-xl md:absolute md:top-6 md:right-0 md:z-10 md:h-[calc(100%-1.5rem)] md:flex-none md:rounded-tl-xl md:px-6 md:py-6 md:transition-all md:duration-200
+  class="flex-1 flex-col bg-white dark:bg-neutral-900 px-4 pt-4 pb-20 min-[1540px]:rounded-tr-xl md:absolute md:top-6 md:right-0 md:z-10 md:h-[calc(100%-1.5rem)] md:flex-none md:rounded-tl-xl md:px-6 md:py-6 md:transition-all md:duration-200
 		{mobileActive ? 'flex' : 'hidden'} md:flex
 		{expanded ? 'md:w-150 md:shadow-2xl' : 'md:w-80 md:shadow-lg'}"
 >
@@ -198,7 +198,7 @@
     <span class="text-brand text-[1.5rem] leading-7">Chat</span>
     <button
       onclick={onToggle}
-      class="hidden rounded bg-neutral-100 transition-colors hover:bg-neutral-200 md:block"
+      class="hidden rounded bg-neutral-100 dark:bg-neutral-800 transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-700 md:block"
       aria-label={expanded ? "Collapse chat" : "Expand chat"}
     >
       <svg
@@ -228,7 +228,7 @@
     class="no-scrollbar -mr-6 flex flex-1 flex-col overflow-y-auto pr-6"
   >
     {#if messages.length === 0}
-      <div class="m-auto py-8 text-center text-sm text-neutral-400">
+      <div class="m-auto py-8 text-center text-sm text-neutral-400 dark:text-neutral-500">
         No messages yet.
       </div>
     {:else}
@@ -247,17 +247,17 @@
                 />
               {:else}
                 <span
-                  class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-xs font-semibold text-neutral-500"
+                  class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 text-xs font-semibold text-neutral-500 dark:text-neutral-400"
                 >
                   {author.name[0].toUpperCase()}
                 </span>
               {/if}
-              <span class="font-medium text-neutral-500">{author.name}</span>
+              <span class="font-medium text-neutral-500 dark:text-neutral-400">{author.name}</span>
               <div class="ml-auto flex items-center gap-1">
                 <div class="relative">
                   <button
                     onclick={(e) => toggleMenu(msg.id, e)}
-                    class="flex items-center justify-center rounded p-0.5 text-neutral-300 transition-colors hover:bg-neutral-100 hover:text-neutral-500"
+                    class="flex items-center justify-center rounded p-0.5 text-neutral-300 dark:text-neutral-600 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-500 dark:hover:text-neutral-400"
                     aria-label="Message actions"
                     aria-haspopup="menu"
                     aria-expanded={openMenuId === msg.id}
@@ -277,7 +277,7 @@
                     <div
                       role="menu"
                       style={`${menuPos.top !== undefined ? `top:${menuPos.top}px` : `bottom:${menuPos.bottom}px`};right:${menuPos.right}px`}
-                      class="fixed z-50 w-36 rounded-lg border border-neutral-100 bg-white py-1 text-sm shadow-lg"
+                      class="fixed z-50 w-36 rounded-lg border border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 py-1 text-sm shadow-lg"
                     >
                       <button
                         role="menuitem"
@@ -285,7 +285,7 @@
                           e.stopPropagation();
                           startReply(msg);
                         }}
-                        class="w-full px-3 py-1.5 text-left hover:bg-neutral-50"
+                        class="w-full px-3 py-1.5 text-left hover:bg-neutral-50 dark:hover:bg-neutral-800"
                         >Reply</button
                       >
                       {#if canModerate}
@@ -302,7 +302,7 @@
                     </div>
                   {/if}
                 </div>
-                <span class="text-xs text-neutral-400"
+                <span class="text-xs text-neutral-400 dark:text-neutral-500"
                   >{formatTime(msg.createdAt)}</span
                 >
               </div>
@@ -310,7 +310,7 @@
             <div class="mt-0.5">
               {#if msg.replyToId}
                 <div
-                  class="mb-1 border-l-2 border-neutral-300 pl-2 text-xs text-neutral-500"
+                  class="mb-1 border-l-2 border-neutral-300 dark:border-neutral-600 pl-2 text-xs text-neutral-500 dark:text-neutral-400"
                 >
                   {#if parent}
                     <span class="font-medium">{parentAuthor?.name}</span>:
@@ -320,7 +320,7 @@
                   {/if}
                 </div>
               {/if}
-              <p class="leading-5 text-neutral-700">
+              <p class="leading-5 text-neutral-700 dark:text-neutral-300">
                 <ChatContent content={msg.content} {profiles} />
               </p>
             </div>
@@ -330,22 +330,22 @@
     {/if}
   </div>
 
-  <div class="border-t border-neutral-200 pt-4">
+  <div class="border-t border-neutral-200 dark:border-neutral-700 pt-4">
     {#if replyTarget}
       {@const replyAuthor = resolveAuthor(replyTarget.pubkey)}
       <div
-        class="mb-2 flex items-start gap-2 rounded bg-neutral-50 px-2 py-1.5 text-xs text-neutral-600"
+        class="mb-2 flex items-start gap-2 rounded bg-neutral-50 dark:bg-neutral-800 px-2 py-1.5 text-xs text-neutral-600 dark:text-neutral-400"
       >
         <div class="min-w-0 flex-1">
-          <span class="text-neutral-400">↳ Reply to </span>
+          <span class="text-neutral-400 dark:text-neutral-500">↳ Reply to </span>
           <span class="font-medium">{replyAuthor.name}</span>:
-          <span class="text-neutral-500"
+          <span class="text-neutral-500 dark:text-neutral-400"
             >{truncate(replyTarget.content, 80)}</span
           >
         </div>
         <button
           onclick={cancelReply}
-          class="shrink-0 text-neutral-400 hover:text-neutral-600"
+          class="shrink-0 text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-400"
           aria-label="Cancel reply"
         >
           ✕
@@ -367,7 +367,7 @@
       disabled={sending}
       placeholder={auth.user ? "Message..." : "Login to send messages"}
       {contextPubkeys}
-      textareaClass="w-full resize-none rounded border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand disabled:opacity-50"
+      textareaClass="w-full resize-none rounded border border-neutral-200 dark:border-neutral-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand disabled:opacity-50"
     />
   </div>
 </aside>

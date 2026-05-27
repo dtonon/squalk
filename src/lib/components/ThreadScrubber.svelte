@@ -149,7 +149,7 @@
 >
   <!-- First post date -->
   <div
-    class="mb-1 text-right text-xs leading-tight whitespace-pre text-neutral-300"
+    class="mb-1 text-right text-xs leading-tight whitespace-pre text-neutral-300 dark:text-neutral-600"
   >
     {firstPost ? formatDate(firstPost.createdAt) : ""}
   </div>
@@ -163,7 +163,7 @@
   >
     <!-- Track line -->
     <div
-      class="absolute top-0 bottom-0 rounded-full bg-neutral-400"
+      class="absolute top-0 bottom-0 rounded-full bg-neutral-400 dark:bg-neutral-600"
       style="width: 2px; right: 4px;"
     ></div>
 
@@ -180,7 +180,7 @@
 
     <!-- Current date label -->
     <div
-      class="pointer-events-none absolute text-xs leading-tight whitespace-nowrap text-neutral-400"
+      class="pointer-events-none absolute text-xs leading-tight whitespace-nowrap text-neutral-400 dark:text-neutral-500"
       style="right: 18px; top: {thumbTop +
         thumbHeight / 2}px; transform: translateY(-50%);"
     >
@@ -190,7 +190,7 @@
 
   <!-- Last post date -->
   <div
-    class="mt-1 text-right text-xs leading-tight whitespace-pre text-neutral-300"
+    class="mt-1 text-right text-xs leading-tight whitespace-pre text-neutral-300 dark:text-neutral-600"
   >
     {lastPost ? formatDate(lastPost.createdAt) : ""}
   </div>

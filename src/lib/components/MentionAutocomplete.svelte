@@ -315,7 +315,7 @@
     <div
       id="mention-listbox"
       bind:this={listboxEl}
-      class="absolute right-0 left-0 z-30 max-h-72 overflow-auto rounded border border-neutral-200 bg-white shadow-lg"
+      class="absolute right-0 left-0 z-30 max-h-72 overflow-auto rounded border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-lg"
       class:bottom-full={anchorAbove}
       class:mb-1={anchorAbove}
       class:top-full={!anchorAbove}
@@ -323,7 +323,7 @@
     >
       {#if mentionQuery === ""}
         <div
-          class="px-3 py-1.5 text-xs text-neutral-400"
+          class="px-3 py-1.5 text-xs text-neutral-400 dark:text-neutral-500"
           class:border-b={mergedResults.length > 0}
           class:border-neutral-100={mergedResults.length > 0}
         >
@@ -331,21 +331,21 @@
         </div>
       {:else if remoteSearching && mergedResults.length > 0}
         <div
-          class="flex items-center gap-2 border-b border-neutral-100 px-3 py-1.5 text-xs text-neutral-400"
+          class="flex items-center gap-2 border-b border-neutral-100 dark:border-neutral-800 px-3 py-1.5 text-xs text-neutral-400 dark:text-neutral-500"
           aria-live="polite"
         >
           <span
-            class="inline-block h-3 w-3 animate-spin rounded-full border border-neutral-300 border-t-neutral-600"
+            class="inline-block h-3 w-3 animate-spin rounded-full border border-neutral-300 dark:border-neutral-600 border-t-neutral-600"
             aria-hidden="true"
           ></span>
           <span>Searching…</span>
         </div>
       {/if}
       {#if mergedResults.length === 0 && mentionQuery !== ""}
-        <div class="flex items-center gap-2 px-3 py-2 text-xs text-neutral-400">
+        <div class="flex items-center gap-2 px-3 py-2 text-xs text-neutral-400 dark:text-neutral-500">
           {#if remoteSearching}
             <span
-              class="inline-block h-3 w-3 animate-spin rounded-full border border-neutral-300 border-t-neutral-600"
+              class="inline-block h-3 w-3 animate-spin rounded-full border border-neutral-300 dark:border-neutral-600 border-t-neutral-600"
               aria-hidden="true"
             ></span>
             <span>Searching…</span>
@@ -378,17 +378,17 @@
                 />
               {:else}
                 <span
-                  class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-neutral-200 text-xs text-neutral-500"
+                  class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 text-xs text-neutral-500 dark:text-neutral-400"
                   aria-hidden="true"
                 >
                   {profileLabel(entry)[0]?.toUpperCase() ?? "?"}
                 </span>
               {/if}
-              <span class="truncate font-medium text-neutral-700">
+              <span class="truncate font-medium text-neutral-700 dark:text-neutral-300">
                 {profileLabel(entry)}
               </span>
               {#if profileSubLabel(entry)}
-                <span class="truncate text-xs text-neutral-400">
+                <span class="truncate text-xs text-neutral-400 dark:text-neutral-500">
                   {profileSubLabel(entry)}
                 </span>
               {/if}

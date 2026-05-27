@@ -80,13 +80,13 @@
 <div class="flex flex-col {previewing ? 'min-h-0 flex-1' : ''}">
   {#if previewing}
     <div
-      class="max-h-[70vh] min-h-0 w-full flex-1 overflow-auto rounded-t border border-neutral-200 px-3 py-2 {minHeightClass}"
+      class="max-h-[70vh] min-h-0 w-full flex-1 overflow-auto rounded-t border border-neutral-200 dark:border-neutral-700 px-3 py-2 {minHeightClass}"
       aria-label="Preview"
     >
       {#if value.trim()}
         <PostContent content={value} {threadEventAuthors} />
       {:else}
-        <p class="text-neutral-400 italic">Nothing to preview</p>
+        <p class="text-neutral-400 dark:text-neutral-500 italic">Nothing to preview</p>
       {/if}
     </div>
   {:else}
@@ -97,18 +97,18 @@
       {rows}
       {placeholder}
       {contextPubkeys}
-      textareaClass="block w-full rounded-t border border-neutral-200 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-brand disabled:opacity-50 resize-y {minHeightClass}"
+      textareaClass="block w-full rounded-t border border-neutral-200 dark:border-neutral-700 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-brand disabled:opacity-50 resize-y {minHeightClass}"
     />
   {/if}
   <div
-    class="flex flex-shrink-0 items-center gap-4 rounded-b border border-t-0 border-neutral-200 bg-neutral-50 px-3 py-2 text-sm"
+    class="flex flex-shrink-0 items-center gap-4 rounded-b border border-t-0 border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 px-3 py-2 text-sm"
   >
     <button
       type="button"
       onclick={onUploadClick}
       disabled={uploading || disabled || previewing || !BLOSSOM_URL}
       title={!BLOSSOM_URL ? "Blossom server not configured" : ""}
-      class="inline-flex items-center gap-1.5 text-neutral-600 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
+      class="inline-flex items-center gap-1.5 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 disabled:cursor-not-allowed disabled:opacity-50"
     >
       <svg
         width="16"
@@ -135,7 +135,7 @@
       onclick={togglePreview}
       disabled={disabled || uploading}
       aria-pressed={previewing}
-      class="ml-auto inline-flex items-center gap-1.5 text-neutral-600 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
+      class="ml-auto inline-flex items-center gap-1.5 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 disabled:cursor-not-allowed disabled:opacity-50"
     >
       <svg
         width="16"

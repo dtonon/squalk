@@ -18,7 +18,7 @@
         type="button"
         onclick={dismissToast}
         aria-label="Dismiss"
-        class="text-lg leading-none text-neutral-400 hover:text-white"
+        class="text-lg leading-none text-neutral-400 dark:text-neutral-500 hover:text-white"
       >
         ×
       </button>

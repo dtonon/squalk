@@ -42,7 +42,7 @@
     <img src={a.picture} alt="" class="h-5 w-5 rounded-full object-cover" />
   {:else}
     <span
-      class="flex h-5 w-5 items-center justify-center rounded-full bg-neutral-200 text-[10px] font-semibold text-neutral-500"
+      class="flex h-5 w-5 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400"
       aria-hidden="true"
     >
       {a.name[0].toUpperCase()}
@@ -60,18 +60,18 @@
   <DiscussionsFeed groupId={GROUP_ID} title="Discussions" />
 {:else}
   {#if partial}
-    <hr class="text-neutral-300" />
+    <hr class="text-neutral-300 dark:text-neutral-600" />
   {:else}
     <h1 class="text-brand py-2 text-[1.65rem]">Forum rooms</h1>
   {/if}
 
   {#if groupsStore.list.length === 0}
-    <p class="py-6 text-sm text-neutral-400">
+    <p class="py-6 text-sm text-neutral-400 dark:text-neutral-500">
       {groupsStore.loaded ? "No rooms available yet." : "Loading rooms…"}
     </p>
   {/if}
 
-  <div class="divide-y divide-neutral-100">
+  <div class="divide-y divide-neutral-100 dark:divide-neutral-800">
     {#each groupsStore.list as room}
       {@const act = overviewStore.activity[room.id]}
       {@const adminPk = overviewStore.admins[room.id]}
@@ -82,14 +82,14 @@
         class="group flex items-start justify-between gap-4 py-5"
       >
         <div class="min-w-0">
-          <h2 class="group-hover:text-brand text-2xl text-neutral-800">
+          <h2 class="group-hover:text-brand text-2xl text-neutral-800 dark:text-neutral-200">
             {room.name}
           </h2>
           {#if room.about}
-            <p class="mt-1 leading-5 text-neutral-600">{room.about}</p>
+            <p class="mt-1 leading-5 text-neutral-600 dark:text-neutral-400">{room.about}</p>
           {/if}
           {#if admin}
-            <div class="mt-2 flex items-center gap-2 text-sm text-neutral-500">
+            <div class="mt-2 flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
               <span>Admin</span>
               {@render pic(admin)}
             </div>
@@ -99,9 +99,9 @@
           <div class="flex shrink-0 flex-col items-center gap-0.5">
             <div class="flex items-center gap-1">
               {@render pic(last)}
-              <span class="text-neutral-800">{relativeTime(act.latestAt)}</span>
+              <span class="text-neutral-800 dark:text-neutral-200">{relativeTime(act.latestAt)}</span>
             </div>
-            <span class="text-sm text-neutral-400">activity</span>
+            <span class="text-sm text-neutral-400 dark:text-neutral-500">activity</span>
           </div>
         {/if}
       </a>
