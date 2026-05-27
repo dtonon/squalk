@@ -119,14 +119,14 @@
         <a
           href="/"
           onclick={onClose}
-          class="py-2 text-xl text-neutral-700 hover:text-brand"
+          class="hover:text-brand py-2 text-xl text-neutral-700"
           >{mode === "simple" ? "Discussions" : "Home"}</a
         >
 
         {#if mode === "full"}
           <nav class="mt-4" aria-label="Rooms">
             <p
-              class="pb-1 font-semibold uppercase tracking-wider text-neutral-400"
+              class="pb-1 font-semibold tracking-wider text-neutral-400 uppercase"
             >
               Rooms
             </p>
@@ -138,7 +138,7 @@
                 href="/room/{room.id}"
                 onclick={onClose}
                 class="block py-1.5 text-xl
-									{activeRoom === room.id ? 'text-brand' : 'text-neutral-700 hover:text-brand'}"
+									{activeRoom === room.id ? 'text-brand' : 'hover:text-brand text-neutral-700'}"
               >
                 {room.name}
               </a>
@@ -148,7 +148,7 @@
 
         <nav class="mt-4" aria-label="Resources">
           <p
-            class="pb-1 font-semibold uppercase tracking-wider text-neutral-400"
+            class="pb-1 font-semibold tracking-wider text-neutral-400 uppercase"
           >
             Resources
           </p>
@@ -157,7 +157,7 @@
               href="/resource/{r.slug}"
               onclick={onClose}
               aria-current={activeResource === r.slug ? "page" : undefined}
-              class="block py-1.5 text-xl hover:text-brand
+              class="hover:text-brand block py-1.5 text-xl
                 {activeResource === r.slug ? 'text-brand' : 'text-neutral-700'}"
               >{r.title}</a
             >
@@ -166,9 +166,8 @@
             href="/contacts"
             onclick={onClose}
             aria-current={contactsActive ? "page" : undefined}
-            class="block py-1.5 text-lg hover:text-brand
-              {contactsActive ? 'text-brand' : 'text-neutral-700'}"
-            >Contacts</a
+            class="hover:text-brand block py-1.5 text-lg
+              {contactsActive ? 'text-brand' : 'text-neutral-700'}">Contacts</a
           >
         </nav>
 
@@ -177,7 +176,7 @@
             <button
               type="button"
               onclick={onResume}
-              class="w-full rounded bg-brand px-3 py-2 font-medium text-white hover:bg-brand-hover"
+              class="bg-brand hover:bg-brand-hover w-full rounded px-3 py-2 font-medium text-white"
             >
               Resume draft
             </button>
@@ -214,7 +213,7 @@
             <button
               type="button"
               onclick={onLogin}
-              class="w-full rounded bg-brand px-3 py-2 text-lg font-medium text-white hover:bg-brand-hover"
+              class="bg-brand hover:bg-brand-hover w-full rounded px-3 py-2 text-lg font-medium text-white"
             >
               Login
             </button>

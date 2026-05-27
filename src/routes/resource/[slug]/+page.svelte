@@ -31,7 +31,7 @@
 <div class="mx-auto max-w-6xl">
   <a
     href="/"
-    class="mb-1 inline-flex items-center gap-1 text-sm text-neutral-400 hover:text-brand"
+    class="hover:text-brand mb-1 inline-flex items-center gap-1 text-sm text-neutral-400"
   >
     <svg
       xmlns="http://www.w3.org/2000/svg"

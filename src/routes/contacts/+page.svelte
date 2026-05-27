@@ -72,7 +72,7 @@
 </svelte:head>
 
 <div class="mx-auto max-w-6xl">
-  <h1 class="py-2 text-[1.65rem] text-brand">Contacts</h1>
+  <h1 class="text-brand py-2 text-[1.65rem]">Contacts</h1>
 
   {#if partial}
     <div class="mb-8">
@@ -120,7 +120,7 @@
                 href="https://njump.me/{c.npub}"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="shrink-0 text-sm text-brand hover:underline"
+                class="text-brand shrink-0 text-sm hover:underline"
               >
                 View profile ↗
               </a>
@@ -139,7 +139,7 @@
                     href={websiteHref(c.entry.website)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="truncate text-brand hover:underline"
+                    class="text-brand truncate hover:underline"
                   >
                     {websiteLabel(c.entry.website)}
                   </a>

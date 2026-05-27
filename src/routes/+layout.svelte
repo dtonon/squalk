@@ -104,7 +104,7 @@
 >
   <Navbar onMenuToggle={() => (menuOpen = true)} />
   <div
-    class="relative md:flex md:flex-1 md:overflow-hidden md:gap-5 {mobileView ===
+    class="relative md:flex md:flex-1 md:gap-5 md:overflow-hidden {mobileView ===
     'chat'
       ? 'flex flex-1 overflow-hidden'
       : ''}"
@@ -120,7 +120,7 @@
            it first and it reappears once the top is reached. Desktop only. -->
       <div class="hidden md:block md:h-6" aria-hidden="true"></div>
       <div
-        class="min-h-[calc(100dvh_-_4rem)] bg-white px-6 pt-4 md:pt-8 pb-20 shadow-lg md:min-h-full md:rounded-t-xl md:px-10 md:pt-6"
+        class="min-h-[calc(100dvh_-_4rem)] bg-white px-6 pt-4 pb-20 shadow-lg md:min-h-full md:rounded-t-xl md:px-10 md:pt-6 md:pt-8"
       >
         {@render children()}
       </div>
@@ -136,7 +136,7 @@
       <!-- Own panel (40%) so the gray gutter matches the main↔chat gap.
            Hidden on mobile — it's supplementary to the main column. -->
       <div
-        class="no-scrollbar hidden min-w-0 md:block md:flex-[2] md:min-h-0 md:overflow-y-auto"
+        class="no-scrollbar hidden min-w-0 md:block md:min-h-0 md:flex-[2] md:overflow-y-auto"
       >
         <div class="hidden md:block md:h-6" aria-hidden="true"></div>
         <div

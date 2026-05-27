@@ -141,7 +141,7 @@
 </script>
 
 <div
-  class="sticky self-start flex-shrink-0 flex-col items-end select-none pt-1 max-md:hidden {isOverflowing
+  class="sticky flex-shrink-0 flex-col items-end self-start pt-1 select-none max-md:hidden {isOverflowing
     ? 'flex'
     : 'hidden'}"
   style="top: calc({topOffset}px - 1.5rem); height: 50vh; width: 72px;"
@@ -149,7 +149,7 @@
 >
   <!-- First post date -->
   <div
-    class="text-xs text-neutral-300 mb-1 text-right leading-tight whitespace-pre"
+    class="mb-1 text-right text-xs leading-tight whitespace-pre text-neutral-300"
   >
     {firstPost ? formatDate(firstPost.createdAt) : ""}
   </div>
@@ -157,7 +157,7 @@
   <!-- Track area -->
   <div
     bind:this={trackEl}
-    class="relative flex-1 w-full cursor-pointer"
+    class="relative w-full flex-1 cursor-pointer"
     onclick={onTrackClick}
     role="presentation"
   >
@@ -169,7 +169,7 @@
 
     <!-- Thumb -->
     <div
-      class="absolute rounded-full bg-brand hover:bg-neutral-600 transition-colors cursor-grab active:cursor-grabbing touch-none"
+      class="bg-brand absolute cursor-grab touch-none rounded-full transition-colors hover:bg-neutral-600 active:cursor-grabbing"
       style="width: 4px; right: 3px; top: {thumbTop}px; height: {thumbHeight}px;"
       onpointerdown={onThumbPointerDown}
       onpointermove={onThumbPointerMove}
@@ -180,7 +180,7 @@
 
     <!-- Current date label -->
     <div
-      class="absolute text-xs text-neutral-400 whitespace-nowrap pointer-events-none leading-tight"
+      class="pointer-events-none absolute text-xs leading-tight whitespace-nowrap text-neutral-400"
       style="right: 18px; top: {thumbTop +
         thumbHeight / 2}px; transform: translateY(-50%);"
     >
@@ -190,7 +190,7 @@
 
   <!-- Last post date -->
   <div
-    class="text-xs text-neutral-300 mt-1 text-right leading-tight whitespace-pre"
+    class="mt-1 text-right text-xs leading-tight whitespace-pre text-neutral-300"
   >
     {lastPost ? formatDate(lastPost.createdAt) : ""}
   </div>

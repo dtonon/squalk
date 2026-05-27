@@ -30,12 +30,12 @@
 </script>
 
 <aside
-  class="hidden max-w-52 min-w-48 shrink-0 flex-col justify-between pl-8 pr-1 pb-8 md:flex md:pt-6"
+  class="hidden max-w-52 min-w-48 shrink-0 flex-col justify-between pr-1 pb-8 pl-8 md:flex md:pt-6"
 >
   <div>
     <a
       href="/"
-      class="mb-6 mt-3 flex flex-col min-w-0 hover:opacity-90"
+      class="mt-3 mb-6 flex min-w-0 flex-col hover:opacity-90"
       aria-label="{name} — home"
     >
       {#if groupStore.data?.picture}
@@ -45,26 +45,26 @@
           class="max-w-[90%] shrink-0 object-cover"
         />
       {/if}
-      <span class="text-[1.3rem] font-medium text-neutral-900 mt-2 leading-6"
+      <span class="mt-2 text-[1.3rem] leading-6 font-medium text-neutral-900"
         >{name}</span
       >
     </a>
 
     <a
       href="/"
-      class="flex items-center gap-2 py-1 hover:bg-neutral-100 text-neutral-700"
+      class="flex items-center gap-2 py-1 text-neutral-700 hover:bg-neutral-100"
     >
       {mode === "simple" ? "Discussions" : "Home"}
     </a>
 
     {#if mode === "simple"}
-      <div class="flex mt-6">
+      <div class="mt-6 flex">
         <p class="text-sm text-neutral-500">{groupStore.data?.about ?? ""}</p>
       </div>
     {:else}
-      <nav class="flex-auto mt-6" aria-label="Rooms">
+      <nav class="mt-6 flex-auto" aria-label="Rooms">
         <p
-          class="pb-1 text-xs font-semibold uppercase tracking-wider text-neutral-400"
+          class="pb-1 text-xs font-semibold tracking-wider text-neutral-400 uppercase"
         >
           Rooms
         </p>
@@ -84,7 +84,7 @@
       {#if activeAbout}
         <div class="mt-6">
           <p
-            class="pb-1 text-xs font-semibold uppercase tracking-wider text-neutral-400"
+            class="pb-1 text-xs font-semibold tracking-wider text-neutral-400 uppercase"
           >
             About
           </p>
@@ -93,9 +93,9 @@
       {/if}
     {/if}
 
-    <nav class="flex-auto mt-6" aria-label="Resources">
+    <nav class="mt-6 flex-auto" aria-label="Resources">
       <p
-        class="pb-1 text-xs font-semibold uppercase tracking-wider text-neutral-400"
+        class="pb-1 text-xs font-semibold tracking-wider text-neutral-400 uppercase"
       >
         Resources
       </p>
@@ -122,7 +122,7 @@
       <button
         type="button"
         onclick={resumeDraft}
-        class="w-full rounded bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-hover"
+        class="bg-brand hover:bg-brand-hover w-full rounded px-3 py-1.5 text-sm font-medium text-white"
       >
         Resume draft
       </button>
@@ -154,7 +154,7 @@
     {:else}
       <button
         onclick={openLogin}
-        class="mt-3 w-full rounded bg-brand px-3 py-1.5 font-medium text-sm text-white hover:bg-brand-hover"
+        class="bg-brand hover:bg-brand-hover mt-3 w-full rounded px-3 py-1.5 text-sm font-medium text-white"
       >
         Login
       </button>

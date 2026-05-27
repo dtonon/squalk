@@ -70,7 +70,7 @@
         disabled={deleteState.busy}
         rows="2"
         placeholder="Recorded with the deletion"
-        class="mb-4 w-full resize-none rounded border border-neutral-200 px-3 py-2 text-sm focus:ring-1 focus:ring-brand focus:outline-none disabled:opacity-50"
+        class="focus:ring-brand mb-4 w-full resize-none rounded border border-neutral-200 px-3 py-2 text-sm focus:ring-1 focus:outline-none disabled:opacity-50"
       ></textarea>
 
       <div class="flex justify-end gap-2">

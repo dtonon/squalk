@@ -24,7 +24,7 @@
   const targetName = $derived(
     MODE === "full"
       ? (groupsStore.list.find((g) => g.id === activeGroup.id)?.name ??
-        groupStore.data?.name)
+          groupStore.data?.name)
       : groupStore.data?.name,
   );
 
@@ -151,7 +151,7 @@
           {#if targetName}
             <p class="text-sm text-neutral-700">{targetName}</p>
           {/if}
-          <h2 id="newdisc-title" class="text-2xl text-brand">New discussion</h2>
+          <h2 id="newdisc-title" class="text-brand text-2xl">New discussion</h2>
         </div>
         <button
           type="button"
@@ -179,7 +179,7 @@
       <div>
         <label
           for="newdisc-title-input"
-          class="block text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-1"
+          class="mb-1 block text-xs font-semibold tracking-wider text-neutral-400 uppercase"
         >
           Title
         </label>
@@ -190,7 +190,7 @@
           bind:value={draftState.title}
           disabled={draftState.publishing}
           maxlength="72"
-          class="w-full rounded border border-neutral-200 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-brand disabled:opacity-50"
+          class="focus:ring-brand w-full rounded border border-neutral-200 px-3 py-2 focus:ring-1 focus:outline-none disabled:opacity-50"
         />
       </div>
 
@@ -199,16 +199,16 @@
         <div class="relative">
           <label
             for="newdisc-labels-input"
-            class="block text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-1"
+            class="mb-1 block text-xs font-semibold tracking-wider text-neutral-400 uppercase"
           >
             Labels
           </label>
           <div
-            class="flex flex-wrap gap-1.5 items-center rounded border border-neutral-200 px-3 py-1.5 min-h-[2.5rem] focus-within:ring-1 focus-within:ring-brand"
+            class="focus-within:ring-brand flex min-h-[2.5rem] flex-wrap items-center gap-1.5 rounded border border-neutral-200 px-3 py-1.5 focus-within:ring-1"
           >
             {#each draftState.labels as l}
               <span
-                class="inline-flex items-center gap-1 rounded-lg bg-accent px-2 py-0.5 text-sm text-white"
+                class="bg-accent inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-sm text-white"
               >
                 {l}
                 <button
@@ -219,7 +219,7 @@
                 >
               </span>
             {/each}
-            <div class="relative flex-1 min-w-[6rem]">
+            <div class="relative min-w-[6rem] flex-1">
               <input
                 id="newdisc-labels-input"
                 type="text"
@@ -234,7 +234,7 @@
                 placeholder={draftState.labels.length === 0
                   ? "Click to choose…"
                   : ""}
-                class="relative z-10 w-full border-0 bg-transparent p-0 outline-none focus:ring-0 text-sm py-0.5 disabled:opacity-50"
+                class="relative z-10 w-full border-0 bg-transparent p-0 py-0.5 text-sm outline-none focus:ring-0 disabled:opacity-50"
               />
               {#if suggestion}
                 <span
@@ -250,14 +250,14 @@
           </div>
           {#if suggestOpen && filtered.length > 0}
             <div
-              class="absolute left-0 right-0 z-20 mt-1 rounded border border-neutral-200 bg-white shadow-lg p-3 flex flex-wrap gap-1.5"
+              class="absolute right-0 left-0 z-20 mt-1 flex flex-wrap gap-1.5 rounded border border-neutral-200 bg-white p-3 shadow-lg"
             >
               {#each filtered as l}
                 <button
                   type="button"
                   onmousedown={(e) => e.preventDefault()}
                   onclick={() => onSuggestionClick(l)}
-                  class="rounded-lg bg-accent hover:bg-accent-hover px-2.5 py-0.5 text-sm text-white"
+                  class="bg-accent hover:bg-accent-hover rounded-lg px-2.5 py-0.5 text-sm text-white"
                 >
                   {l}
                 </button>
@@ -304,7 +304,7 @@
           disabled={draftState.publishing ||
             !draftState.title.trim() ||
             !draftState.content.trim()}
-          class="rounded bg-brand px-5 py-1.5 font-medium text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
+          class="bg-brand hover:bg-brand-hover rounded px-5 py-1.5 font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
           {draftState.publishing ? "Publishing…" : "Publish discussion"}
         </button>

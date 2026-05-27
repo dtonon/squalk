@@ -62,7 +62,7 @@
   {#if partial}
     <hr class="text-neutral-300" />
   {:else}
-    <h1 class="py-2 text-[1.65rem] text-brand">Forum rooms</h1>
+    <h1 class="text-brand py-2 text-[1.65rem]">Forum rooms</h1>
   {/if}
 
   {#if groupsStore.list.length === 0}
@@ -82,11 +82,11 @@
         class="group flex items-start justify-between gap-4 py-5"
       >
         <div class="min-w-0">
-          <h2 class="text-2xl text-neutral-800 group-hover:text-brand">
+          <h2 class="group-hover:text-brand text-2xl text-neutral-800">
             {room.name}
           </h2>
           {#if room.about}
-            <p class="mt-1 text-neutral-600 leading-5">{room.about}</p>
+            <p class="mt-1 leading-5 text-neutral-600">{room.about}</p>
           {/if}
           {#if admin}
             <div class="mt-2 flex items-center gap-2 text-sm text-neutral-500">

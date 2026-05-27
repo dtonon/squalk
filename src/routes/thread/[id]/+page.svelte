@@ -264,11 +264,11 @@
     <img
       src={author.picture}
       alt=""
-      class="w-12 h-12 rounded-full object-cover"
+      class="h-12 w-12 rounded-full object-cover"
     />
   {:else}
     <span
-      class="w-12 h-12 flex items-center justify-center rounded-full bg-neutral-200 text-lg font-semibold text-neutral-500"
+      class="flex h-12 w-12 items-center justify-center rounded-full bg-neutral-200 text-lg font-semibold text-neutral-500"
     >
       {author.name[0].toUpperCase()}
     </span>
@@ -281,11 +281,11 @@
   bindEl: (el: HTMLElement | null) => void,
 )}
   {@const author = resolveAuthor(p.pubkey, profiles)}
-  <div use:bindEl class="md:flex md:gap-6 md:items-start">
+  <div use:bindEl class="md:flex md:items-start md:gap-6">
     <div class="hidden flex-shrink-0 md:block">
       {@render avatar(author)}
     </div>
-    <div class="flex-1 min-w-0">
+    <div class="min-w-0 flex-1">
       <div
         class="mb-4 flex items-center justify-between md:mb-3 md:items-baseline"
       >
@@ -321,7 +321,7 @@
               {#if openMenuId === p.id}
                 <div
                   role="menu"
-                  class="absolute right-0 top-7 z-20 w-36 rounded-lg border border-neutral-100 bg-white py-1 text-sm shadow-lg"
+                  class="absolute top-7 right-0 z-20 w-36 rounded-lg border border-neutral-100 bg-white py-1 text-sm shadow-lg"
                 >
                   <button
                     role="menuitem"
@@ -344,11 +344,11 @@
         <PostContent content={p.content} {profiles} {threadEventAuthors} />
       </div>
       {#if auth.user}
-        <div class="flex items-center justify-start mt-6">
+        <div class="mt-6 flex items-center justify-start">
           <button
             onclick={() => quotePost(p)}
             disabled={!auth.user}
-            class="flex items-center gap-1.5 text-neutral-300 cursor-pointer hover:text-brand transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="hover:text-brand flex cursor-pointer items-center gap-1.5 text-neutral-300 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           >
             <span>Quote post</span>
             <svg
@@ -372,14 +372,14 @@
 {/snippet}
 
 {#if detail}
-  <div class="flex gap-6 items-start">
-    <div class="flex-1 min-w-0 {!scrubberVisible ? 'md:pr-18' : ''}">
+  <div class="flex items-start gap-6">
+    <div class="min-w-0 flex-1 {!scrubberVisible ? 'md:pr-18' : ''}">
       <div
-        class="relative z-10 bg-white pb-1 md:sticky md:-top-6 md:-mx-10 md:px-10 md:pt-6 md:-mt-6"
+        class="relative z-10 bg-white pb-1 md:sticky md:-top-6 md:-mx-10 md:-mt-6 md:px-10 md:pt-6"
       >
         <a
           href={MODE === "full" ? `/room/${detail.groupId}` : "/"}
-          class="mb-1 inline-flex items-center gap-1 text-sm text-neutral-400 hover:text-brand"
+          class="hover:text-brand mb-1 inline-flex items-center gap-1 text-sm text-neutral-400"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -398,10 +398,10 @@
           </svg>
           Discussions
         </a>
-        <h1 class="text-[1.65rem] text-brand leading-7">{detail.title}</h1>
+        <h1 class="text-brand text-[1.65rem] leading-7">{detail.title}</h1>
         {#if isScrolled}
           <div
-            class="absolute left-0 right-0 h-8 pointer-events-none transition-opacity duration-200"
+            class="pointer-events-none absolute right-0 left-0 h-8 transition-opacity duration-200"
             style="top: 100%; background: linear-gradient(to bottom, white, transparent);"
           ></div>
         {/if}
@@ -433,7 +433,7 @@
         {#if auth.user}
           {#if replyError}
             <div
-              class="mb-4 rounded bg-red-50 px-4 py-3 text-sm text-red-700 border border-red-200"
+              class="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
             >
               {replyError}
             </div>
@@ -452,13 +452,13 @@
             <button
               onclick={submitReply}
               disabled={replying || !replyContent.trim()}
-              class="rounded bg-brand px-6 py-1.5 font-medium text-white hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
+              class="bg-brand hover:bg-brand-hover rounded px-6 py-1.5 font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
               {replying ? "Posting…" : "post reply"}
             </button>
           </div>
         {:else}
-          <p class=" text-neutral-500 text-center">
+          <p class=" text-center text-neutral-500">
             To participate and reply, please
             <button onclick={openLogin} class="text-brand hover:underline"
               >login now</button
@@ -485,7 +485,7 @@
     onmousedown={(e) => e.preventDefault()}
     onclick={quoteFromSelection}
     style="top: {selectionTarget.top}px; left: {selectionTarget.left}px;"
-    class="fixed -translate-x-1/2 -translate-y-full z-50 rounded bg-neutral-900 px-3 py-1 text-xs font-medium text-white shadow-md hover:bg-neutral-700"
+    class="fixed z-50 -translate-x-1/2 -translate-y-full rounded bg-neutral-900 px-3 py-1 text-xs font-medium text-white shadow-md hover:bg-neutral-700"
   >
     Quote
   </button>

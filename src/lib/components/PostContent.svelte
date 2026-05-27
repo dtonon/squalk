@@ -593,7 +593,7 @@
         href={inline.href}
         target={internal ? undefined : "_blank"}
         rel={internal ? undefined : "noopener noreferrer"}
-        class="text-brand hover:underline break-all">{inline.label}</a
+        class="text-brand break-all hover:underline">{inline.label}</a
       >
     {:else if inline.type === "mention"}
       {@const u = profiles[inline.pubkey] ?? resolvedUsers[inline.pubkey]}
@@ -607,10 +607,10 @@
       {@const u = profiles[inline.pubkey] ?? resolvedUsers[inline.pubkey]}
       <a
         href="#post-{inline.eventId}"
-        class="no-underline font-normal leading-4 bg-neutral-100 block -ml-3 pl-3 py-1 hover:bg-neutral-200"
+        class="-ml-3 block bg-neutral-100 py-1 pl-3 leading-4 font-normal no-underline hover:bg-neutral-200"
         >{u?.shortName ?? inline.pubkey.slice(0, 8)} said
         <svg
-          class="inline w-3 mb-0.5"
+          class="mb-0.5 inline w-3"
           viewBox="0 0 800 800"
           version="1.1"
           xmlns="http://www.w3.org/2000/svg"
@@ -628,7 +628,7 @@
         href="https://njump.me/{inline.entity}"
         target="_blank"
         rel="noopener noreferrer"
-        class="text-brand hover:underline break-all">{inline.label}</a
+        class="text-brand break-all hover:underline">{inline.label}</a
       >
     {:else if inline.type === "strong"}
       <strong>{@render renderInlines(inline.children)}</strong>
@@ -679,11 +679,11 @@
         src={block.src}
         alt={block.alt}
         loading="lazy"
-        class="block -mx-6 w-[calc(100%_+_3rem)] max-w-none max-h-[80vh] object-contain rounded-none md:mx-auto md:w-full md:max-w-full md:rounded"
+        class="-mx-6 block max-h-[80vh] w-[calc(100%_+_3rem)] max-w-none rounded-none object-contain md:mx-auto md:w-full md:max-w-full md:rounded"
       />
     {:else if block.type === "blockquote"}
       <blockquote
-        class="my-3 pb-1 mb-3 border-l-3 border-neutral-200 pl-3 text-neutral-500"
+        class="my-3 mb-3 border-l-3 border-neutral-200 pb-1 pl-3 text-neutral-500"
       >
         {@render renderBlocks(block.blocks)}
       </blockquote>
@@ -713,7 +713,7 @@
     {:else if block.type === "table"}
       {@const headRows = block.rows.filter((r) => r.head)}
       {@const bodyRows = block.rows.filter((r) => !r.head)}
-      <div class="overflow-x-auto my-4">
+      <div class="my-4 overflow-x-auto">
         <table>
           {#if headRows.length}
             <thead>
@@ -752,7 +752,7 @@
 {/snippet}
 
 <div
-  class="prose leading-5 max-w-none text-neutral-700 [&_p]:my-3 [&_img]:my-5 [&_blockquote_img]:mx-0 [&_blockquote_img]:w-full [&_blockquote_img]:max-w-full [&_blockquote_img]:rounded [&_table]:my-0 [&_pre]:bg-neutral-100 [&_pre]:text-neutral-800 [&_:not(pre)>code]:rounded [&_:not(pre)>code]:bg-neutral-100 [&_:not(pre)>code]:px-1 [&_:not(pre)>code]:py-0.5 [&_blockquote_p]:before:content-none [&_blockquote_p]:after:content-none [&_code]:before:content-none [&_code]:after:content-none"
+  class="prose max-w-none leading-5 text-neutral-700 [&_:not(pre)>code]:rounded [&_:not(pre)>code]:bg-neutral-100 [&_:not(pre)>code]:px-1 [&_:not(pre)>code]:py-0.5 [&_blockquote_img]:mx-0 [&_blockquote_img]:w-full [&_blockquote_img]:max-w-full [&_blockquote_img]:rounded [&_blockquote_p]:before:content-none [&_blockquote_p]:after:content-none [&_code]:before:content-none [&_code]:after:content-none [&_img]:my-5 [&_p]:my-3 [&_pre]:bg-neutral-100 [&_pre]:text-neutral-800 [&_table]:my-0"
 >
   {@render renderBlocks(blocks)}
 </div>

@@ -8,7 +8,8 @@
   // PUBLIC_TITLE always wins when set. Without it, simple mode shows the room's
   // own name; full mode has no single room, so it falls back to GROUP_ID.
   const name = $derived(
-    TITLE || (MODE === "simple" ? (groupStore.data?.name ?? GROUP_ID) : GROUP_ID),
+    TITLE ||
+      (MODE === "simple" ? (groupStore.data?.name ?? GROUP_ID) : GROUP_ID),
   );
 </script>
 
@@ -34,7 +35,8 @@
         {name[0].toUpperCase()}
       </div>
     {/if}
-    <span class="truncate text-2xl font-medium text-neutral-900 md:text-[1.7rem]"
+    <span
+      class="truncate text-2xl font-medium text-neutral-900 md:text-[1.7rem]"
       >{name}</span
     >
   </a>

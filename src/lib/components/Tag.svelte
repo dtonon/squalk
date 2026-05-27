@@ -3,6 +3,6 @@
   let { label }: Props = $props();
 </script>
 
-<span class="rounded-lg bg-accent px-2.5 py-0 text-sm text-white">
+<span class="bg-accent rounded-lg px-2.5 py-0 text-sm text-white">
   {label}
 </span>

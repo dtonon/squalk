@@ -47,7 +47,7 @@
         onclick={onClose}
         aria-label="Close"
         disabled={joinState.busy}
-        class="absolute right-3 top-3 text-2xl leading-none text-neutral-400 hover:text-neutral-700 disabled:opacity-50"
+        class="absolute top-3 right-3 text-2xl leading-none text-neutral-400 hover:text-neutral-700 disabled:opacity-50"
       >
         ×
       </button>
@@ -87,7 +87,7 @@
           autocapitalize="off"
           spellcheck="false"
           onkeydown={(e) => e.key === "Enter" && onRetry()}
-          class="mb-3 w-full rounded border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand disabled:opacity-50"
+          class="focus:ring-brand mb-3 w-full rounded border border-neutral-200 px-3 py-2 text-sm focus:ring-1 focus:outline-none disabled:opacity-50"
         />
       {/if}
 
@@ -104,7 +104,7 @@
           type="button"
           onclick={onRetry}
           disabled={joinState.busy || (joinState.codeRequired && !code.trim())}
-          class="rounded bg-brand px-3 py-2 text-sm font-medium text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
+          class="bg-brand hover:bg-brand-hover rounded px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
           {joinState.busy ? "Trying…" : "Retry"}
         </button>

@@ -39,8 +39,8 @@
   class="flex items-center gap-3 border-b border-neutral-100 py-4 hover:bg-neutral-50 sm:gap-6"
 >
   <!-- Col 1: title + byline -->
-  <div class="flex-1 min-w-0">
-    <div class="text-lg mb-1.5 text-neutral-900 leading-5">{thread.title}</div>
+  <div class="min-w-0 flex-1">
+    <div class="mb-1.5 text-lg leading-5 text-neutral-900">{thread.title}</div>
     <div class="flex items-center gap-1.5 text-sm text-neutral-500">
       <span>by</span>
       {@render avatar(thread.author, "h-5 w-5 rounded-full object-cover")}
