@@ -268,7 +268,7 @@
     />
   {:else}
     <span
-      class="flex h-12 w-12 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 text-lg font-semibold text-neutral-500 dark:text-neutral-400"
+      class="flex h-12 w-12 items-center justify-center rounded-full bg-neutral-200 text-lg font-semibold text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400"
     >
       {author.name[0].toUpperCase()}
     </span>
@@ -293,7 +293,8 @@
           <div class="flex-shrink-0 md:hidden">
             {@render avatar(author)}
           </div>
-          <span class="truncate font-medium text-neutral-500 dark:text-neutral-400"
+          <span
+            class="truncate font-medium text-neutral-500 dark:text-neutral-400"
             >{author.name}</span
           >
         </div>
@@ -302,7 +303,7 @@
             <div class="relative">
               <button
                 onclick={(e) => toggleMenu(p.id, e)}
-                class="flex items-center justify-center rounded p-1 text-neutral-300 dark:text-neutral-600 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-500 dark:hover:text-neutral-400"
+                class="flex items-center justify-center rounded p-1 text-neutral-300 transition-colors hover:bg-neutral-100 hover:text-neutral-500 dark:text-neutral-600 dark:hover:bg-neutral-800 dark:hover:text-neutral-400"
                 aria-label="Post actions"
                 aria-haspopup="menu"
                 aria-expanded={openMenuId === p.id}
@@ -321,7 +322,7 @@
               {#if openMenuId === p.id}
                 <div
                   role="menu"
-                  class="absolute top-7 right-0 z-20 w-36 rounded-lg border border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 py-1 text-sm shadow-lg"
+                  class="absolute top-7 right-0 z-20 w-36 rounded-lg border border-neutral-100 bg-white py-1 text-sm shadow-lg dark:border-neutral-800 dark:bg-neutral-900"
                 >
                   <button
                     role="menuitem"
@@ -336,7 +337,8 @@
               {/if}
             </div>
           {/if}
-          <span class="text-sm text-neutral-400 dark:text-neutral-500">{formatDate(p.createdAt)}</span
+          <span class="text-sm text-neutral-400 dark:text-neutral-500"
+            >{formatDate(p.createdAt)}</span
           >
         </div>
       </div>
@@ -348,7 +350,7 @@
           <button
             onclick={() => quotePost(p)}
             disabled={!auth.user}
-            class="hover:text-brand flex cursor-pointer items-center gap-1.5 text-neutral-300 dark:text-neutral-600 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+            class="hover:text-brand flex cursor-pointer items-center gap-1.5 text-neutral-300 transition-colors disabled:cursor-not-allowed disabled:opacity-50 dark:text-neutral-600"
           >
             <span>Quote post</span>
             <svg
@@ -375,7 +377,7 @@
   <div class="flex items-start gap-6">
     <div class="min-w-0 flex-1 {!scrubberVisible ? 'md:pr-18' : ''}">
       <div
-        class="relative z-10 bg-white dark:bg-neutral-900 pb-1 md:sticky md:-top-6 md:-mx-10 md:-mt-6 md:px-10 md:pt-6"
+        class="relative z-10 bg-white pb-1 md:sticky md:-top-2 md:-mx-10 md:-mt-6 md:px-10 md:pt-6 md:pb-3 dark:bg-neutral-900"
       >
         <a
           href={MODE === "full" ? `/room/${detail.groupId}` : "/"}
@@ -420,7 +422,9 @@
       </div>
 
       {#if detail.replies.length > 0}
-        <div class="divide-y divide-neutral-100 dark:divide-neutral-800 border-t border-neutral-100 dark:border-neutral-800">
+        <div
+          class="divide-y divide-neutral-100 border-t border-neutral-100 dark:divide-neutral-800 dark:border-neutral-800"
+        >
           {#each detail.replies as reply, i}
             <div class="py-6" bind:this={replyEls[i]}>
               {@render post(reply, i + 1, () => {})}
@@ -429,7 +433,9 @@
         </div>
       {/if}
 
-      <div class="mt-8 border-t border-neutral-200 dark:border-neutral-700 pt-6 md:pl-18">
+      <div
+        class="mt-8 border-t border-neutral-200 pt-6 md:pl-18 dark:border-neutral-700"
+      >
         {#if auth.user}
           {#if replyError}
             <div
@@ -476,7 +482,9 @@
     />
   </div>
 {:else}
-  <div class="py-12 text-center text-neutral-400 dark:text-neutral-500">Loading…</div>
+  <div class="py-12 text-center text-neutral-400 dark:text-neutral-500">
+    Loading…
+  </div>
 {/if}
 
 {#if selectionTarget && auth.user}
