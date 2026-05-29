@@ -88,24 +88,24 @@
     <ul class="mt-2 space-y-3">
       {#each contacts as c (c.pubkey)}
         <li
-          class="flex gap-4 rounded-lg border border-neutral-100 dark:border-neutral-800 p-4 shadow-sm"
+          class="rounded-lg border border-neutral-100 dark:border-neutral-800 p-4 shadow-sm"
         >
-          {#if c.entry?.picture}
-            <img
-              src={c.entry.picture}
-              alt=""
-              class="h-14 w-14 shrink-0 rounded-full object-cover"
-            />
-          {:else}
-            <span
-              class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 text-lg font-semibold text-neutral-500 dark:text-neutral-400"
-            >
-              {displayName(c)[0].toUpperCase()}
-            </span>
-          {/if}
+          <div class="flex gap-4">
+            {#if c.entry?.picture}
+              <img
+                src={c.entry.picture}
+                alt=""
+                class="h-14 w-14 shrink-0 rounded-full object-cover"
+              />
+            {:else}
+              <span
+                class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 text-lg font-semibold text-neutral-500 dark:text-neutral-400"
+              >
+                {displayName(c)[0].toUpperCase()}
+              </span>
+            {/if}
 
-          <div class="min-w-0 flex-1">
-            <div class="flex items-start justify-between gap-3">
+            <div class="flex min-w-0 flex-1 items-start justify-between gap-3">
               <div class="min-w-0">
                 <p class="truncate text-2xl font-medium text-neutral-900 dark:text-neutral-100">
                   {displayName(c)}
@@ -125,9 +125,11 @@
                 View profile ↗
               </a>
             </div>
+          </div>
 
+          <div class="mt-3 md:pl-18">
             {#if c.entry?.about}
-              <p class="mt-2 whitespace-pre-line text-neutral-600 dark:text-neutral-400">
+              <p class="whitespace-pre-line text-neutral-600 dark:text-neutral-400">
                 {c.entry.about}
               </p>
             {/if}
