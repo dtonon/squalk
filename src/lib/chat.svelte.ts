@@ -4,6 +4,7 @@ import { RELAY_URL } from "$lib/config";
 import { auth } from "$lib/auth.svelte";
 import { ingestNostrUser } from "$lib/profiles.svelte";
 import { extractMentionPubkeys, buildPTagHints } from "$lib/mentions";
+import { convertForumUrls } from "$lib/linkify";
 
 export type ChatMessageData = {
   id: string;
@@ -130,6 +131,8 @@ export async function sendChatMessage(
   if (!auth.signer) throw new Error("Not logged in");
   if (!currentGroup) throw new Error("No room selected");
   const ownPubkey = await auth.signer.getPublicKey();
+
+  content = convertForumUrls(content);
 
   const previousRefs = messages
     .filter((m) => m.pubkey !== ownPubkey)

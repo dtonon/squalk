@@ -9,6 +9,7 @@ import {
   extractQuotedEvents,
   buildPTagHints,
 } from "$lib/mentions";
+import { convertForumUrls } from "$lib/linkify";
 
 const isNostrId = (id: string) => /^[0-9a-f]{64}$/.test(id);
 
@@ -140,6 +141,8 @@ export function removeReply(id: string) {
 export async function sendReply(content: string, ownPubkey: string) {
   if (!detail) throw new Error("No thread loaded");
   if (!auth.signer) throw new Error("Not logged in");
+
+  content = convertForumUrls(content);
 
   // Use last 3 events not authored by us as previous refs (NIP-29)
   const previousRefs = [...detail.replies, detail.op]

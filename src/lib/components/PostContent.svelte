@@ -1,6 +1,11 @@
 <script lang="ts">
   import { loadNostrUser, type NostrUser } from "@nostr/gadgets/metadata";
   import * as nip19 from "@nostr/tools/nip19";
+  import {
+    resolveThreadRef,
+    threadRefHref,
+    type ThreadRef,
+  } from "$lib/threadRefs";
   import { parse } from "@djot/djot";
   import type {
     Block as DjBlock,
@@ -147,7 +152,7 @@
     | { type: "text"; value: string }
     | { type: "link"; href: string; label: string }
     | { type: "mention"; pubkey: string; entity: string; fallback: string }
-    | { type: "entity"; entity: string; label: string }
+    | { type: "entity"; entity: string; label: string; id?: string }
     | { type: "thread-quote"; pubkey: string; eventId: string }
     | { type: "strong"; children: Inline[] }
     | { type: "em"; children: Inline[] }
@@ -201,14 +206,14 @@
         const author = threadEventAuthors[id];
         if (author)
           return { type: "thread-quote", pubkey: author, eventId: id };
-        return { type: "entity", entity, label: shortEntity(entity) };
+        return { type: "entity", entity, label: shortEntity(entity), id };
       }
       if (decoded.type === "nevent") {
         const id = decoded.data.id;
         const author = threadEventAuthors[id];
         if (author)
           return { type: "thread-quote", pubkey: author, eventId: id };
-        return { type: "entity", entity, label: shortEntity(entity) };
+        return { type: "entity", entity, label: shortEntity(entity), id };
       }
       if (decoded.type === "naddr") {
         return { type: "entity", entity, label: shortEntity(entity) };
@@ -548,13 +553,16 @@
   });
 
   let resolvedUsers = $state<Record<string, NostrUser>>({});
+  let resolvedThreads = $state<Record<string, ThreadRef>>({});
 
   $effect(() => {
     const seen = new Set<string>();
+    const seenRefs = new Set<string>();
     const collect = (inlines: Inline[]) => {
       for (const inline of inlines) {
         if (inline.type === "mention" || inline.type === "thread-quote")
           seen.add(inline.pubkey);
+        else if (inline.type === "entity" && inline.id) seenRefs.add(inline.id);
         else if (
           inline.type === "strong" ||
           inline.type === "em" ||
@@ -582,6 +590,12 @@
         resolvedUsers = { ...resolvedUsers, [pubkey]: u };
       });
     }
+    for (const id of seenRefs) {
+      if (resolvedThreads[id]) continue;
+      resolveThreadRef(id).then((ref) => {
+        if (ref) resolvedThreads = { ...resolvedThreads, [id]: ref };
+      });
+    }
   });
 </script>
 
@@ -607,7 +621,7 @@
       {@const u = profiles[inline.pubkey] ?? resolvedUsers[inline.pubkey]}
       <a
         href="#post-{inline.eventId}"
-        class="-ml-3 block bg-neutral-100 dark:bg-neutral-800 py-1 pl-3 leading-4 font-normal text-neutral-700 dark:text-neutral-300 no-underline hover:bg-neutral-200 dark:hover:bg-neutral-700"
+        class="-ml-3 block bg-neutral-100 py-1 pl-3 leading-4 font-normal text-neutral-700 no-underline hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
         >{u?.shortName ?? inline.pubkey.slice(0, 8)} said
         <svg
           class="mb-0.5 inline w-3"
@@ -624,12 +638,19 @@
         >
       </a>
     {:else if inline.type === "entity"}
-      <a
-        href="https://njump.me/{inline.entity}"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="text-brand break-all hover:underline">{inline.label}</a
-      >
+      {@const ref = inline.id ? resolvedThreads[inline.id] : undefined}
+      {#if ref}
+        <a href={threadRefHref(ref)} class="text-brand hover:underline"
+          >{ref.title}</a
+        >
+      {:else}
+        <a
+          href="https://njump.me/{inline.entity}"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-brand break-all hover:underline">{inline.label}</a
+        >
+      {/if}
     {:else if inline.type === "strong"}
       <strong>{@render renderInlines(inline.children)}</strong>
     {:else if inline.type === "em"}
@@ -683,7 +704,7 @@
       />
     {:else if block.type === "blockquote"}
       <blockquote
-        class="my-3 mb-3 border-l-3 border-neutral-200 dark:border-neutral-700 pb-1 pl-3 text-neutral-500 dark:text-neutral-400"
+        class="my-3 mb-3 border-l-3 border-neutral-200 pb-1 pl-3 text-neutral-500 dark:border-neutral-700 dark:text-neutral-400"
       >
         {@render renderBlocks(block.blocks)}
       </blockquote>

@@ -4,6 +4,7 @@
   import { BLOSSOM_URL } from "$lib/config";
   import PostContent from "$lib/components/PostContent.svelte";
   import MentionAutocomplete from "$lib/components/MentionAutocomplete.svelte";
+  import { convertForumUrls } from "$lib/linkify";
 
   type Props = {
     value: string;
@@ -31,6 +32,9 @@
   let fileInputEl = $state<HTMLInputElement | null>(null);
   let uploadError = $state<string | null>(null);
   let previewing = $state(false);
+
+  // Mirror the publish transform so the preview shows resolved thread titles.
+  const previewContent = $derived(convertForumUrls(value));
 
   export function focus(opts: { caretAtEnd?: boolean } = {}) {
     editorEl?.focus(opts);
@@ -80,13 +84,15 @@
 <div class="flex flex-col {previewing ? 'min-h-0 flex-1' : ''}">
   {#if previewing}
     <div
-      class="max-h-[70vh] min-h-0 w-full flex-1 overflow-auto rounded-t border border-neutral-200 dark:border-neutral-700 px-3 py-2 {minHeightClass}"
+      class="max-h-[70vh] min-h-0 w-full flex-1 overflow-auto rounded-t border border-neutral-200 px-3 py-2 dark:border-neutral-700 {minHeightClass}"
       aria-label="Preview"
     >
       {#if value.trim()}
-        <PostContent content={value} {threadEventAuthors} />
+        <PostContent content={previewContent} {threadEventAuthors} />
       {:else}
-        <p class="text-neutral-400 dark:text-neutral-500 italic">Nothing to preview</p>
+        <p class="text-neutral-400 italic dark:text-neutral-500">
+          Nothing to preview
+        </p>
       {/if}
     </div>
   {:else}
@@ -101,14 +107,14 @@
     />
   {/if}
   <div
-    class="flex flex-shrink-0 items-center gap-4 rounded-b border border-t-0 border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 px-3 py-2 text-sm"
+    class="flex flex-shrink-0 items-center gap-4 rounded-b border border-t-0 border-neutral-200 bg-neutral-50 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-800"
   >
     <button
       type="button"
       onclick={onUploadClick}
       disabled={uploading || disabled || previewing || !BLOSSOM_URL}
       title={!BLOSSOM_URL ? "Blossom server not configured" : ""}
-      class="inline-flex items-center gap-1.5 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 disabled:cursor-not-allowed disabled:opacity-50"
+      class="inline-flex items-center gap-1.5 text-neutral-600 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-50 dark:text-neutral-400 dark:hover:text-neutral-100"
     >
       <svg
         width="16"
@@ -135,7 +141,7 @@
       onclick={togglePreview}
       disabled={disabled || uploading}
       aria-pressed={previewing}
-      class="ml-auto inline-flex items-center gap-1.5 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 disabled:cursor-not-allowed disabled:opacity-50"
+      class="ml-auto inline-flex items-center gap-1.5 text-neutral-600 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-50 dark:text-neutral-400 dark:hover:text-neutral-100"
     >
       <svg
         width="16"

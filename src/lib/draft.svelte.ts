@@ -4,6 +4,7 @@ import { withJoin } from "$lib/join.svelte";
 import { activeGroup } from "$lib/active.svelte";
 import { RELAY_URL } from "$lib/config";
 import { extractMentionPubkeys, buildPTagHints } from "$lib/mentions";
+import { convertForumUrls } from "$lib/linkify";
 
 let modalOpen = $state(false);
 let iconized = $state(false);
@@ -98,11 +99,11 @@ export async function publishDraft(): Promise<{
     return { ok: false };
   }
   const t = title.trim();
-  const c = content.trim();
-  if (!t || !c) {
+  if (!t || !content.trim()) {
     publishError = "Title and content are required";
     return { ok: false };
   }
+  const c = convertForumUrls(content.trim());
   const groupId = activeGroup.id;
   if (!groupId) {
     publishError = "No room selected";
