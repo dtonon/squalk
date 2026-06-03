@@ -42,7 +42,7 @@
     <img src={a.picture} alt="" class="h-5 w-5 rounded-full object-cover" />
   {:else}
     <span
-      class="flex h-5 w-5 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400"
+      class="flex h-5 w-5 items-center justify-center rounded-full bg-neutral-200 text-[10px] font-semibold text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400"
       aria-hidden="true"
     >
       {a.name[0].toUpperCase()}
@@ -79,17 +79,23 @@
       {@const last = act ? authorOf(act.latestPubkey) : null}
       <a
         href="/room/{room.id}"
-        class="group flex items-start justify-between gap-4 py-5"
+        class="group flex items-start justify-between gap-4 py-5 hover:bg-linear-to-r hover:from-transparent hover:via-neutral-100 hover:to-transparent dark:hover:bg-linear-to-r dark:hover:from-transparent dark:hover:via-neutral-800 dark:hover:to-transparent"
       >
         <div class="min-w-0">
-          <h2 class="group-hover:text-brand text-2xl text-neutral-800 dark:text-neutral-200">
+          <h2
+            class="group-hover:text-brand text-2xl text-neutral-800 dark:text-neutral-200"
+          >
             {room.name}
           </h2>
           {#if room.about}
-            <p class="mt-1 leading-5 text-neutral-600 dark:text-neutral-400">{room.about}</p>
+            <p class="mt-1 leading-5 text-neutral-600 dark:text-neutral-400">
+              {room.about}
+            </p>
           {/if}
           {#if admin}
-            <div class="mt-2 flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
+            <div
+              class="mt-2 flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400"
+            >
               <span>Admin</span>
               {@render pic(admin)}
             </div>
@@ -99,9 +105,13 @@
           <div class="flex shrink-0 flex-col items-center gap-0.5">
             <div class="flex items-center gap-1">
               {@render pic(last)}
-              <span class="text-neutral-800 dark:text-neutral-200">{relativeTime(act.latestAt)}</span>
+              <span class="text-neutral-800 dark:text-neutral-200"
+                >{relativeTime(act.latestAt)}</span
+              >
             </div>
-            <span class="text-sm text-neutral-400 dark:text-neutral-500">activity</span>
+            <span class="text-sm text-neutral-400 dark:text-neutral-500"
+              >activity</span
+            >
           </div>
         {/if}
       </a>
