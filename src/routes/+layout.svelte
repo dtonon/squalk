@@ -12,6 +12,7 @@
   import DeleteModal from "$lib/components/DeleteModal.svelte";
   import Toast from "$lib/components/Toast.svelte";
   import { page } from "$app/state";
+  import { afterNavigate } from "$app/navigation";
   import { onMount } from "svelte";
   import { auth, restoreSession } from "$lib/auth.svelte";
   import { loadGroup } from "$lib/group.svelte";
@@ -28,6 +29,15 @@
 
   const mode = MODE;
   const chatEnabled = true;
+
+  // The main column is its own scroll container (overflow-y-auto) and persists
+  // across navigations, so SvelteKit's window-only scroll restoration never
+  // resets it. Scroll it back to top on forward navigation; leave back/forward
+  // (popstate) alone so returning to a listing keeps its place.
+  let mainEl = $state<HTMLElement | null>(null);
+  afterNavigate((nav) => {
+    if (nav.type !== "popstate") mainEl?.scrollTo(0, 0);
+  });
 
   onMount(async () => {
     loadResources();
@@ -111,6 +121,7 @@
   >
     <LeftSidebar {mode} {activeRoom} {activeResource} {contactsActive} />
     <main
+      bind:this={mainEl}
       class="no-scrollbar md:min-h-0 md:overflow-y-auto {showDiscussions
         ? 'md:flex-[3]'
         : 'md:flex-1'}
