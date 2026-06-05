@@ -23,9 +23,30 @@
   import { seedProfiles } from "$lib/profiles.svelte";
   import { startChat } from "$lib/chat.svelte";
   import { activeGroup, setActiveGroup } from "$lib/active.svelte";
-  import { MODE } from "$lib/config";
+  import { MODE, ACCENT_COLOR, SECONDARY_COLOR } from "$lib/config";
 
   let { children } = $props();
+
+  // Optional env overrides for the theme colors. Set as inline custom props on
+  // <html> so they outrank the @theme `:root` defaults; hover shades are derived
+  // by darkening the base 15% so admins only set one value per color.
+  $effect(() => {
+    const root = document.documentElement;
+    if (ACCENT_COLOR) {
+      root.style.setProperty("--color-accent", ACCENT_COLOR);
+      root.style.setProperty(
+        "--color-accent-hover",
+        `color-mix(in srgb, ${ACCENT_COLOR} 85%, #000)`,
+      );
+    }
+    if (SECONDARY_COLOR) {
+      root.style.setProperty("--color-secondary", SECONDARY_COLOR);
+      root.style.setProperty(
+        "--color-secondary-hover",
+        `color-mix(in srgb, ${SECONDARY_COLOR} 85%, #000)`,
+      );
+    }
+  });
 
   const mode = MODE;
   const chatEnabled = true;
@@ -168,7 +189,7 @@
         onclick={() => (mobileView = "forum")}
         aria-pressed={mobileView === "forum"}
         class="flex flex-1 flex-col items-center gap-0.5 py-2 text-xs font-medium
-				{mobileView === 'forum' ? 'text-brand' : 'text-neutral-500 dark:text-neutral-400'}"
+				{mobileView === 'forum' ? 'text-accent' : 'text-neutral-500 dark:text-neutral-400'}"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -192,7 +213,7 @@
         onclick={() => (mobileView = "chat")}
         aria-pressed={mobileView === "chat"}
         class="flex flex-1 flex-col items-center gap-0.5 py-2 text-xs font-medium
-				{mobileView === 'chat' ? 'text-brand' : 'text-neutral-500 dark:text-neutral-400'}"
+				{mobileView === 'chat' ? 'text-accent' : 'text-neutral-500 dark:text-neutral-400'}"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

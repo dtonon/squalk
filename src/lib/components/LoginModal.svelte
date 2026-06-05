@@ -119,7 +119,7 @@
         <button
           onclick={handleExtension}
           disabled={busy || !hasExtension}
-          class="bg-brand hover:bg-brand-hover w-full rounded px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+          class="bg-accent hover:bg-accent-hover w-full rounded px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busy ? "Connecting…" : "Log in with extension"}
         </button>
@@ -131,7 +131,7 @@
         <button
           type="button"
           onclick={showNsecView}
-          class="text-brand mt-4 block w-full text-center text-sm hover:underline"
+          class="text-accent mt-4 block w-full text-center text-sm hover:underline"
         >
           Or log in using your nsec
         </button>
@@ -149,12 +149,12 @@
           autocorrect="off"
           spellcheck="false"
           onkeydown={(e) => e.key === "Enter" && handleNsec()}
-          class="focus:ring-brand w-full rounded border border-neutral-200 dark:border-neutral-700 px-3 py-2 font-mono text-sm focus:ring-1 focus:outline-none disabled:opacity-50"
+          class="focus:ring-accent w-full rounded border border-neutral-200 dark:border-neutral-700 px-3 py-2 font-mono text-sm focus:ring-1 focus:outline-none disabled:opacity-50"
         />
         <button
           onclick={handleNsec}
           disabled={busy || !nsec.trim()}
-          class="bg-brand hover:bg-brand-hover mt-3 w-full rounded px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+          class="bg-accent hover:bg-accent-hover mt-3 w-full rounded px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busy ? "Logging in…" : "Log in"}
         </button>
@@ -164,7 +164,7 @@
         <button
           type="button"
           onclick={showExtensionView}
-          class="text-brand mt-4 block w-full text-center text-sm hover:underline"
+          class="text-accent mt-4 block w-full text-center text-sm hover:underline"
         >
           Log in with extension
         </button>

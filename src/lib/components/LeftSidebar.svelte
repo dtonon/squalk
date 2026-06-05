@@ -76,7 +76,7 @@
           <a
             href="/room/{room.id}"
             class="flex items-center gap-2 py-1 hover:bg-neutral-100 dark:hover:bg-neutral-800
-							{activeRoom === room.id ? ' text-brand' : 'text-neutral-700 dark:text-neutral-300'}"
+							{activeRoom === room.id ? ' text-accent' : 'text-neutral-700 dark:text-neutral-300'}"
           >
             {room.name}
           </a>
@@ -105,7 +105,7 @@
           href="/resource/{r.slug}"
           aria-current={activeResource === r.slug ? "page" : undefined}
           class="block py-1 hover:text-neutral-900 dark:hover:text-neutral-100
-            {activeResource === r.slug ? 'text-brand' : 'text-neutral-500 dark:text-neutral-400'}"
+            {activeResource === r.slug ? 'text-accent' : 'text-neutral-500 dark:text-neutral-400'}"
           >{r.title}</a
         >
       {/each}
@@ -113,7 +113,7 @@
         href="/contacts"
         aria-current={contactsActive ? "page" : undefined}
         class="block py-1 hover:text-neutral-900 dark:hover:text-neutral-100
-          {contactsActive ? 'text-brand' : 'text-neutral-500 dark:text-neutral-400'}">Contacts</a
+          {contactsActive ? 'text-accent' : 'text-neutral-500 dark:text-neutral-400'}">Contacts</a
       >
     </nav>
   </div>
@@ -123,7 +123,7 @@
       <button
         type="button"
         onclick={resumeDraft}
-        class="bg-brand hover:bg-brand-hover w-full rounded px-3 py-1.5 text-sm font-medium text-white"
+        class="bg-accent hover:bg-accent-hover w-full rounded px-3 py-1.5 text-sm font-medium text-white"
       >
         Resume draft
       </button>
@@ -159,7 +159,7 @@
       <div class="mt-3 flex items-center gap-1">
         <button
           onclick={openLogin}
-          class="bg-brand hover:bg-brand-hover min-w-0 flex-1 rounded px-3 py-1.5 text-sm font-medium text-white"
+          class="bg-accent hover:bg-accent-hover min-w-0 flex-1 rounded px-3 py-1.5 text-sm font-medium text-white"
         >
           Login
         </button>

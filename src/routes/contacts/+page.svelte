@@ -72,7 +72,7 @@
 </svelte:head>
 
 <div class="mx-auto max-w-6xl">
-  <h1 class="text-brand py-2 text-[1.65rem]">Contacts</h1>
+  <h1 class="text-accent py-2 text-[1.65rem]">Contacts</h1>
 
   {#if partial}
     <div class="mb-8">
@@ -120,7 +120,7 @@
                 href="https://njump.me/{c.npub}"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="text-brand shrink-0 text-sm hover:underline"
+                class="text-accent shrink-0 text-sm hover:underline"
               >
                 View profile ↗
               </a>
@@ -141,7 +141,7 @@
                     href={websiteHref(c.entry.website)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="text-brand truncate hover:underline"
+                    class="text-accent truncate hover:underline"
                   >
                     {websiteLabel(c.entry.website)}
                   </a>
@@ -161,7 +161,7 @@
                   <span class="text-neutral-400 dark:text-neutral-500">Manages:</span>
                   {#each rooms as r, i}<a
                       href="/room/{r.id}"
-                      class="text-brand hover:underline">{r.name}</a
+                      class="text-accent hover:underline">{r.name}</a
                     >{i < rooms.length - 1 ? ", " : ""}{/each}
                 </p>
               {/if}

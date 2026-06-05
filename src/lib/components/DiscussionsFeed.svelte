@@ -97,11 +97,11 @@
 
 <div class="mx-auto max-w-6xl">
   <div class="flex flex-wrap items-center justify-between gap-2 py-2">
-    <h1 class="text-brand text-[1.65rem] leading-7">{title}</h1>
+    <h1 class="text-accent text-[1.65rem] leading-7">{title}</h1>
     <div class="flex items-center gap-2">
       <button
         onclick={onNewTopic}
-        class="bg-brand hover:bg-brand-hover rounded px-4 py-1.5 font-medium text-white md:px-6 md:text-sm"
+        class="bg-accent hover:bg-accent-hover rounded px-4 py-1.5 font-medium text-white md:px-6 md:text-sm"
       >
         New discussion
       </button>

@@ -120,7 +120,7 @@
         <a
           href="/"
           onclick={onClose}
-          class="hover:text-brand py-2 text-xl text-neutral-700 dark:text-neutral-300"
+          class="hover:text-accent py-2 text-xl text-neutral-700 dark:text-neutral-300"
           >{mode === "simple" ? "Discussions" : "Home"}</a
         >
 
@@ -139,7 +139,7 @@
                 href="/room/{room.id}"
                 onclick={onClose}
                 class="block py-1.5 text-xl
-									{activeRoom === room.id ? 'text-brand' : 'hover:text-brand text-neutral-700 dark:text-neutral-300'}"
+									{activeRoom === room.id ? 'text-accent' : 'hover:text-accent text-neutral-700 dark:text-neutral-300'}"
               >
                 {room.name}
               </a>
@@ -158,8 +158,8 @@
               href="/resource/{r.slug}"
               onclick={onClose}
               aria-current={activeResource === r.slug ? "page" : undefined}
-              class="hover:text-brand block py-1.5 text-xl
-                {activeResource === r.slug ? 'text-brand' : 'text-neutral-700 dark:text-neutral-300'}"
+              class="hover:text-accent block py-1.5 text-xl
+                {activeResource === r.slug ? 'text-accent' : 'text-neutral-700 dark:text-neutral-300'}"
               >{r.title}</a
             >
           {/each}
@@ -167,8 +167,8 @@
             href="/contacts"
             onclick={onClose}
             aria-current={contactsActive ? "page" : undefined}
-            class="hover:text-brand block py-1.5 text-lg
-              {contactsActive ? 'text-brand' : 'text-neutral-700 dark:text-neutral-300'}">Contacts</a
+            class="hover:text-accent block py-1.5 text-lg
+              {contactsActive ? 'text-accent' : 'text-neutral-700 dark:text-neutral-300'}">Contacts</a
           >
         </nav>
 
@@ -177,7 +177,7 @@
             <button
               type="button"
               onclick={onResume}
-              class="bg-brand hover:bg-brand-hover w-full rounded px-3 py-2 font-medium text-white"
+              class="bg-accent hover:bg-accent-hover w-full rounded px-3 py-2 font-medium text-white"
             >
               Resume draft
             </button>
@@ -219,7 +219,7 @@
               <button
                 type="button"
                 onclick={onLogin}
-                class="bg-brand hover:bg-brand-hover min-w-0 flex-1 rounded px-3 py-2 text-lg font-medium text-white"
+                class="bg-accent hover:bg-accent-hover min-w-0 flex-1 rounded px-3 py-2 text-lg font-medium text-white"
               >
                 Login
               </button>

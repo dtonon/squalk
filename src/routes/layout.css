@@ -47,7 +47,7 @@ body {
 }
 .prose :is(h1) {
   font-size: 1.65rem;
-  color: var(--color-brand);
+  color: var(--color-accent);
 }
 .prose :is(p) {
   margin-top: 0;
@@ -61,7 +61,7 @@ body {
   color: var(--color-neutral-100);
 }
 :where(.dark) .prose :is(h1) {
-  color: var(--color-brand);
+  color: var(--color-accent);
 }
 :where(.dark) .prose :is(blockquote) {
   color: var(--color-neutral-400);
@@ -72,8 +72,8 @@ body {
 }
 
 @theme {
-  --color-brand: #e32a6d;
-  --color-brand-hover: #c4205a;
-  --color-accent: #ffaf25;
-  --color-accent-hover: #e69e1a;
+  --color-accent: #e32a6d;
+  --color-accent-hover: #c4205a;
+  --color-secondary: #ffaf25;
+  --color-secondary-hover: #e69e1a;
 }

@@ -607,7 +607,7 @@
         href={inline.href}
         target={internal ? undefined : "_blank"}
         rel={internal ? undefined : "noopener noreferrer"}
-        class="text-brand break-all hover:underline">{inline.label}</a
+        class="text-accent break-all hover:underline">{inline.label}</a
       >
     {:else if inline.type === "mention"}
       {@const u = profiles[inline.pubkey] ?? resolvedUsers[inline.pubkey]}
@@ -615,7 +615,7 @@
         href="https://njump.me/{inline.entity}"
         target="_blank"
         rel="noopener noreferrer"
-        class="text-brand hover:underline">@{u?.shortName ?? inline.fallback}</a
+        class="text-accent hover:underline">@{u?.shortName ?? inline.fallback}</a
       >
     {:else if inline.type === "thread-quote"}
       {@const u = profiles[inline.pubkey] ?? resolvedUsers[inline.pubkey]}
@@ -640,7 +640,7 @@
     {:else if inline.type === "entity"}
       {@const ref = inline.id ? resolvedThreads[inline.id] : undefined}
       {#if ref}
-        <a href={threadRefHref(ref)} class="text-brand hover:underline"
+        <a href={threadRefHref(ref)} class="text-accent hover:underline"
           >{ref.title}</a
         >
       {:else}
@@ -648,7 +648,7 @@
           href="https://njump.me/{inline.entity}"
           target="_blank"
           rel="noopener noreferrer"
-          class="text-brand break-all hover:underline">{inline.label}</a
+          class="text-accent break-all hover:underline">{inline.label}</a
         >
       {/if}
     {:else if inline.type === "strong"}

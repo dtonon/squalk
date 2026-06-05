@@ -232,7 +232,7 @@
 		{expanded ? 'md:w-150 md:shadow-2xl' : 'md:w-80 md:shadow-lg'}"
 >
   <div class="mb-6 flex shrink-0 items-center justify-between">
-    <span class="text-brand text-[1.5rem] leading-7">Chat</span>
+    <span class="text-accent text-[1.5rem] leading-7">Chat</span>
     <button
       onclick={onToggle}
       class="hidden rounded bg-neutral-100 transition-colors hover:bg-neutral-200 md:block dark:bg-neutral-800 dark:hover:bg-neutral-700"
@@ -410,7 +410,7 @@
       disabled={sending}
       placeholder={auth.user ? "Message..." : "Login to send messages"}
       {contextPubkeys}
-      textareaClass="w-full resize-none rounded border border-neutral-200 dark:border-neutral-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand disabled:opacity-50"
+      textareaClass="w-full resize-none rounded border border-neutral-200 dark:border-neutral-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50"
     />
   </div>
 </aside>

@@ -62,7 +62,7 @@
   {#if partial}
     <hr class="text-neutral-300 dark:text-neutral-600" />
   {:else}
-    <h1 class="text-brand py-2 text-[1.65rem]">Forum rooms</h1>
+    <h1 class="text-accent py-2 text-[1.65rem]">Forum rooms</h1>
   {/if}
 
   {#if groupsStore.list.length === 0}
@@ -83,7 +83,7 @@
       >
         <div class="min-w-0">
           <h2
-            class="group-hover:text-brand text-2xl text-neutral-800 dark:text-neutral-200"
+            class="group-hover:text-accent text-2xl text-neutral-800 dark:text-neutral-200"
           >
             {room.name}
           </h2>

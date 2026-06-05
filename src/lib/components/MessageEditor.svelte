@@ -103,7 +103,7 @@
       {rows}
       {placeholder}
       {contextPubkeys}
-      textareaClass="block w-full rounded-t border border-neutral-200 dark:border-neutral-700 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-brand disabled:opacity-50 resize-y {minHeightClass}"
+      textareaClass="block w-full rounded-t border border-neutral-200 dark:border-neutral-700 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50 resize-y {minHeightClass}"
     />
   {/if}
   <div

@@ -151,7 +151,7 @@
           {#if targetName}
             <p class="text-sm text-neutral-700 dark:text-neutral-300">{targetName}</p>
           {/if}
-          <h2 id="newdisc-title" class="text-brand text-2xl">New discussion</h2>
+          <h2 id="newdisc-title" class="text-accent text-2xl">New discussion</h2>
         </div>
         <button
           type="button"
@@ -190,7 +190,7 @@
           bind:value={draftState.title}
           disabled={draftState.publishing}
           maxlength="72"
-          class="focus:ring-brand w-full rounded border border-neutral-200 dark:border-neutral-700 px-3 py-2 focus:ring-1 focus:outline-none disabled:opacity-50"
+          class="focus:ring-accent w-full rounded border border-neutral-200 dark:border-neutral-700 px-3 py-2 focus:ring-1 focus:outline-none disabled:opacity-50"
         />
       </div>
 
@@ -204,11 +204,11 @@
             Labels
           </label>
           <div
-            class="focus-within:ring-brand flex min-h-[2.5rem] flex-wrap items-center gap-1.5 rounded border border-neutral-200 dark:border-neutral-700 px-3 py-1.5 focus-within:ring-1"
+            class="focus-within:ring-accent flex min-h-[2.5rem] flex-wrap items-center gap-1.5 rounded border border-neutral-200 dark:border-neutral-700 px-3 py-1.5 focus-within:ring-1"
           >
             {#each draftState.labels as l}
               <span
-                class="bg-accent inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-sm text-white"
+                class="bg-secondary inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-sm text-white"
               >
                 {l}
                 <button
@@ -257,7 +257,7 @@
                   type="button"
                   onmousedown={(e) => e.preventDefault()}
                   onclick={() => onSuggestionClick(l)}
-                  class="bg-accent hover:bg-accent-hover rounded-lg px-2.5 py-0.5 text-sm text-white"
+                  class="bg-secondary hover:bg-secondary-hover rounded-lg px-2.5 py-0.5 text-sm text-white"
                 >
                   {l}
                 </button>
@@ -304,7 +304,7 @@
           disabled={draftState.publishing ||
             !draftState.title.trim() ||
             !draftState.content.trim()}
-          class="bg-brand hover:bg-brand-hover rounded px-5 py-1.5 font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+          class="bg-accent hover:bg-accent-hover rounded px-5 py-1.5 font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
           {draftState.publishing ? "Publishing…" : "Publish discussion"}
         </button>

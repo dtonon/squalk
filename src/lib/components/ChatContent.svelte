@@ -42,22 +42,22 @@
         href="https://njump.me/{t.entity}"
         target="_blank"
         rel="noopener noreferrer"
-        class="text-brand hover:underline">@{u?.shortName ?? t.fallback}</a
+        class="text-accent hover:underline">@{u?.shortName ?? t.fallback}</a
       >{:else if t.type === "entity"}{@const ref = t.id
         ? resolvedThreads[t.id]
         : undefined}{#if ref}<a
           href={threadRefHref(ref)}
-          class="text-brand hover:underline">{ref.title}</a
+          class="text-accent hover:underline">{ref.title}</a
         >{:else}<a
           href={t.href}
           target="_blank"
           rel="noopener noreferrer"
-          class="text-brand hover:underline">{t.label}</a
+          class="text-accent hover:underline">{t.label}</a
         >{/if}{:else if t.type === "link"}<a
         href={t.href}
         title={t.href}
         target="_blank"
         rel="noopener noreferrer"
-        class="text-brand hover:underline">{t.label}</a
+        class="text-accent hover:underline">{t.label}</a
       >{:else}{t.value}{/if}{/each}</span
 >

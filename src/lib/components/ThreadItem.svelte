@@ -41,7 +41,7 @@
   <!-- Col 1: title + byline -->
   <div class="min-w-0 flex-1">
     <div
-      class="group-hover:text-brand mb-1.5 text-lg leading-5 text-neutral-900 dark:text-neutral-100"
+      class="group-hover:text-accent mb-1.5 text-lg leading-5 text-neutral-900 dark:text-neutral-100"
     >
       {thread.title}
     </div>

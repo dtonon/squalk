@@ -28,7 +28,7 @@
 </script>
 
 <aside aria-label="Latest discussions">
-  <h2 class="text-brand pb-2 text-[1.5rem] leading-7">Latest discussions</h2>
+  <h2 class="text-accent pb-2 text-[1.5rem] leading-7">Latest discussions</h2>
   {#if overviewStore.recent.length === 0}
     <p class="text-sm text-neutral-400 dark:text-neutral-500">
       {overviewStore.loading ? "Loading…" : "Nothing yet."}
@@ -40,7 +40,7 @@
         <li>
           <a href="/thread/{t.id}" class="group block py-3">
             <p
-              class="group-hover:text-brand line-clamp-2 text-lg leading-5 text-neutral-700 dark:text-neutral-300"
+              class="group-hover:text-accent line-clamp-2 text-lg leading-5 text-neutral-700 dark:text-neutral-300"
             >
               {t.title}
             </p>

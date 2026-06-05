@@ -169,7 +169,7 @@
 
     <!-- Thumb -->
     <div
-      class="bg-brand absolute cursor-grab touch-none rounded-full transition-colors hover:bg-neutral-600 active:cursor-grabbing"
+      class="bg-accent absolute cursor-grab touch-none rounded-full transition-colors hover:bg-neutral-600 active:cursor-grabbing"
       style="width: 4px; right: 3px; top: {thumbTop}px; height: {thumbHeight}px;"
       onpointerdown={onThumbPointerDown}
       onpointermove={onThumbPointerMove}

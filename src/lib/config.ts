@@ -17,3 +17,8 @@ export const LABELS = (env.PUBLIC_LABELS ?? "")
   .map((l) => l.trim())
   .filter(Boolean);
 export const BLOSSOM_URL = (env.PUBLIC_BLOSSOM_URL ?? "").replace(/\/$/, "");
+
+// Theme color overrides: when set, replace the accent (primary) and secondary
+// CSS variables defined in layout.css. Hover shades are derived in the layout.
+export const ACCENT_COLOR = env.PUBLIC_ACCENT_COLOR ?? "";
+export const SECONDARY_COLOR = env.PUBLIC_SECONDARY_COLOR ?? "";
