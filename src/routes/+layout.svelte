@@ -22,6 +22,7 @@
   import { loadRoomAdmins } from "$lib/admins.svelte";
   import { seedProfiles } from "$lib/profiles.svelte";
   import { startChat } from "$lib/chat.svelte";
+  import { resetForumConnection } from "$lib/relay";
   import { activeGroup, setActiveGroup } from "$lib/active.svelte";
   import { MODE, ACCENT_COLOR, SECONDARY_COLOR } from "$lib/config";
 
@@ -70,6 +71,30 @@
     // room's admins, needed on every page for the sidebar.
     if (mode === "full") loadRoomAdmins(groupsStore.list.map((g) => g.id));
     seedProfiles(auth.user?.pubkey ?? null);
+  });
+
+  // Reload the room views when the user logs in or out: a logged-in member sees
+  // their private/hidden rooms, so the listing must be re-fetched over the now
+  // (de)authenticated connection. sessionEpoch only bumps on explicit
+  // login/logout, never on the silent restore that onMount already covers.
+  let lastEpoch = -1;
+  $effect(() => {
+    const epoch = auth.sessionEpoch;
+    if (epoch === lastEpoch) return;
+    const first = lastEpoch === -1;
+    const loggedOut = auth.user === null;
+    lastEpoch = epoch;
+    if (first) return; // initial mount: onMount already loaded everything
+    // On logout, drop the authenticated connection so the relay stops serving
+    // the previous user's private rooms; login reuses the open connection,
+    // which ensureForumReady authenticates via its stored challenge.
+    if (loggedOut) resetForumConnection();
+    loadGroup();
+    if (mode === "full") {
+      loadGroups().then(() =>
+        loadRoomAdmins(groupsStore.list.map((g) => g.id)),
+      );
+    }
   });
 
   // Full mode: the room route defines the active group. Thread pages set it

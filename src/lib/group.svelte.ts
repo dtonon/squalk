@@ -1,5 +1,5 @@
-import { SimplePool } from "@nostr/tools";
-import { RELAY_URL, GROUP_ID } from "$lib/config";
+import { GROUP_ID } from "$lib/config";
+import { queryForum } from "$lib/relay";
 
 export type GroupMetadata = {
   name: string;
@@ -23,9 +23,8 @@ export const groupStore = {
 };
 
 export async function loadGroup() {
-  const pool = new SimplePool();
   try {
-    const events = await pool.querySync([RELAY_URL], {
+    const events = await queryForum({
       kinds: [39000, 39001],
       "#d": [GROUP_ID],
     });
@@ -45,6 +44,5 @@ export async function loadGroup() {
     };
   } finally {
     loaded = true;
-    pool.close([RELAY_URL]);
   }
 }

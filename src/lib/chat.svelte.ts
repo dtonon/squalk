@@ -1,7 +1,8 @@
-import { SimplePool, type Event } from "@nostr/tools";
+import type { Event } from "@nostr/tools";
 import { loadNostrUser, type NostrUser } from "@nostr/gadgets/metadata";
 import { RELAY_URL } from "$lib/config";
 import { auth } from "$lib/auth.svelte";
+import { queryForum, publishForum, subscribeForum } from "$lib/relay";
 import { ingestNostrUser } from "$lib/profiles.svelte";
 import { extractMentionPubkeys, buildPTagHints } from "$lib/mentions";
 import { convertForumUrls } from "$lib/linkify";
@@ -19,7 +20,6 @@ let messages = $state<ChatMessageData[]>([]);
 let profiles = $state<Record<string, NostrUser>>({});
 let currentGroup: string | null = null;
 let chatReq = 0; // supersedes an in-flight load when the room changes
-let livePool: SimplePool | null = null;
 let liveSub: { close(): void } | null = null;
 
 export const chatStore = {
@@ -80,14 +80,11 @@ export async function startChat(groupId: string) {
   const req = ++chatReq;
 
   liveSub?.close();
-  livePool?.close([RELAY_URL]);
   liveSub = null;
-  livePool = null;
   messages = [];
 
-  const pool = new SimplePool();
   try {
-    const events = await pool.querySync([RELAY_URL], {
+    const events = await queryForum({
       kinds: [9],
       "#h": [groupId],
       limit: 100,
@@ -96,15 +93,11 @@ export async function startChat(groupId: string) {
     for (const ev of events) ingestEvent(ev);
   } catch (e) {
     console.error("[chat] initial load failed", e);
-  } finally {
-    pool.close([RELAY_URL]);
   }
 
   if (req !== chatReq) return;
 
-  livePool = new SimplePool();
-  liveSub = livePool.subscribeMany(
-    [RELAY_URL],
+  liveSub = subscribeForum(
     {
       kinds: [9],
       "#h": [groupId],
@@ -117,9 +110,7 @@ export async function startChat(groupId: string) {
 export function stopChat() {
   chatReq++;
   liveSub?.close();
-  livePool?.close([RELAY_URL]);
   liveSub = null;
-  livePool = null;
   currentGroup = null;
   messages = [];
 }
@@ -164,21 +155,10 @@ export async function sendChatMessage(
     content,
   });
 
-  const pool = new SimplePool();
-  try {
-    const timeout = new Promise<never>((_, reject) =>
-      setTimeout(
-        () => reject(new Error("Relay did not respond in time")),
-        8000,
-      ),
-    );
-    await Promise.race([
-      Promise.all(pool.publish([RELAY_URL], signed)),
-      timeout,
-    ]);
-  } finally {
-    pool.destroy();
-  }
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error("Relay did not respond in time")), 8000),
+  );
+  await Promise.race([Promise.all(publishForum(signed)), timeout]);
 
   ingestEvent(signed);
 }

@@ -1,6 +1,6 @@
-import { SimplePool } from "@nostr/tools";
-import { RELAY_URL, MODE } from "$lib/config";
+import { MODE } from "$lib/config";
 import { groupStore } from "$lib/group.svelte";
+import { queryForum } from "$lib/relay";
 
 // room id -> admin pubkeys (NIP-29 kind 39001 `p` tags), across all rooms.
 let byRoom = $state<Record<string, string[]>>({});
@@ -47,9 +47,8 @@ export async function loadRoomAdmins(roomIds: string[]) {
   if (key === loadedKey) return;
   loadedKey = key;
 
-  const pool = new SimplePool();
   try {
-    const events = await pool.querySync([RELAY_URL], {
+    const events = await queryForum({
       kinds: [39001],
       "#d": roomIds,
     });
@@ -62,6 +61,5 @@ export async function loadRoomAdmins(roomIds: string[]) {
     byRoom = map;
   } finally {
     loaded = true;
-    pool.close([RELAY_URL]);
   }
 }

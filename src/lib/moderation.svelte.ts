@@ -1,6 +1,5 @@
-import { SimplePool } from "@nostr/tools";
-import { RELAY_URL } from "$lib/config";
 import { auth } from "$lib/auth.svelte";
+import { publishForum } from "$lib/relay";
 
 // What's pending deletion, surfaced to the confirmation modal. `label` is the
 // noun shown in the dialog copy ("discussion", "reply", "message").
@@ -70,21 +69,10 @@ export async function confirmDelete(reason?: string) {
       content: reason?.trim() ?? "",
     });
 
-    const pool = new SimplePool();
-    try {
-      const timeout = new Promise<never>((_, reject) =>
-        setTimeout(
-          () => reject(new Error("Relay did not respond in time")),
-          8000,
-        ),
-      );
-      await Promise.race([
-        Promise.all(pool.publish([RELAY_URL], signed)),
-        timeout,
-      ]);
-    } finally {
-      pool.destroy();
-    }
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Relay did not respond in time")), 8000),
+    );
+    await Promise.race([Promise.all(publishForum(signed)), timeout]);
 
     onDeleted?.();
     target = null;

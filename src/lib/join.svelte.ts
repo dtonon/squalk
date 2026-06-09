@@ -1,6 +1,7 @@
-import { Relay, SimplePool } from "@nostr/tools";
+import type { AbstractRelay } from "@nostr/tools/abstract-relay";
 import { auth } from "$lib/auth.svelte";
-import { GROUP_ID, MODE, RELAY_URL, JOINCODE_REQUIRED } from "$lib/config";
+import { GROUP_ID, MODE, JOINCODE_REQUIRED } from "$lib/config";
+import { ensureForumRelay, publishForum } from "$lib/relay";
 
 // Membership is per-group: full mode lets a user belong to some rooms but not
 // others, so we track joined group ids rather than a single boolean.
@@ -39,8 +40,8 @@ export function resetJoinState() {
 // first, falling back to kind:39002 (full members list, heavier) only if 9000
 // did not match. Either signal marks the user as joined and skips the 9021.
 function queryHasMatch(
-  relay: Relay,
-  filter: Parameters<Relay["subscribe"]>[0][number],
+  relay: AbstractRelay,
+  filter: Parameters<AbstractRelay["subscribe"]>[0][number],
   timeoutMs = 3000,
 ): Promise<boolean> {
   return new Promise((resolve) => {
@@ -74,31 +75,25 @@ async function checkMembership(
   pubkey: string,
   groupId: string,
 ): Promise<boolean> {
-  let relay: Relay;
+  let relay: AbstractRelay;
   try {
-    relay = await Relay.connect(RELAY_URL);
+    relay = await ensureForumRelay();
   } catch {
     return false;
   }
-  try {
-    const has9000 = await queryHasMatch(relay, {
-      kinds: [9000],
-      "#h": [groupId],
-      "#p": [pubkey],
-      limit: 1,
-    });
-    if (has9000) return true;
-    return await queryHasMatch(relay, {
-      kinds: [39002],
-      "#d": [groupId],
-      "#p": [pubkey],
-      limit: 1,
-    });
-  } finally {
-    try {
-      relay.close();
-    } catch {}
-  }
+  const has9000 = await queryHasMatch(relay, {
+    kinds: [9000],
+    "#h": [groupId],
+    "#p": [pubkey],
+    limit: 1,
+  });
+  if (has9000) return true;
+  return await queryHasMatch(relay, {
+    kinds: [39002],
+    "#d": [groupId],
+    "#p": [pubkey],
+    limit: 1,
+  });
 }
 
 // Simple mode pre-checks the single configured group at login so the first post
@@ -125,21 +120,10 @@ async function publishJoinRequest(groupId: string, code?: string) {
     tags,
     content: "",
   });
-  const pool = new SimplePool();
-  try {
-    const timeout = new Promise<never>((_, reject) =>
-      setTimeout(
-        () => reject(new Error("Relay did not respond in time")),
-        8000,
-      ),
-    );
-    await Promise.race([
-      Promise.all(pool.publish([RELAY_URL], event)),
-      timeout,
-    ]);
-  } finally {
-    pool.destroy();
-  }
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error("Relay did not respond in time")), 8000),
+  );
+  await Promise.race([Promise.all(publishForum(event)), timeout]);
 }
 
 // Wraps an action that posts to `groupId`. If the user isn't known to be a

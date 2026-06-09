@@ -1,6 +1,6 @@
-import { SimplePool } from "@nostr/tools";
 import { loadNostrUser, type NostrUser } from "@nostr/gadgets/metadata";
 import { RELAY_URL, GROUP_ID } from "$lib/config";
+import { queryForum, publishForum } from "$lib/relay";
 import { threads as mockThreads } from "$lib/mock";
 import { auth } from "$lib/auth.svelte";
 import { ingestNostrUser } from "$lib/profiles.svelte";
@@ -96,41 +96,36 @@ export async function loadThread(id: string) {
     return;
   }
 
-  const pool = new SimplePool();
-  try {
-    const [threadEvents, replyEvents] = await Promise.all([
-      pool.querySync([RELAY_URL], { kinds: [11], ids: [id] }),
-      pool.querySync([RELAY_URL], { kinds: [1111], "#E": [id] }),
-    ]);
+  const [threadEvents, replyEvents] = await Promise.all([
+    queryForum({ kinds: [11], ids: [id] }),
+    queryForum({ kinds: [1111], "#E": [id] }),
+  ]);
 
-    const event = threadEvents[0];
-    if (!event) return;
+  const event = threadEvents[0];
+  if (!event) return;
 
-    const replies = replyEvents.sort((a, b) => a.created_at - b.created_at);
+  const replies = replyEvents.sort((a, b) => a.created_at - b.created_at);
 
-    detail = {
+  detail = {
+    id: event.id,
+    title: event.tags.find((t) => t[0] === "title")?.[1] ?? "(untitled)",
+    labels: event.tags.filter((t) => t[0] === "t" && t[1]).map((t) => t[1]),
+    groupId: event.tags.find((t) => t[0] === "h")?.[1] ?? GROUP_ID,
+    op: {
       id: event.id,
-      title: event.tags.find((t) => t[0] === "title")?.[1] ?? "(untitled)",
-      labels: event.tags.filter((t) => t[0] === "t" && t[1]).map((t) => t[1]),
-      groupId: event.tags.find((t) => t[0] === "h")?.[1] ?? GROUP_ID,
-      op: {
-        id: event.id,
-        pubkey: event.pubkey,
-        createdAt: event.created_at,
-        content: event.content,
-      },
-      replies: replies.map((r) => ({
-        id: r.id,
-        pubkey: r.pubkey,
-        createdAt: r.created_at,
-        content: r.content,
-      })),
-    };
+      pubkey: event.pubkey,
+      createdAt: event.created_at,
+      content: event.content,
+    },
+    replies: replies.map((r) => ({
+      id: r.id,
+      pubkey: r.pubkey,
+      createdAt: r.created_at,
+      content: r.content,
+    })),
+  };
 
-    [event.pubkey, ...replies.map((r) => r.pubkey)].forEach(loadProfile);
-  } finally {
-    pool.close([RELAY_URL]);
-  }
+  [event.pubkey, ...replies.map((r) => r.pubkey)].forEach(loadProfile);
 }
 
 export function removeReply(id: string) {
@@ -194,21 +189,10 @@ export async function sendReply(content: string, ownPubkey: string) {
   console.log("[reply] event signed:", signed.id);
 
   console.log("[reply] publishing…");
-  const pool = new SimplePool();
-  try {
-    const timeout = new Promise<never>((_, reject) =>
-      setTimeout(
-        () => reject(new Error("Relay did not respond in time")),
-        8000,
-      ),
-    );
-    await Promise.race([
-      Promise.all(pool.publish([RELAY_URL], signed)),
-      timeout,
-    ]);
-  } finally {
-    pool.destroy();
-  }
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error("Relay did not respond in time")), 8000),
+  );
+  await Promise.race([Promise.all(publishForum(signed)), timeout]);
   console.log("[reply] published");
 
   const newReply: PostData = {

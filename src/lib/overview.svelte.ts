@@ -1,8 +1,8 @@
-import { Relay } from "@nostr/tools";
+import type { AbstractRelay } from "@nostr/tools/abstract-relay";
 import type { Event } from "@nostr/tools/core";
 import type { Filter } from "@nostr/tools/filter";
 import { loadNostrUser, type NostrUser } from "@nostr/gadgets/metadata";
-import { RELAY_URL } from "$lib/config";
+import { ensureForumRelay } from "$lib/relay";
 import { ingestNostrUser } from "$lib/profiles.svelte";
 
 export type RoomActivity = {
@@ -43,7 +43,7 @@ export const overviewStore = {
   },
 };
 
-function querySync(relay: Relay, filter: Filter): Promise<Event[]> {
+function querySync(relay: AbstractRelay, filter: Filter): Promise<Event[]> {
   return new Promise((resolve) => {
     const events: Event[] = [];
     const sub = relay.subscribe([filter], {
@@ -77,7 +77,7 @@ export async function loadOverview(roomIds: string[]) {
   loadedKey = key;
 
   loading = true;
-  const relay = await Relay.connect(RELAY_URL);
+  const relay = await ensureForumRelay();
   try {
     // One tiny query per room for its newest event (thread or reply).
     const latest = await Promise.all(
@@ -122,7 +122,7 @@ export async function loadOverview(roomIds: string[]) {
     for (const pk of Object.values(adm)) loadProfile(pk);
     for (const t of recent) loadProfile(t.authorPubkey);
   } finally {
-    relay.close();
+    // shared forum connection is long-lived — don't close it here
     loading = false;
   }
 }

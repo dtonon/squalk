@@ -19,6 +19,10 @@ export type Signer = {
 let user = $state<NostrUser | null>(null);
 let signer = $state<Signer | null>(null);
 let loginModalOpen = $state(false);
+// Bumped on explicit login/logout (not on silent session restore) so the app
+// can re-fetch identity-scoped data — e.g. reload the room list once the relay
+// will serve the user's private/hidden groups.
+let sessionEpoch = $state(0);
 
 export const auth = {
   get user() {
@@ -29,6 +33,9 @@ export const auth = {
   },
   get loginModalOpen() {
     return loginModalOpen;
+  },
+  get sessionEpoch() {
+    return sessionEpoch;
   },
 };
 
@@ -89,6 +96,7 @@ export async function loginWithExtension() {
   localStorage.setItem(METHOD_KEY, "extension");
   localStorage.removeItem(NSEC_KEY);
   await setUser(pubkey);
+  sessionEpoch++;
 }
 
 function parseSecretKey(input: string): Uint8Array {
@@ -119,6 +127,7 @@ export async function loginWithNsec(input: string) {
   localStorage.setItem(METHOD_KEY, "nsec");
   localStorage.setItem(NSEC_KEY, nsec);
   await setUser(pubkey);
+  sessionEpoch++;
 }
 
 export function logout() {
@@ -128,6 +137,7 @@ export function logout() {
   localStorage.removeItem(METHOD_KEY);
   localStorage.removeItem(NSEC_KEY);
   resetJoinState();
+  sessionEpoch++;
 }
 
 export async function restoreSession() {

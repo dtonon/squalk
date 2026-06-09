@@ -1,8 +1,8 @@
-import { Relay } from "@nostr/tools";
+import type { AbstractRelay } from "@nostr/tools/abstract-relay";
 import type { Event } from "@nostr/tools/core";
 import type { Filter } from "@nostr/tools/filter";
 import { loadNostrUser, type NostrUser } from "@nostr/gadgets/metadata";
-import { RELAY_URL } from "$lib/config";
+import { ensureForumRelay } from "$lib/relay";
 import { ingestNostrUser } from "$lib/profiles.svelte";
 
 const PAGE_SIZE = 30;
@@ -59,7 +59,7 @@ async function loadProfile(pubkey: string) {
   ingestNostrUser(user);
 }
 
-function querySync(relay: Relay, filter: Filter): Promise<Event[]> {
+function querySync(relay: AbstractRelay, filter: Filter): Promise<Event[]> {
   return new Promise((resolve) => {
     const events: Event[] = [];
     const sub = relay.subscribe([filter], {
@@ -92,7 +92,7 @@ type SliceItem = {
 // threads not already shown. The first event seen for a thread defines its
 // activity timestamp. Returns the slice plus the cursor for the next call.
 async function fetchActivitySlice(
-  relay: Relay,
+  relay: AbstractRelay,
   groupId: string,
   until: number,
   exclude: Set<string>,
@@ -153,7 +153,7 @@ async function fetchActivitySlice(
 // data is needed to order them (stable cursor), keeping the path cheap; reply
 // counts are still attached later via enrichment.
 async function fetchNewSlice(
-  relay: Relay,
+  relay: AbstractRelay,
   groupId: string,
   until: number,
   exclude: Set<string>,
@@ -184,7 +184,7 @@ async function fetchNewSlice(
 // Reply enrichment (exact counts + sampled repliers), bounded by the frozen
 // snapshot. Isolated so the future creation-by-date view can skip it entirely.
 async function enrichWithReplies(
-  relay: Relay,
+  relay: AbstractRelay,
   groupId: string,
   items: SliceItem[],
 ): Promise<Map<string, { count: number; repliers: string[] }>> {
@@ -223,7 +223,7 @@ async function enrichWithReplies(
 }
 
 async function buildThreads(
-  relay: Relay,
+  relay: AbstractRelay,
   groupId: string,
   items: SliceItem[],
 ): Promise<ThreadData[]> {
@@ -268,7 +268,7 @@ async function runLoad(append: boolean, groupId: string) {
   if (append) loadingMore = true;
   else loading = true;
 
-  const relay = await Relay.connect(RELAY_URL);
+  const relay = await ensureForumRelay();
   try {
     const until = append ? (cursor ?? snapshotAt) : snapshotAt;
     const exclude = new Set(threads.map((t) => t.id));
@@ -290,7 +290,7 @@ async function runLoad(append: boolean, groupId: string) {
       for (const p of t.replierPubkeys) loadProfile(p);
     }
   } finally {
-    relay.close();
+    // shared forum connection is long-lived — don't close it here
     if (id === reqId) {
       if (append) loadingMore = false;
       else loading = false;

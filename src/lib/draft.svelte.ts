@@ -1,8 +1,7 @@
-import { SimplePool } from "@nostr/tools";
 import { auth } from "$lib/auth.svelte";
 import { withJoin } from "$lib/join.svelte";
 import { activeGroup } from "$lib/active.svelte";
-import { RELAY_URL } from "$lib/config";
+import { publishForum } from "$lib/relay";
 import { extractMentionPubkeys, buildPTagHints } from "$lib/mentions";
 import { convertForumUrls } from "$lib/linkify";
 
@@ -139,21 +138,13 @@ export async function publishDraft(): Promise<{
         content: c,
       });
 
-      const pool = new SimplePool();
-      try {
-        const timeout = new Promise<never>((_, reject) =>
-          setTimeout(
-            () => reject(new Error("Relay did not respond in time")),
-            8000,
-          ),
-        );
-        await Promise.race([
-          Promise.all(pool.publish([RELAY_URL], event)),
-          timeout,
-        ]);
-      } finally {
-        pool.destroy();
-      }
+      const timeout = new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(new Error("Relay did not respond in time")),
+          8000,
+        ),
+      );
+      await Promise.race([Promise.all(publishForum(event)), timeout]);
 
       threadId = event.id;
     });

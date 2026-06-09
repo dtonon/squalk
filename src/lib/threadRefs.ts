@@ -1,5 +1,4 @@
-import { SimplePool } from "@nostr/tools";
-import { RELAY_URL } from "./config";
+import { queryForum } from "./relay";
 
 // A note/nevent that resolves to a forum thread (kind 11) or reply (kind 1111).
 export type ThreadRef = {
@@ -16,12 +15,8 @@ function titleOf(tags: string[][]): string {
 }
 
 async function doResolve(id: string): Promise<ThreadRef | null> {
-  const pool = new SimplePool();
   try {
-    const events = await pool.querySync([RELAY_URL], {
-      ids: [id],
-      kinds: [11, 1111],
-    });
+    const events = await queryForum({ ids: [id], kinds: [11, 1111] });
     const ev = events[0];
     if (!ev) return null;
 
@@ -32,10 +27,7 @@ async function doResolve(id: string): Promise<ThreadRef | null> {
     const root = ev.tags.find((t) => t[0] === "E");
     const rootId = root?.[1];
     if (!rootId) return null;
-    const threads = await pool.querySync([RELAY_URL], {
-      ids: [rootId],
-      kinds: [11],
-    });
+    const threads = await queryForum({ ids: [rootId], kinds: [11] });
     const thread = threads[0];
     return {
       threadId: rootId,
@@ -45,8 +37,6 @@ async function doResolve(id: string): Promise<ThreadRef | null> {
     };
   } catch {
     return null;
-  } finally {
-    pool.destroy();
   }
 }
 

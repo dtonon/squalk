@@ -2,7 +2,8 @@ import { SimplePool, type Event } from "@nostr/tools";
 import * as nip19 from "@nostr/tools/nip19";
 import { SvelteMap, SvelteSet } from "svelte/reactivity";
 import type { NostrUser } from "@nostr/gadgets/metadata";
-import { RELAY_URL, GROUP_ID } from "$lib/config";
+import { GROUP_ID } from "$lib/config";
+import { queryForum } from "$lib/relay";
 
 export type ProfileEntry = {
   pubkey: string;
@@ -191,8 +192,9 @@ export function seedProfiles(userPubkey: string | null): Promise<void> {
 async function doSeedProfiles(userPubkey: string | null) {
   const pool = new SimplePool();
   try {
-    // Group members live on the forum relay (NIP-29).
-    const groupEvents = await pool.querySync([RELAY_URL], {
+    // Group members live on the forum relay (NIP-29); query it through the
+    // shared authenticated connection so private-group members are included.
+    const groupEvents = await queryForum({
       kinds: [39002],
       "#d": [GROUP_ID],
       limit: 1,
@@ -267,7 +269,7 @@ async function doSeedProfiles(userPubkey: string | null) {
 
     localStorage.setItem(LAST_SYNC_KEY, String(Math.floor(Date.now() / 1000)));
   } finally {
-    pool.close([RELAY_URL, ...PROFILE_RELAYS]);
+    pool.close(PROFILE_RELAYS);
   }
 }
 

@@ -1,5 +1,4 @@
-import { SimplePool } from "@nostr/tools";
-import { RELAY_URL } from "$lib/config";
+import { queryForum } from "$lib/relay";
 
 export type GroupSummary = {
   id: string; // NIP-29 group id (the `d` tag) — also the room URL slug
@@ -24,9 +23,8 @@ export const groupsStore = {
 // Fetch every group the relay hosts. NIP-29 publishes one kind 39000 metadata
 // event per group, so an unfiltered query enumerates them all.
 export async function loadGroups() {
-  const pool = new SimplePool();
   try {
-    const events = await pool.querySync([RELAY_URL], { kinds: [39000] });
+    const events = await queryForum({ kinds: [39000] });
     list = events
       .map((e) => {
         const id = e.tags.find((t) => t[0] === "d")?.[1] ?? "";
@@ -43,6 +41,5 @@ export async function loadGroups() {
       .sort((a, b) => a.name.localeCompare(b.name));
   } finally {
     loaded = true;
-    pool.close([RELAY_URL]);
   }
 }

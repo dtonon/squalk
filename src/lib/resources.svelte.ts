@@ -1,6 +1,5 @@
-import { SimplePool } from "@nostr/tools";
-import { RELAY_URL } from "$lib/config";
 import { adminPubkeys } from "$lib/admins.svelte";
+import { queryForum } from "$lib/relay";
 
 export type Resource = {
   id: string;
@@ -41,9 +40,8 @@ function compare(a: Resource, b: Resource): number {
 
 // Resources are kind 30023 (NIP-23 long-form) tagged ["t", "squalk-resource"].
 export async function loadResources() {
-  const pool = new SimplePool();
   try {
-    const events = await pool.querySync([RELAY_URL], {
+    const events = await queryForum({
       kinds: [30023],
       "#t": ["squalk-resource"],
     });
@@ -69,6 +67,5 @@ export async function loadResources() {
     all = [...bySlug.values()].sort(compare);
   } finally {
     loaded = true;
-    pool.close([RELAY_URL]);
   }
 }

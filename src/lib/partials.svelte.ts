@@ -1,6 +1,5 @@
-import { SimplePool } from "@nostr/tools";
-import { RELAY_URL } from "$lib/config";
 import { adminPubkeys } from "$lib/admins.svelte";
+import { queryForum } from "$lib/relay";
 
 // Named slots a partial can fill. The NIP-23 `d` tag carries the slot name.
 export type PartialSlot = "home" | "contacts";
@@ -40,9 +39,8 @@ export const partialsStore = {
 // Partials are kind 30023 (NIP-23 long-form) tagged ["t", "squalk-partial"];
 // the `d` tag names the slot the article fills.
 export async function loadPartials() {
-  const pool = new SimplePool();
   try {
-    const events = await pool.querySync([RELAY_URL], {
+    const events = await queryForum({
       kinds: [30023],
       "#t": ["squalk-partial"],
     });
@@ -62,6 +60,5 @@ export async function loadPartials() {
     all = next;
   } finally {
     loaded = true;
-    pool.close([RELAY_URL]);
   }
 }
