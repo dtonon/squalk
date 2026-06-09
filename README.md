@@ -27,6 +27,7 @@ Squalk is configured entirely through environment variables (all prefixed `PUBLI
 | `PUBLIC_GROUP_ID` | in simple mode | — | The single forum's group id. Required when `PUBLIC_MODE=simple`; ignored in full mode, where rooms are selected at runtime. |
 | `PUBLIC_TITLE` | no | group name | Title shown in the top bar. When empty it falls back to the group's name. |
 | `PUBLIC_JOINCODE` | no | `no` | `yes` to show an invite-code field when a join request is rejected (for code-gated relays). |
+| `PUBLIC_SEARCH` | no | `no` | `yes` to show a search box at the top of the homepage. Requires a relay with NIP-50 search support. |
 | `PUBLIC_LABELS` | no | — | Comma-separated discussion labels offered when composing, e.g. `bug,feature,question`. |
 | `PUBLIC_BLOSSOM_URL` | no | — | Blossom server URL used for media uploads, e.g. `https://blossom.primal.net`. Uploads are disabled when unset. |
 | `PUBLIC_ACCENT_COLOR` | no | `#e32a6d` | Override the accent (primary) color. Quote the value (`"#00ff00"`) — an unquoted leading `#` is read as a comment. The hover shade is derived automatically. |
