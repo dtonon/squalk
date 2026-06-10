@@ -19,14 +19,21 @@ function snippetOf(content: string): string {
 
 // NIP-50 search over the forum relay: thread OPs (kind 11) and replies
 // (kind 1111), deduped by thread. Simple mode scopes to the single group;
-// full mode spans every visible room.
+// full mode spans every visible room. The group scope is applied client-side
+// on the `h` tag: pyramid returns nothing when `search` is combined with a
+// `#h` filter.
 export async function searchThreads(query: string): Promise<SearchResult[]> {
   const filter: Filter = { kinds: [11, 1111], search: query, limit: 30 };
-  if (MODE === "simple") filter["#h"] = [GROUP_ID];
-  else if (groupsStore.list.length > 0)
-    filter["#h"] = groupsStore.list.map((g) => g.id);
+  const groups =
+    MODE === "simple"
+      ? new Set([GROUP_ID])
+      : new Set(groupsStore.list.map((g) => g.id));
 
-  const events = await queryForum(filter, { label: "search" });
+  const all = await queryForum(filter, { label: "search" });
+  const events = all.filter((e) => {
+    const h = e.tags.find((t) => t[0] === "h")?.[1];
+    return h !== undefined && (groups.size === 0 || groups.has(h));
+  });
 
   const byThread = new Map<string, SearchResult>();
   const opless: SearchResult[] = [];
