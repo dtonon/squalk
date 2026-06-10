@@ -1,6 +1,7 @@
 <script lang="ts">
   import DiscussionsFeed from "$lib/components/DiscussionsFeed.svelte";
   import PostContent from "$lib/components/PostContent.svelte";
+  import Tag from "$lib/components/Tag.svelte";
   import { groupsStore } from "$lib/groups.svelte";
   import { overviewStore, loadOverview } from "$lib/overview.svelte";
   import { partialsStore } from "$lib/partials.svelte";
@@ -81,7 +82,7 @@
         href="/room/{room.id}"
         class="group flex items-start justify-between gap-4 py-5 hover:bg-linear-to-r hover:from-transparent hover:via-neutral-100 hover:to-transparent dark:hover:bg-linear-to-r dark:hover:from-transparent dark:hover:via-neutral-800 dark:hover:to-transparent"
       >
-        <div class="min-w-0">
+        <div class="min-w-0 flex-1">
           <h2
             class="group-hover:text-accent text-2xl text-neutral-800 dark:text-neutral-200"
           >
@@ -92,12 +93,23 @@
               {room.about}
             </p>
           {/if}
-          {#if admin}
+          {#if admin || room.flags.length > 0}
             <div
               class="mt-2 flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400"
             >
-              <span>Admin</span>
-              {@render pic(admin)}
+              {#if admin}
+                <span>Admin</span>
+                {@render pic(admin)}
+              {/if}
+              {#if room.flags.length > 0}
+                <div
+                  class="ml-auto flex flex-wrap items-center justify-end gap-1"
+                >
+                  {#each room.flags as f}
+                    <Tag label={f[0].toUpperCase() + f.slice(1)} />
+                  {/each}
+                </div>
+              {/if}
             </div>
           {/if}
         </div>

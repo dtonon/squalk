@@ -6,7 +6,11 @@ export type GroupSummary = {
   picture?: string;
   about?: string;
   createdAt: number;
+  flags: string[]; // special NIP-29 markers present (private, hidden, closed, restricted)
 };
+
+// NIP-29 metadata markers we surface as room tags, in display order.
+const SPECIAL_FLAGS = ["private", "hidden", "closed", "restricted"];
 
 let list = $state<GroupSummary[]>([]);
 let loaded = $state(false);
@@ -34,6 +38,7 @@ export async function loadGroups() {
           picture: e.tags.find((t) => t[0] === "picture")?.[1],
           about: e.tags.find((t) => t[0] === "about")?.[1],
           createdAt: e.created_at,
+          flags: SPECIAL_FLAGS.filter((f) => e.tags.some((t) => t[0] === f)),
         };
       })
       .filter((g) => g.id)
