@@ -12,9 +12,22 @@ export type SearchResult = {
   createdAt: number;
 };
 
-function snippetOf(content: string): string {
+// Window the snippet around the first term match so the highlight is visible
+// even when the match sits deep in a long post.
+function snippetOf(content: string, query: string): string {
   const flat = content.replace(/\s+/g, " ").trim();
-  return flat.length > 140 ? flat.slice(0, 140) + "…" : flat;
+  const MAX = 140;
+  if (flat.length <= MAX) return flat;
+  const lower = flat.toLowerCase();
+  let idx = -1;
+  for (const t of query.toLowerCase().split(/\s+/).filter(Boolean)) {
+    const i = lower.indexOf(t);
+    if (i !== -1 && (idx === -1 || i < idx)) idx = i;
+  }
+  if (idx <= 40) return flat.slice(0, MAX) + "…";
+  const start = idx - 40;
+  const end = Math.min(flat.length, start + MAX);
+  return "…" + flat.slice(start, end) + (end < flat.length ? "…" : "");
 }
 
 // NIP-50 search over the forum relay: thread OPs (kind 11) and replies
@@ -45,7 +58,7 @@ export async function searchThreads(query: string): Promise<SearchResult[]> {
       byThread.set(e.id, {
         threadId: e.id,
         title: e.tags.find((t) => t[0] === "title")?.[1] ?? "(untitled)",
-        snippet: snippetOf(e.content),
+        snippet: snippetOf(e.content, query),
         matchKind: "thread",
         createdAt: e.created_at,
       });
@@ -55,7 +68,7 @@ export async function searchThreads(query: string): Promise<SearchResult[]> {
       const r: SearchResult = {
         threadId: root,
         title: "",
-        snippet: snippetOf(e.content),
+        snippet: snippetOf(e.content, query),
         matchKind: "reply",
         createdAt: e.created_at,
       };

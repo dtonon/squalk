@@ -4,6 +4,7 @@
 
   let query = $state("");
   let results = $state<SearchResult[]>([]);
+  let resultsQuery = $state(""); // The query that produced the current results
   let open = $state(false);
   let searching = $state(false);
   let activeIndex = $state(-1);
@@ -29,6 +30,7 @@
         const r = await searchThreads(q);
         if (id !== seq) return;
         results = r;
+        resultsQuery = q;
       } finally {
         if (id === seq) searching = false;
       }
@@ -61,6 +63,25 @@
       e.preventDefault();
       select(results[activeIndex]);
     }
+  }
+
+  const terms = $derived(
+    resultsQuery.split(/\s+/).filter((t) => t.length >= 2),
+  );
+
+  function escapeRe(s: string): string {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
+  // Split into alternating plain/matched segments for <mark> rendering
+  function highlight(text: string): { text: string; hit: boolean }[] {
+    if (!text || terms.length === 0) return [{ text, hit: false }];
+    const alts = terms.map(escapeRe).join("|");
+    const exact = new RegExp(`^(${alts})$`, "i");
+    return text
+      .split(new RegExp(`(${alts})`, "gi"))
+      .filter((s) => s !== "")
+      .map((s) => ({ text: s, hit: exact.test(s) }));
   }
 
   function onFocus() {
@@ -133,6 +154,14 @@
           No results
         </div>
       {/if}
+      {#snippet marked(text: string)}
+        {#each highlight(text) as p}
+          {#if p.hit}<mark
+              class="bg-secondary/40 dark:bg-secondary/30 rounded-sm text-inherit"
+              >{p.text}</mark
+            >{:else}{p.text}{/if}
+        {/each}
+      {/snippet}
       {#each results as r, i (r.threadId)}
         <a
           id="search-result-{i}"
@@ -151,7 +180,7 @@
           <span
             class="block truncate font-medium text-neutral-800 dark:text-neutral-200"
           >
-            {r.title}
+            {@render marked(r.title)}
             {#if r.matchKind === "reply"}
               <span
                 class="ml-1 text-xs font-normal text-neutral-400 dark:text-neutral-500"
@@ -163,7 +192,7 @@
             <span
               class="block truncate text-sm text-neutral-500 dark:text-neutral-400"
             >
-              {r.snippet}
+              {@render marked(r.snippet)}
             </span>
           {/if}
         </a>
