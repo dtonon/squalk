@@ -87,5 +87,7 @@ export async function searchThreads(query: string): Promise<SearchResult[]> {
     }),
   );
 
-  return [...byThread.values()].sort((a, b) => b.createdAt - a.createdAt);
+  // Keep the relay's relevance order (arrival order); a thread keeps the
+  // position of its best-ranked match
+  return [...byThread.values()];
 }
