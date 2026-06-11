@@ -90,6 +90,24 @@
     });
   }
 
+  function formatDay(ts: number) {
+    const d = new Date(ts * 1000);
+    const month = d.toLocaleDateString([], { month: "short" });
+    return `${d.getDate()} ${month}`;
+  }
+
+  // True when this message starts a new calendar day vs the previous one.
+  function isNewDay(ts: number, prevTs?: number) {
+    if (prevTs === undefined) return true;
+    const d = new Date(ts * 1000);
+    const p = new Date(prevTs * 1000);
+    return (
+      d.getFullYear() !== p.getFullYear() ||
+      d.getMonth() !== p.getMonth() ||
+      d.getDate() !== p.getDate()
+    );
+  }
+
   const ENTITY_PATTERN = "nostr:(note1[a-z0-9]+|nevent1[a-z0-9]+)";
 
   // Resolved thread titles, keyed by the bech32 entity (note1…/nevent1…).
@@ -272,10 +290,21 @@
       </div>
     {:else}
       <div class="mt-auto space-y-5 pb-4">
-        {#each messages as msg (msg.id)}
+        {#each messages as msg, i (msg.id)}
           {@const author = resolveAuthor(msg.pubkey)}
           {@const parent = msg.replyToId ? getChatMessage(msg.replyToId) : null}
           {@const parentAuthor = parent ? resolveAuthor(parent.pubkey) : null}
+          {#if isNewDay(msg.createdAt, messages[i - 1]?.createdAt)}
+            <div
+              class="flex items-center gap-3 text-xs text-neutral-400 dark:text-neutral-300"
+            >
+              <span class="h-px flex-1 bg-neutral-200 dark:bg-neutral-500"
+              ></span>
+              <span>{formatDay(msg.createdAt)}</span>
+              <span class="h-px flex-1 bg-neutral-200 dark:bg-neutral-500"
+              ></span>
+            </div>
+          {/if}
           <div>
             <div class="mb-1 flex items-center gap-2">
               {#if author.picture}
@@ -326,7 +355,7 @@
                           e.stopPropagation();
                           startReply(msg);
                         }}
-                        class="w-full px-3 py-1.5 text-left hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                        class="w-full px-3 py-1.5 text-left hover:bg-neutral-50 dark:text-neutral-100 dark:hover:bg-neutral-800"
                         >Reply</button
                       >
                       {#if canModerate}
@@ -336,7 +365,7 @@
                             e.stopPropagation();
                             requestDeleteMessage(msg);
                           }}
-                          class="w-full px-3 py-1.5 text-left text-red-600 hover:bg-red-50"
+                          class="w-full px-3 py-1.5 text-left text-red-600 hover:bg-red-50 dark:hover:bg-neutral-800"
                           >Delete</button
                         >
                       {/if}
