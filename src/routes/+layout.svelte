@@ -16,6 +16,7 @@
   import { onMount } from "svelte";
   import { auth, restoreSession } from "$lib/auth.svelte";
   import { loadGroup } from "$lib/group.svelte";
+  import { ensureMembershipChecked } from "$lib/join.svelte";
   import { loadGroups, groupsStore } from "$lib/groups.svelte";
   import { loadResources } from "$lib/resources.svelte";
   import { loadPartials } from "$lib/partials.svelte";
@@ -108,6 +109,14 @@
     if (chatEnabled && activeGroup.id) startChat(activeGroup.id);
   });
 
+  // Pre-warm membership for the active room so the join gates resolve before
+  // the user reaches a composer (no flash, no wasted typing). Depends on
+  // auth.user so a silent session restore re-runs the check.
+  $effect(() => {
+    auth.user;
+    if (activeGroup.id) ensureMembershipChecked(activeGroup.id);
+  });
+
   let chatExpanded = $state(false);
   let menuOpen = $state(false);
   let mobileView = $state<"forum" | "chat">("forum");
@@ -177,7 +186,7 @@
            it first and it reappears once the top is reached. Desktop only. -->
       <div class="hidden md:block md:h-6" aria-hidden="true"></div>
       <div
-        class="min-h-[calc(100dvh_-_4rem)] bg-white dark:bg-neutral-900 px-6 pt-4 pb-20 shadow-lg md:min-h-full md:rounded-t-xl md:px-10 md:pt-6 md:pt-8"
+        class="min-h-[calc(100dvh_-_4rem)] bg-white px-6 pt-4 pb-20 shadow-lg md:min-h-full md:rounded-t-xl md:px-10 md:pt-6 md:pt-8 dark:bg-neutral-900"
       >
         {@render children()}
       </div>
@@ -197,7 +206,7 @@
       >
         <div class="hidden md:block md:h-6" aria-hidden="true"></div>
         <div
-          class="bg-white dark:bg-neutral-900 px-6 pt-8 pb-20 shadow-lg md:min-h-full md:rounded-t-xl md:px-8 md:pt-6"
+          class="bg-white px-6 pt-8 pb-20 shadow-lg md:min-h-full md:rounded-t-xl md:px-8 md:pt-6 dark:bg-neutral-900"
         >
           <LatestDiscussions />
         </div>
@@ -206,7 +215,7 @@
   </div>
   {#if showChat}
     <nav
-      class="fixed inset-x-0 bottom-0 z-30 flex border-t border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 md:hidden"
+      class="fixed inset-x-0 bottom-0 z-30 flex border-t border-neutral-200 bg-neutral-100 md:hidden dark:border-neutral-700 dark:bg-neutral-800"
       aria-label="Switch view"
     >
       <button
@@ -214,7 +223,9 @@
         onclick={() => (mobileView = "forum")}
         aria-pressed={mobileView === "forum"}
         class="flex flex-1 flex-col items-center gap-0.5 py-2 text-xs font-medium
-				{mobileView === 'forum' ? 'text-accent' : 'text-neutral-500 dark:text-neutral-400'}"
+				{mobileView === 'forum'
+          ? 'text-accent'
+          : 'text-neutral-500 dark:text-neutral-400'}"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -238,7 +249,9 @@
         onclick={() => (mobileView = "chat")}
         aria-pressed={mobileView === "chat"}
         class="flex flex-1 flex-col items-center gap-0.5 py-2 text-xs font-medium
-				{mobileView === 'chat' ? 'text-accent' : 'text-neutral-500 dark:text-neutral-400'}"
+				{mobileView === 'chat'
+          ? 'text-accent'
+          : 'text-neutral-500 dark:text-neutral-400'}"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

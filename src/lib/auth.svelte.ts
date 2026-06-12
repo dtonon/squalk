@@ -19,6 +19,9 @@ export type Signer = {
 let user = $state<NostrUser | null>(null);
 let signer = $state<Signer | null>(null);
 let loginModalOpen = $state(false);
+// Optional action to run once login succeeds, so an intent like "post" started
+// while logged out resumes (login => join => composer) instead of being dropped.
+let afterLogin: (() => void) | null = null;
 // Bumped on explicit login/logout (not on silent session restore) so the app
 // can re-fetch identity-scoped data — e.g. reload the room list once the relay
 // will serve the user's private/hidden groups.
@@ -43,12 +46,23 @@ const PUBKEY_KEY = "nostr_pubkey";
 const METHOD_KEY = "nostr_login_method";
 const NSEC_KEY = "nostr_nsec";
 
-export function openLogin() {
+export function openLogin(after?: () => void) {
+  afterLogin = after ?? null;
   loginModalOpen = true;
 }
 
 export function closeLogin() {
   loginModalOpen = false;
+  afterLogin = null;
+}
+
+// Closes the modal and runs the pending intent (if any). Called from the login
+// flows so the continuation fires with the modal already gone (no stacking).
+function runAfterLogin() {
+  const cb = afterLogin;
+  afterLogin = null;
+  loginModalOpen = false;
+  cb?.();
 }
 
 function makeNsecSigner(secretKey: Uint8Array): Signer {
@@ -97,6 +111,7 @@ export async function loginWithExtension() {
   localStorage.removeItem(NSEC_KEY);
   await setUser(pubkey);
   sessionEpoch++;
+  runAfterLogin();
 }
 
 function parseSecretKey(input: string): Uint8Array {
@@ -128,6 +143,7 @@ export async function loginWithNsec(input: string) {
   localStorage.setItem(NSEC_KEY, nsec);
   await setUser(pubkey);
   sessionEpoch++;
+  runAfterLogin();
 }
 
 export function logout() {

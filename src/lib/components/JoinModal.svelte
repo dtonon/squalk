@@ -1,19 +1,19 @@
 <script lang="ts">
-  import { joinState, closeJoinModal, retryJoin } from "$lib/join.svelte";
+  import { joinState, closeJoinModal, submitJoin } from "$lib/join.svelte";
   import { tick } from "svelte";
 
   let code = $state("");
   let codeInput = $state<HTMLInputElement | null>(null);
 
   $effect(() => {
-    if (joinState.modalOpen && joinState.codeRequired) {
+    if (joinState.modalOpen && joinState.needsCode) {
       tick().then(() => codeInput?.focus());
     }
     if (!joinState.modalOpen) code = "";
   });
 
-  async function onRetry() {
-    await retryJoin(code.trim() || undefined);
+  async function onSubmit() {
+    await submitJoin(code.trim() || undefined);
   }
 
   function onClose() {
@@ -37,7 +37,7 @@
       onclick={onClose}
     ></button>
     <div
-      class="relative w-full max-w-md rounded-lg bg-white dark:bg-neutral-900 p-6 shadow-xl"
+      class="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-neutral-900"
       role="dialog"
       aria-modal="true"
       aria-labelledby="join-title"
@@ -47,21 +47,24 @@
         onclick={onClose}
         aria-label="Close"
         disabled={joinState.busy}
-        class="absolute top-3 right-3 text-2xl leading-none text-neutral-400 dark:text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 disabled:opacity-50"
+        class="absolute top-3 right-3 text-2xl leading-none text-neutral-400 hover:text-neutral-700 disabled:opacity-50 dark:text-neutral-500 dark:hover:text-neutral-300"
       >
         ×
       </button>
 
-      <h2 id="join-title" class="mb-2 text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+      <h2
+        id="join-title"
+        class="mb-2 text-lg font-semibold text-neutral-900 dark:text-neutral-100"
+      >
         Join this group
       </h2>
       <p class="mb-4 text-sm text-neutral-600 dark:text-neutral-400">
-        {#if joinState.codeRequired}
-          This community requires an invite code. Enter your code below to
-          request access. If you don't have one, contact the admin.
+        {#if joinState.needsCode}
+          Join this group to participate. If you have an invite code, enter it
+          below — otherwise just send the request.
         {:else}
-          We could not add you to the group automatically. The relay may be
-          processing your request, or the admin needs to approve it manually.
+          Join this group to participate. Your request is sent to the relay and,
+          where needed, approved by an admin.
         {/if}
       </p>
 
@@ -74,20 +77,20 @@
         </div>
       {/if}
 
-      {#if joinState.codeRequired}
+      {#if joinState.needsCode}
         <label for="join-code-input" class="sr-only">Invite code</label>
         <input
           id="join-code-input"
           bind:this={codeInput}
           type="text"
-          placeholder="Invite code"
+          placeholder="Invite code (optional)"
           bind:value={code}
           disabled={joinState.busy}
           autocomplete="off"
           autocapitalize="off"
           spellcheck="false"
-          onkeydown={(e) => e.key === "Enter" && onRetry()}
-          class="focus:ring-accent mb-3 w-full rounded border border-neutral-200 dark:border-neutral-700 px-3 py-2 text-sm focus:ring-1 focus:outline-none disabled:opacity-50"
+          onkeydown={(e) => e.key === "Enter" && onSubmit()}
+          class="focus:ring-accent mb-3 w-full rounded border border-neutral-200 px-3 py-2 text-sm focus:ring-1 focus:outline-none disabled:opacity-50 dark:border-neutral-700"
         />
       {/if}
 
@@ -96,17 +99,21 @@
           type="button"
           onclick={onClose}
           disabled={joinState.busy}
-          class="rounded px-3 py-2 text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-50"
+          class="rounded px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100 disabled:opacity-50 dark:text-neutral-400 dark:hover:bg-neutral-800"
         >
           Close
         </button>
         <button
           type="button"
-          onclick={onRetry}
-          disabled={joinState.busy || (joinState.codeRequired && !code.trim())}
+          onclick={onSubmit}
+          disabled={joinState.busy}
           class="bg-accent hover:bg-accent-hover rounded px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {joinState.busy ? "Trying…" : "Retry"}
+          {joinState.busy
+            ? "Joining…"
+            : joinState.needsCode
+              ? "Request access"
+              : "Join"}
         </button>
       </div>
     </div>

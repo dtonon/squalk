@@ -14,7 +14,12 @@
   import { isGroupAdmin } from "$lib/admins.svelte";
   import { requestDelete } from "$lib/moderation.svelte";
   import { showToast } from "$lib/toast.svelte";
-  import { withJoin } from "$lib/join.svelte";
+  import {
+    withJoin,
+    membershipOf,
+    ensureMembershipChecked,
+    openJoinModal,
+  } from "$lib/join.svelte";
   import { setActiveGroup } from "$lib/active.svelte";
   import { RELAY_URL, MODE } from "$lib/config";
   import ThreadScrubber from "$lib/components/ThreadScrubber.svelte";
@@ -110,6 +115,28 @@
 
   const detail = $derived(threadDetailStore.detail);
   const profiles = $derived(threadDetailStore.profiles);
+
+  // Replying needs membership regardless of flags. Only gate a confirmed guest;
+  // while membership resolves the editor stays and submit awaits the check, so a
+  // member never flashes "Join to reply".
+  const joinToReply = $derived(
+    !!detail && !!auth.user && membershipOf(detail.groupId) === "guest",
+  );
+
+  // The relay requires membership to reply, so resolve it up front. Depends on
+  // auth.user so a silent session restore re-runs the check.
+  $effect(() => {
+    auth.user;
+    if (detail?.groupId) ensureMembershipChecked(detail.groupId);
+  });
+
+  function onJoinToReply() {
+    if (!detail) return;
+    openJoinModal(detail.groupId, async () => {
+      await tick();
+      editorEl?.focus();
+    });
+  }
 
   const canModerate = $derived(
     !!auth.user && !!detail && isGroupAdmin(auth.user.pubkey, detail.groupId),
@@ -437,37 +464,52 @@
         class="mt-8 border-t border-neutral-200 pt-6 md:pl-18 dark:border-neutral-700"
       >
         {#if auth.user}
-          {#if replyError}
-            <div
-              class="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
-            >
-              {replyError}
+          {#if joinToReply}
+            <div class="text-center">
+              <p class="mb-3 text-neutral-600 dark:text-neutral-400">
+                This room is restricted. Join to reply to this discussion.
+              </p>
+              <button
+                onclick={onJoinToReply}
+                class="bg-accent hover:bg-accent-hover rounded px-6 py-1.5 font-medium text-white"
+              >
+                Join to reply
+              </button>
+            </div>
+          {:else}
+            {#if replyError}
+              <div
+                class="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+              >
+                {replyError}
+              </div>
+            {/if}
+            <MessageEditor
+              bind:this={editorEl}
+              bind:value={replyContent}
+              disabled={replying}
+              rows={8}
+              minHeightClass="min-h-[12rem]"
+              placeholder="Write a reply..."
+              contextPubkeys={allPosts.map((p) => p.pubkey)}
+              {threadEventAuthors}
+            />
+            <div class="mt-4 flex justify-end">
+              <button
+                onclick={submitReply}
+                disabled={replying || !replyContent.trim()}
+                class="bg-accent hover:bg-accent-hover rounded px-6 py-1.5 font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {replying ? "Posting…" : "post reply"}
+              </button>
             </div>
           {/if}
-          <MessageEditor
-            bind:this={editorEl}
-            bind:value={replyContent}
-            disabled={replying}
-            rows={8}
-            minHeightClass="min-h-[12rem]"
-            placeholder="Write a reply..."
-            contextPubkeys={allPosts.map((p) => p.pubkey)}
-            {threadEventAuthors}
-          />
-          <div class="mt-4 flex justify-end">
-            <button
-              onclick={submitReply}
-              disabled={replying || !replyContent.trim()}
-              class="bg-accent hover:bg-accent-hover rounded px-6 py-1.5 font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {replying ? "Posting…" : "post reply"}
-            </button>
-          </div>
         {:else}
           <p class=" text-center text-neutral-500 dark:text-neutral-400">
             To participate and reply, please
-            <button onclick={openLogin} class="text-accent hover:underline"
-              >login now</button
+            <button
+              onclick={() => openLogin()}
+              class="text-accent hover:underline">login now</button
             >
           </p>
         {/if}
@@ -480,6 +522,25 @@
       topOffset={opTopOffset}
       bind:visible={scrubberVisible}
     />
+  </div>
+{:else if threadDetailStore.status === "notfound"}
+  <div class="mx-auto max-w-md py-16 text-center">
+    <h1 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+      This discussion is private or unavailable
+    </h1>
+    <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
+      It may belong to a private room. {auth.user
+        ? "You may need to be a member to read it."
+        : "Log in as a member to read it."}
+    </p>
+    {#if !auth.user}
+      <button
+        onclick={() => openLogin()}
+        class="bg-accent hover:bg-accent-hover mt-5 rounded px-6 py-1.5 font-medium text-white"
+      >
+        Log in
+      </button>
+    {/if}
   </div>
 {:else}
   <div class="py-12 text-center text-neutral-400 dark:text-neutral-500">

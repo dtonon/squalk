@@ -31,6 +31,9 @@ type ThreadDetail = {
 
 let detail = $state<ThreadDetail | null>(null);
 let profiles = $state<Record<string, NostrUser>>({});
+// "notfound" means the relay returned nothing — either no such thread or it sits
+// in a private group the current (non-member) user can't read.
+let status = $state<"loading" | "ready" | "notfound">("loading");
 
 export const threadDetailStore = {
   get detail() {
@@ -38,6 +41,9 @@ export const threadDetailStore = {
   },
   get profiles() {
     return profiles;
+  },
+  get status() {
+    return status;
   },
 };
 
@@ -89,10 +95,12 @@ function loadMockThread(id: string) {
 export async function loadThread(id: string) {
   detail = null;
   profiles = {};
+  status = "loading";
 
   if (!isNostrId(id)) {
     await Promise.resolve();
     loadMockThread(id);
+    status = detail ? "ready" : "notfound";
     return;
   }
 
@@ -102,7 +110,10 @@ export async function loadThread(id: string) {
   ]);
 
   const event = threadEvents[0];
-  if (!event) return;
+  if (!event) {
+    status = "notfound";
+    return;
+  }
 
   const replies = replyEvents.sort((a, b) => a.created_at - b.created_at);
 
@@ -126,6 +137,7 @@ export async function loadThread(id: string) {
   };
 
   [event.pubkey, ...replies.map((r) => r.pubkey)].forEach(loadProfile);
+  status = "ready";
 }
 
 export function removeReply(id: string) {

@@ -170,7 +170,7 @@
     {:else}
       <div class="mt-3 flex items-center gap-1">
         <button
-          onclick={openLogin}
+          onclick={() => openLogin()}
           class="bg-accent hover:bg-accent-hover min-w-0 flex-1 rounded px-3 py-1.5 text-sm font-medium text-white"
         >
           Login

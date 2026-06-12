@@ -14,6 +14,12 @@
   import type { NostrUser } from "@nostr/gadgets/metadata";
   import { auth, openLogin } from "$lib/auth.svelte";
   import { openDraft } from "$lib/draft.svelte";
+  import { getGroupFlags } from "$lib/group.svelte";
+  import {
+    membershipOf,
+    ensureMembershipChecked,
+    openJoinModal,
+  } from "$lib/join.svelte";
   import { sortPref } from "$lib/sort.svelte";
   import { page } from "$app/state";
 
@@ -38,17 +44,47 @@
     if (urlSort) sortPref.value = urlSort;
   });
 
+  const flags = $derived(getGroupFlags(groupId));
+  const member = $derived(membershipOf(groupId));
+
+  // The relay requires membership to post to any group, so resolve it on entry
+  // for every room. Depends on auth.user so a silent session restore re-runs it.
+  $effect(() => {
+    auth.user;
+    ensureMembershipChecked(groupId);
+  });
+
+  const showPrivateGate = $derived(!!flags?.isPrivate && member === "guest");
+  const checkingAccess = $derived(!!flags?.isPrivate && member === "unknown");
+  // Posting needs membership regardless of flags. Only gate a confirmed guest;
+  // while membership is still resolving the click awaits the check, so a member
+  // never flashes "Join to post".
+  const joinToPost = $derived(!!auth.user && member === "guest");
+
   // Re-runs on mount and whenever the group or effective sort changes.
   $effect(() => {
     loadThreads(groupId, sort);
   });
 
-  function onNewTopic() {
+  async function onNewTopic() {
+    if (!auth.user) {
+      openLogin(onNewTopic);
+      return;
+    }
+    await ensureMembershipChecked(groupId);
+    if (membershipOf(groupId) !== "member") {
+      openJoinModal(groupId, openDraft);
+      return;
+    }
+    openDraft();
+  }
+
+  function onPrivateJoin() {
     if (!auth.user) {
       openLogin();
       return;
     }
-    openDraft();
+    openJoinModal(groupId, () => loadThreads(groupId, sort));
   }
 
   function relativeTime(ts: number): string {
@@ -98,39 +134,72 @@
 <div class="mx-auto max-w-6xl">
   <div class="flex flex-wrap items-center justify-between gap-2 py-2">
     <h1 class="text-accent text-[1.65rem] leading-7">{title}</h1>
-    <div class="flex items-center gap-2">
-      <button
-        onclick={onNewTopic}
-        class="bg-accent hover:bg-accent-hover rounded px-4 py-1.5 font-medium text-white md:px-6 md:text-sm"
-      >
-        New discussion
-      </button>
-      <SortToggle {sort} />
-    </div>
+    {#if !showPrivateGate && !checkingAccess}
+      <div class="flex items-center gap-2">
+        <button
+          onclick={onNewTopic}
+          class="bg-accent hover:bg-accent-hover rounded px-4 py-1.5 font-medium text-white md:px-6 md:text-sm"
+        >
+          {joinToPost ? "Join to post" : "New discussion"}
+        </button>
+        <SortToggle {sort} />
+      </div>
+    {/if}
   </div>
 
-  <div>
-    {#each rows as thread}
-      <ThreadItem {thread} />
-    {/each}
-  </div>
-
-  {#if threadStore.loading && rows.length === 0}
-    <p class="py-6 text-center text-sm text-neutral-400 dark:text-neutral-500">
-      Loading discussions…
+  {#if checkingAccess}
+    <p class="py-12 text-center text-sm text-neutral-400 dark:text-neutral-500">
+      Checking access…
     </p>
-  {:else if !threadStore.exhausted}
-    <div class="flex justify-center py-6">
-      <button
-        onclick={() => loadMore(groupId)}
-        disabled={threadStore.loadingMore}
-        aria-busy={threadStore.loadingMore}
-        class="rounded border border-neutral-200 dark:border-neutral-700 px-6 py-1.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 disabled:opacity-50"
+  {:else if showPrivateGate}
+    <div
+      class="mt-6 rounded-lg border border-neutral-200 px-6 py-10 text-center dark:border-neutral-700"
+    >
+      <h2 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+        This room is private
+      </h2>
+      <p
+        class="mx-auto mt-2 max-w-md text-sm text-neutral-600 dark:text-neutral-400"
       >
-        {threadStore.loadingMore ? "Loading…" : "Show more"}
+        Only members can read its discussions. Join to request access.
+      </p>
+      <button
+        onclick={onPrivateJoin}
+        class="bg-accent hover:bg-accent-hover mt-5 rounded px-6 py-1.5 font-medium text-white"
+      >
+        {auth.user ? "Request to join" : "Log in to join"}
       </button>
     </div>
-  {:else if rows.length > 0}
-    <p class="py-6 text-center text-sm text-neutral-400 dark:text-neutral-500">No more discussions</p>
+  {:else}
+    <div>
+      {#each rows as thread}
+        <ThreadItem {thread} />
+      {/each}
+    </div>
+
+    {#if threadStore.loading && rows.length === 0}
+      <p
+        class="py-6 text-center text-sm text-neutral-400 dark:text-neutral-500"
+      >
+        Loading discussions…
+      </p>
+    {:else if !threadStore.exhausted}
+      <div class="flex justify-center py-6">
+        <button
+          onclick={() => loadMore(groupId)}
+          disabled={threadStore.loadingMore}
+          aria-busy={threadStore.loadingMore}
+          class="rounded border border-neutral-200 px-6 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+        >
+          {threadStore.loadingMore ? "Loading…" : "Show more"}
+        </button>
+      </div>
+    {:else if rows.length > 0}
+      <p
+        class="py-6 text-center text-sm text-neutral-400 dark:text-neutral-500"
+      >
+        No more discussions
+      </p>
+    {/if}
   {/if}
 </div>

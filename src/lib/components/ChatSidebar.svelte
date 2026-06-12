@@ -10,7 +10,12 @@
   import { auth, openLogin } from "$lib/auth.svelte";
   import { isGroupAdmin } from "$lib/admins.svelte";
   import { requestDelete } from "$lib/moderation.svelte";
-  import { withJoin } from "$lib/join.svelte";
+  import {
+    withJoin,
+    membershipOf,
+    ensureMembershipChecked,
+    openJoinModal,
+  } from "$lib/join.svelte";
   import { activeGroup } from "$lib/active.svelte";
   import type { NostrUser } from "@nostr/gadgets/metadata";
   import MentionAutocomplete from "$lib/components/MentionAutocomplete.svelte";
@@ -45,6 +50,24 @@
   const canModerate = $derived(
     !!auth.user && isGroupAdmin(auth.user.pubkey, activeGroup.id),
   );
+
+  // Sending needs membership regardless of flags. Only gate a confirmed guest;
+  // while membership resolves the input stays (withJoin nets a stray send), so a
+  // member never flashes "Join to chat".
+  const joinToChat = $derived(
+    !!auth.user && membershipOf(activeGroup.id) === "guest",
+  );
+
+  // Resolve membership on entry. Depends on auth.user so a silent session
+  // restore re-runs the check.
+  $effect(() => {
+    auth.user;
+    if (activeGroup.id) ensureMembershipChecked(activeGroup.id);
+  });
+
+  function onJoinToChat() {
+    openJoinModal(activeGroup.id, () => tick().then(() => inputEl?.focus()));
+  }
 
   function requestDeleteMessage(msg: ChatMessageData) {
     openMenuId = null;
@@ -431,15 +454,24 @@
         {sendError}
       </div>
     {/if}
-    <MentionAutocomplete
-      bind:this={inputEl}
-      bind:value={inputValue}
-      onkeydown={onKeydown}
-      rows={1}
-      disabled={sending}
-      placeholder={auth.user ? "Message..." : "Login to send messages"}
-      {contextPubkeys}
-      textareaClass="w-full resize-none rounded border border-neutral-200 dark:border-neutral-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50"
-    />
+    {#if joinToChat}
+      <button
+        onclick={onJoinToChat}
+        class="bg-accent hover:bg-accent-hover w-full rounded px-3 py-2 text-sm font-medium text-white"
+      >
+        Join to chat
+      </button>
+    {:else}
+      <MentionAutocomplete
+        bind:this={inputEl}
+        bind:value={inputValue}
+        onkeydown={onKeydown}
+        rows={1}
+        disabled={sending}
+        placeholder={auth.user ? "Message..." : "Login to send messages"}
+        {contextPubkeys}
+        textareaClass="w-full resize-none rounded border border-neutral-200 dark:border-neutral-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50"
+      />
+    {/if}
   </div>
 </aside>
