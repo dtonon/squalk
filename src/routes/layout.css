@@ -10,6 +10,13 @@ html {
   font-size: 16px;
 }
 
+/* Tailwind 4's preflight drops the pointer cursor on buttons; restore it for
+   enabled buttons (disabled ones keep the default arrow). */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
 body {
   background-color: var(--color-neutral-100);
 }
