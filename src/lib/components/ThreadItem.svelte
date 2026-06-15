@@ -60,7 +60,7 @@
             >
               {@render avatar(
                 r,
-                "h-5 w-5 rounded-full object-cover ring-1 ring-white",
+                "h-5 w-5 rounded-full object-cover ring-1 ring-white dark:ring-neutral-800",
               )}
             </span>
           {/each}
