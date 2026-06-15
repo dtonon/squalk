@@ -103,14 +103,16 @@ export async function loadOverview(roomIds: string[]) {
     });
     admins = adm;
 
-    // Most recent discussions (thread OPs) across all rooms combined.
-    const threads = await querySync(relay, {
-      kinds: [11],
-      "#h": roomIds,
-      limit: 20,
-    });
+    // Most recent discussions (thread OPs) across all rooms. The group relay
+    // truncates multi-value "#h" filters, so query each room and merge.
+    const perRoom = await Promise.all(
+      roomIds.map((id) =>
+        querySync(relay, { kinds: [11], "#h": [id], limit: 20 }),
+      ),
+    );
+    const threads = perRoom.flat();
     threads.sort((a, b) => b.created_at - a.created_at);
-    recent = threads.map((e) => ({
+    recent = threads.slice(0, 20).map((e) => ({
       id: e.id,
       title: e.tags.find((t) => t[0] === "title")?.[1] ?? "(untitled)",
       groupId: e.tags.find((t) => t[0] === "h")?.[1] ?? "",
