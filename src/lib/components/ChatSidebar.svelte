@@ -207,11 +207,13 @@
       sendError = e instanceof Error ? e.message : "Failed to send";
     } finally {
       sending = false;
+      // Re-enable runs first, then focus lands on the now-interactive textarea.
+      tick().then(() => inputEl?.focus({ caretAtEnd: true }));
     }
   }
 
   function onKeydown(e: KeyboardEvent) {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
       e.preventDefault();
       submit();
     } else if (e.key === "Escape" && replyTarget) {
@@ -462,16 +464,43 @@
         Join to chat
       </button>
     {:else}
-      <MentionAutocomplete
-        bind:this={inputEl}
-        bind:value={inputValue}
-        onkeydown={onKeydown}
-        rows={1}
-        disabled={sending}
-        placeholder={auth.user ? "Message..." : "Login to send messages"}
-        {contextPubkeys}
-        textareaClass="w-full resize-none rounded border border-neutral-200 dark:border-neutral-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50"
-      />
+      <div class="relative">
+        <MentionAutocomplete
+          bind:this={inputEl}
+          bind:value={inputValue}
+          onkeydown={onKeydown}
+          rows={1}
+          autoGrow
+          maxRows={10}
+          disabled={sending}
+          placeholder={auth.user ? "Message..." : "Login to send messages"}
+          {contextPubkeys}
+          textareaClass="block w-full resize-none rounded border border-neutral-200 dark:border-neutral-700 py-2 pl-3 pr-11 text-sm focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50"
+        />
+        <button
+          type="button"
+          onclick={submit}
+          disabled={sending || !inputValue.trim()}
+          title="Send (⌘/Ctrl + Enter)"
+          aria-label="Send message"
+          class="bg-accent hover:bg-accent-hover absolute right-1.5 bottom-1.5 flex h-6 w-6 items-center justify-center rounded-full text-white transition-colors disabled:cursor-not-allowed disabled:bg-transparent disabled:opacity-40"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 -translate-x-px translate-y-px"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M22 2 11 13" />
+            <path d="M22 2 15 22l-4-9-9-4 20-7z" />
+          </svg>
+        </button>
+      </div>
     {/if}
   </div>
 </aside>

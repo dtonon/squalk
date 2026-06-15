@@ -8,6 +8,7 @@
     searchRemoteProfiles,
     type ProfileEntry,
   } from "$lib/profiles.svelte";
+  import { autogrow } from "$lib/actions/autogrow";
 
   type Props = {
     value: string;
@@ -16,6 +17,8 @@
     placeholder?: string;
     contextPubkeys?: string[];
     textareaClass?: string;
+    autoGrow?: boolean;
+    maxRows?: number;
     onkeydown?: (e: KeyboardEvent) => void;
     onfocus?: () => void;
     onblur?: () => void;
@@ -28,6 +31,8 @@
     placeholder = "",
     contextPubkeys = [],
     textareaClass = "",
+    autoGrow = false,
+    maxRows = 10,
     onkeydown,
     onfocus,
     onblur,
@@ -298,6 +303,7 @@
   <textarea
     bind:this={textareaEl}
     bind:value
+    use:autogrow={{ enabled: autoGrow, maxRows, value }}
     {disabled}
     {rows}
     {placeholder}
