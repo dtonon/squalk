@@ -8,6 +8,7 @@
   let open = $state(false);
   let searching = $state(false);
   let activeIndex = $state(-1);
+  let inputEl = $state<HTMLInputElement | null>(null);
   let timer: ReturnType<typeof setTimeout> | null = null;
   let seq = 0;
 
@@ -88,15 +89,46 @@
     if (query.trim().length >= 2) open = true;
   }
 
+  // Global "/" shortcut, unless the user is typing somewhere else
+  function onWindowKeydown(e: KeyboardEvent) {
+    if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey) return;
+    const t = e.target as HTMLElement | null;
+    if (
+      t &&
+      (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)
+    )
+      return;
+    e.preventDefault();
+    inputEl?.focus();
+  }
+
   function onBlur() {
     // Delay so a mousedown on a result still lands
     setTimeout(() => close(), 120);
   }
 </script>
 
+<svelte:window onkeydown={onWindowKeydown} />
+
 <div class="relative">
   <div class="relative">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      class="pointer-events-none absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-neutral-400 dark:text-neutral-500"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      stroke-width="2"
+      aria-hidden="true"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+      />
+    </svg>
     <input
+      bind:this={inputEl}
       bind:value={query}
       type="search"
       placeholder="Search"
@@ -112,23 +144,12 @@
       onkeydown={onKeydown}
       onfocus={onFocus}
       onblur={onBlur}
-      class="w-full rounded-lg bg-neutral-100 py-2.5 pr-11 pl-4 text-neutral-800 placeholder-neutral-400 focus:ring-2 focus:ring-neutral-300 focus:outline-none dark:bg-neutral-800 dark:text-neutral-200 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
+      class="w-full rounded-lg bg-neutral-100 py-2.5 pr-12 pl-11 text-neutral-800 placeholder-neutral-400 focus:ring-2 focus:ring-neutral-300 focus:outline-none dark:bg-neutral-800 dark:text-neutral-200 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
     />
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      class="pointer-events-none absolute top-1/2 right-4 h-5 w-5 -translate-y-1/2 text-neutral-400 dark:text-neutral-500"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      stroke-width="2"
-      aria-hidden="true"
+    <kbd
+      class="pointer-events-none absolute top-1/2 right-3 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md bg-neutral-200 font-sans text-sm text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400"
+      aria-hidden="true">/</kbd
     >
-      <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-      />
-    </svg>
   </div>
 
   {#if open}
