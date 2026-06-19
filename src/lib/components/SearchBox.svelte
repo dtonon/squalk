@@ -144,7 +144,8 @@
       onkeydown={onKeydown}
       onfocus={onFocus}
       onblur={onBlur}
-      class="w-full rounded-lg bg-neutral-100 py-2.5 pr-12 pl-11 text-neutral-800 placeholder-neutral-400 focus:ring-2 focus:ring-neutral-300 focus:outline-none dark:bg-neutral-800 dark:text-neutral-200 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
+      class="focus:ring-accent w-full rounded border border-neutral-200  px-3 py-2 focus:ring-1 focus:outline-none disabled:opacity-50
+       bg-neutral-100 focus:bg-neutral-50  pr-12 pl-11 text-neutral-800 placeholder-neutral-400 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:placeholder-neutral-500 focus:dark:ring-accent focus:dark:bg-neutral-900"
     />
     <kbd
       class="pointer-events-none absolute top-1/2 right-3 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md bg-neutral-200 font-sans text-sm text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400"
@@ -157,7 +158,7 @@
       id="search-results"
       role="listbox"
       aria-label="Search results"
-      class="absolute right-0 left-0 z-30 mt-2 max-h-96 overflow-auto rounded-lg border border-neutral-200 bg-white py-2 shadow-xl dark:border-neutral-700 dark:bg-neutral-900"
+      class="absolute right-0 left-0 z-30 mt-2 max-h-96 overflow-auto rounded border border-neutral-200 bg-white py-2 shadow-xl dark:border-neutral-700 dark:bg-neutral-900"
     >
       {#if searching}
         <div
@@ -178,7 +179,7 @@
       {#snippet marked(text: string)}
         {#each highlight(text) as p}
           {#if p.hit}<mark
-              class="bg-secondary/40 dark:bg-secondary/30 rounded-sm text-inherit"
+              class="bg-secondary/40 dark:bg-secondary/60 rounded-sm text-inherit"
               >{p.text}</mark
             >{:else}{p.text}{/if}
         {/each}
