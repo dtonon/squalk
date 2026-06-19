@@ -7,6 +7,7 @@
   import ChatSidebar from "$lib/components/ChatSidebar.svelte";
   import LatestDiscussions from "$lib/components/LatestDiscussions.svelte";
   import LoginModal from "$lib/components/LoginModal.svelte";
+  import SearchModal from "$lib/components/SearchModal.svelte";
   import JoinModal from "$lib/components/JoinModal.svelte";
   import NewDiscussionModal from "$lib/components/NewDiscussionModal.svelte";
   import DeleteModal from "$lib/components/DeleteModal.svelte";
@@ -25,7 +26,12 @@
   import { startChat } from "$lib/chat.svelte";
   import { resetForumConnection } from "$lib/relay";
   import { activeGroup, setActiveGroup } from "$lib/active.svelte";
-  import { MODE, ACCENT_COLOR, SECONDARY_COLOR } from "$lib/config";
+  import {
+    MODE,
+    ACCENT_COLOR,
+    SECONDARY_COLOR,
+    SEARCH_ENABLED,
+  } from "$lib/config";
 
   let { children } = $props();
 
@@ -284,6 +290,9 @@
 />
 
 <LoginModal />
+{#if SEARCH_ENABLED}
+  <SearchModal />
+{/if}
 <JoinModal />
 <NewDiscussionModal />
 <DeleteModal />

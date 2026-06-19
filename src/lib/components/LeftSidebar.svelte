@@ -4,7 +4,8 @@
   import { groupsStore } from "$lib/groups.svelte";
   import { resourcesStore } from "$lib/resources.svelte";
   import { draftState, resumeDraft } from "$lib/draft.svelte";
-  import { GROUP_ID, TITLE } from "$lib/config";
+  import { GROUP_ID, TITLE, SEARCH_ENABLED } from "$lib/config";
+  import { openSearch } from "$lib/searchModal.svelte";
   import ThemeToggle from "$lib/components/ThemeToggle.svelte";
 
   type Props = {
@@ -58,6 +59,20 @@
     >
       {mode === "simple" ? "Discussions" : "Home"}
     </a>
+
+    {#if SEARCH_ENABLED}
+      <button
+        type="button"
+        onclick={openSearch}
+        class="flex w-full items-center gap-2 py-1 text-left text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+      >
+        Search
+        <kbd
+          class="ml-auto flex h-5 w-5 items-center justify-center rounded bg-neutral-200 font-sans text-xs text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400"
+          aria-hidden="true">/</kbd
+        >
+      </button>
+    {/if}
 
     {#if mode === "simple"}
       <div class="mt-6 flex">

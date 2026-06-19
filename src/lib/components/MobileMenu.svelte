@@ -3,6 +3,8 @@
   import { groupsStore } from "$lib/groups.svelte";
   import { resourcesStore } from "$lib/resources.svelte";
   import { auth, openLogin, logout } from "$lib/auth.svelte";
+  import { openSearch } from "$lib/searchModal.svelte";
+  import { SEARCH_ENABLED } from "$lib/config";
   import { draftState, resumeDraft } from "$lib/draft.svelte";
   import ThemeToggle from "$lib/components/ThemeToggle.svelte";
 
@@ -123,6 +125,19 @@
           class="hover:text-accent py-2 text-xl text-neutral-700 dark:text-neutral-300"
           >{mode === "simple" ? "Discussions" : "Home"}</a
         >
+
+        {#if SEARCH_ENABLED}
+          <button
+            type="button"
+            onclick={() => {
+              onClose();
+              openSearch();
+            }}
+            class="hover:text-accent py-2 text-left text-xl text-neutral-700 dark:text-neutral-300"
+          >
+            Search
+          </button>
+        {/if}
 
         {#if mode === "full"}
           <nav class="mt-4" aria-label="Rooms">
