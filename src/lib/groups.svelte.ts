@@ -42,8 +42,8 @@ export async function loadGroups() {
         };
       })
       .filter((g) => g.id)
-      // Alphabetical for now; a per-group position tag will drive order later.
-      .sort((a, b) => a.name.localeCompare(b.name));
+      // Oldest first.
+      .sort((a, b) => a.createdAt - b.createdAt);
   } finally {
     loaded = true;
   }
