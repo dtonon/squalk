@@ -700,7 +700,7 @@
         src={block.src}
         alt={block.alt}
         loading="lazy"
-        class="-mx-6 block max-h-[80vh] w-[calc(100%_+_3rem)] max-w-none rounded-none object-contain md:mx-auto md:w-full md:max-w-full md:rounded"
+        class="block mx-auto w-full max-h-[80vh] object-contain rounded"
       />
     {:else if block.type === "blockquote"}
       <blockquote
@@ -773,7 +773,7 @@
 {/snippet}
 
 <div
-  class="prose max-w-none leading-5 text-neutral-700 dark:text-neutral-300 [&_:not(pre)>code]:rounded [&_:not(pre)>code]:bg-neutral-100 [&_:not(pre)>code]:px-1 [&_:not(pre)>code]:py-0.5 dark:[&_:not(pre)>code]:bg-neutral-800 dark:[&_:not(pre)>code]:text-neutral-200 [&_blockquote_img]:mx-0 [&_blockquote_img]:w-full [&_blockquote_img]:max-w-full [&_blockquote_img]:rounded [&_blockquote_p]:before:content-none [&_blockquote_p]:after:content-none [&_code]:before:content-none [&_code]:after:content-none [&_img]:my-5 [&_p]:my-3 [&_pre]:bg-neutral-100 [&_pre]:text-neutral-800 dark:[&_pre]:bg-neutral-800 dark:[&_pre]:text-neutral-200 [&_table]:my-0"
+  class="prose max-w-none leading-5 text-neutral-700 dark:text-neutral-300 [&_:not(pre)>code]:rounded [&_:not(pre)>code]:bg-neutral-100 [&_:not(pre)>code]:px-1 [&_:not(pre)>code]:py-0.5 dark:[&_:not(pre)>code]:bg-neutral-800 dark:[&_:not(pre)>code]:text-neutral-200 [&_blockquote_p]:before:content-none [&_blockquote_p]:after:content-none [&_code]:before:content-none [&_code]:after:content-none [&_img]:my-5 [&_p]:my-3 [&_pre]:bg-neutral-100 [&_pre]:text-neutral-800 dark:[&_pre]:bg-neutral-800 dark:[&_pre]:text-neutral-200 [&_table]:my-0"
 >
   {@render renderBlocks(blocks)}
 </div>
