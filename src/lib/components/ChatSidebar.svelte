@@ -9,7 +9,10 @@
   } from "$lib/chat.svelte";
   import { auth, openLogin } from "$lib/auth.svelte";
   import { isGroupAdmin } from "$lib/admins.svelte";
-  import { requestDelete } from "$lib/moderation.svelte";
+  import {
+    requestDelete,
+    withinSelfDeleteWindow,
+  } from "$lib/moderation.svelte";
   import {
     withJoin,
     membershipOf,
@@ -51,6 +54,13 @@
     !!auth.user && isGroupAdmin(auth.user.pubkey, activeGroup.id),
   );
 
+  const isOwnMessage = (msg: ChatMessageData) =>
+    auth.user?.pubkey === msg.pubkey;
+
+  // Admins moderate anything; authors self-delete their own.
+  const canDeleteMessage = (msg: ChatMessageData) =>
+    canModerate || isOwnMessage(msg);
+
   // Sending needs membership regardless of flags. Only gate a confirmed guest;
   // while membership resolves the input stays (withJoin nets a stray send), so a
   // member never flashes "Join to chat".
@@ -72,7 +82,13 @@
   function requestDeleteMessage(msg: ChatMessageData) {
     openMenuId = null;
     requestDelete(
-      { eventId: msg.id, groupId: activeGroup.id, label: "message" },
+      {
+        eventId: msg.id,
+        groupId: activeGroup.id,
+        label: "message",
+        self: !canModerate,
+        eventKind: 9,
+      },
       () => removeChatMessage(msg.id),
     );
   }
@@ -383,15 +399,19 @@
                         class="w-full px-3 py-1.5 text-left hover:bg-neutral-50 dark:text-neutral-100 dark:hover:bg-neutral-800"
                         >Reply</button
                       >
-                      {#if canModerate}
+                      {#if canDeleteMessage(msg)}
+                        {@const tooOld =
+                          !canModerate &&
+                          !withinSelfDeleteWindow(msg.createdAt)}
                         <button
                           role="menuitem"
+                          disabled={tooOld}
                           onclick={(e) => {
                             e.stopPropagation();
                             requestDeleteMessage(msg);
                           }}
-                          class="w-full px-3 py-1.5 text-left text-red-600 hover:bg-red-50 dark:hover:bg-neutral-800"
-                          >Delete</button
+                          class="w-full px-3 py-1.5 text-left text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:text-neutral-400 disabled:hover:bg-transparent dark:hover:bg-neutral-800 dark:disabled:text-neutral-600"
+                          >Delete{tooOld ? " (too old)" : ""}</button
                         >
                       {/if}
                     </div>

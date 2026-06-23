@@ -12,7 +12,10 @@
   } from "$lib/thread.svelte";
   import { auth, openLogin } from "$lib/auth.svelte";
   import { isGroupAdmin } from "$lib/admins.svelte";
-  import { requestDelete } from "$lib/moderation.svelte";
+  import {
+    requestDelete,
+    withinSelfDeleteWindow,
+  } from "$lib/moderation.svelte";
   import { showToast } from "$lib/toast.svelte";
   import {
     withJoin,
@@ -142,6 +145,12 @@
     !!auth.user && !!detail && isGroupAdmin(auth.user.pubkey, detail.groupId),
   );
 
+  const isOwnPost = (p: PostData) => auth.user?.pubkey === p.pubkey;
+
+  // Whose delete a post can offer: admins moderate anything; authors self-delete
+  // their own (the button still shows when too old, just disabled).
+  const canDeletePost = (p: PostData) => canModerate || isOwnPost(p);
+
   let openMenuId = $state<string | null>(null);
 
   function toggleMenu(id: string, e: MouseEvent) {
@@ -150,13 +159,21 @@
   }
 
   // Deleting the OP removes the whole thread, so leave the page; a reply just
-  // disappears in place.
+  // disappears in place. Admins moderate (kind 9005); authors self-delete
+  // (kind 5) only inside the time window.
   function requestDeletePost(p: PostData, isOp: boolean) {
     if (!detail) return;
     const groupId = detail.groupId;
+    const self = !canModerate;
     openMenuId = null;
     requestDelete(
-      { eventId: p.id, groupId, label: isOp ? "discussion" : "reply" },
+      {
+        eventId: p.id,
+        groupId,
+        label: isOp ? "discussion" : "reply",
+        self,
+        eventKind: isOp ? 11 : 1111,
+      },
       () => {
         if (isOp) {
           showToast("Discussion deleted");
@@ -326,7 +343,9 @@
           >
         </div>
         <div class="ml-4 flex flex-shrink-0 items-center gap-1">
-          {#if canModerate}
+          {#if canDeletePost(p)}
+            {@const tooOld =
+              !canModerate && !withinSelfDeleteWindow(p.createdAt)}
             <div class="relative">
               <button
                 onclick={(e) => toggleMenu(p.id, e)}
@@ -353,12 +372,13 @@
                 >
                   <button
                     role="menuitem"
+                    disabled={tooOld}
                     onclick={(e) => {
                       e.stopPropagation();
                       requestDeletePost(p, index === 0);
                     }}
-                    class="w-full px-3 py-1.5 text-left text-red-600 hover:bg-red-50"
-                    >Delete</button
+                    class="w-full px-3 py-1.5 text-left text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:text-neutral-400 disabled:hover:bg-transparent dark:disabled:text-neutral-600"
+                    >Delete{tooOld ? " (too old)" : ""}</button
                   >
                 </div>
               {/if}
