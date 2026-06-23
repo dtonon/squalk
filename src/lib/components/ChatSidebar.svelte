@@ -456,7 +456,14 @@
         {sendError}
       </div>
     {/if}
-    {#if joinToChat}
+    {#if !auth.user}
+      <button
+        onclick={openLogin}
+        class="bg-accent hover:bg-accent-hover w-full rounded px-3 py-2 text-sm font-medium text-white"
+      >
+        Login to chat
+      </button>
+    {:else if joinToChat}
       <button
         onclick={onJoinToChat}
         class="bg-accent hover:bg-accent-hover w-full rounded px-3 py-2 text-sm font-medium text-white"
@@ -473,7 +480,7 @@
           autoGrow
           maxRows={10}
           disabled={sending}
-          placeholder={auth.user ? "Message..." : "Login to send messages"}
+          placeholder="Message..."
           {contextPubkeys}
           textareaClass="block w-full resize-none rounded border border-neutral-200 dark:border-neutral-700 py-2 pl-3 pr-11 text-sm focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50"
         />
