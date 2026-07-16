@@ -6,7 +6,7 @@
   import { overviewStore, loadOverview } from "$lib/overview.svelte";
   import { partialsStore } from "$lib/partials.svelte";
   import { MODE, GROUP_ID, SEARCH_ENABLED } from "$lib/config";
-  import { openSearch } from "$lib/searchModal.svelte";
+  import SearchInline from "$lib/components/SearchInline.svelte";
   import type { NostrUser } from "@nostr/gadgets/metadata";
 
   const partial = $derived(partialsStore.get("home"));
@@ -52,35 +52,10 @@
   {/if}
 {/snippet}
 
-<!-- Looks like the search input but only opens the global search modal, so
-     there is a single search implementation. -->
 {#if SEARCH_ENABLED}
-  <button
-    type="button"
-    onclick={openSearch}
-    class="focus:ring-accent relative mt-2 mb-6 flex w-full items-center gap-3 rounded border border-neutral-200 bg-neutral-100 px-4 py-2 text-neutral-400 focus:ring-1 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-500"
-  >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      class="h-5 w-5"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      stroke-width="2"
-      aria-hidden="true"
-    >
-      <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-      />
-    </svg>
-    Search
-    <kbd
-      class="pointer-events-none absolute top-1/2 right-3 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md bg-neutral-200 font-sans text-sm text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400"
-      aria-hidden="true">/</kbd
-    >
-  </button>
+  <div class="mt-2 mb-6">
+    <SearchInline />
+  </div>
 {/if}
 
 {#if partial}
