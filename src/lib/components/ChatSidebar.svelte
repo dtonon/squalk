@@ -502,7 +502,7 @@
           disabled={sending}
           placeholder="Message..."
           {contextPubkeys}
-          textareaClass="block w-full resize-none rounded border border-neutral-200 dark:border-neutral-700 py-2 pl-3 pr-11 text-sm focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50"
+          textareaClass="block w-full resize-none rounded border border-neutral-200 dark:border-neutral-700 dark:bg-neutral-900 focus:dark:bg-neutral-950 py-2 pl-3 pr-11 text-sm focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50"
         />
         <button
           type="button"
