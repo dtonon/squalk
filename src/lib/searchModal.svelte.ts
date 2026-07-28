@@ -1,25 +1,21 @@
 let open = $state(false);
 
-// When a page hosts an inline search input (the homepage), it registers a
-// focus function here and every search trigger routes to it instead of the
-// modal, so a modal input never opens on top of an inline one.
-let inlineFocus: (() => void) | null = null;
-
 export const searchModal = {
   get open() {
     return open;
   },
 };
 
-export function registerInlineSearch(focus: () => void): () => void {
-  inlineFocus = focus;
-  return () => {
-    if (inlineFocus === focus) inlineFocus = null;
-  };
-}
-
+// When the page hosts an inline search input (the homepage), every search
+// trigger focuses it instead of opening the modal, so a modal input never
+// opens on top of an inline one. Resolved through the DOM rather than a
+// registration callback: it needs no lifecycle bookkeeping and stays correct
+// even if HMR instantiates this module twice in dev.
 export function openSearch() {
-  if (inlineFocus) inlineFocus();
+  const inline = document.querySelector<HTMLInputElement>(
+    "[data-search-inline]",
+  );
+  if (inline) inline.focus();
   else open = true;
 }
 

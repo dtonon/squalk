@@ -2,17 +2,11 @@
   import { goto } from "$app/navigation";
   import type { SearchResult } from "$lib/search";
   import { createSearchState } from "$lib/searchState.svelte";
-  import { registerInlineSearch } from "$lib/searchModal.svelte";
   import SearchResults from "$lib/components/SearchResults.svelte";
 
   const search = createSearchState();
 
   let open = $state(false);
-  let inputEl = $state<HTMLInputElement | null>(null);
-
-  // Route the global "/" shortcut and the sidebar/menu triggers here while
-  // this input is on screen
-  $effect(() => registerInlineSearch(() => inputEl?.focus()));
 
   function onInput() {
     search.schedule();
@@ -61,8 +55,8 @@
       />
     </svg>
     <input
-      bind:this={inputEl}
       bind:value={search.query}
+      data-search-inline
       type="search"
       placeholder="Search"
       role="combobox"
