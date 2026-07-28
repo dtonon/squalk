@@ -35,14 +35,17 @@ body {
     /* Form inputs in dark mode — the forms plugin defaults to a white background,
     which would punch holes through panels. Override at the element level so we
     don't have to add `dark:bg-neutral-800` to every <input>/<textarea>. */
-    :where(.dark) input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]):not([type="submit"]):not([type="reset"]):not([type="button"]),
-    :where(.dark) textarea,
-    :where(.dark) select {
+    /* Plain .dark (not :where) so these outweigh the forms plugin's white
+    background, which sits in this same base layer; utilities still win via
+    layer order. */
+    .dark input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]):not([type="submit"]):not([type="reset"]):not([type="button"]),
+    .dark textarea,
+    .dark select {
     background-color: var(--color-neutral-800);
     color: var(--color-neutral-100);
     }
-    :where(.dark) input::placeholder,
-    :where(.dark) textarea::placeholder {
+    .dark input::placeholder,
+    .dark textarea::placeholder {
     color: var(--color-neutral-500);
     }
 
