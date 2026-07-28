@@ -19,6 +19,8 @@ if (MODE === "simple" && !GROUP_ID) {
   throw new Error("PUBLIC_GROUP_ID is required in simple mode");
 }
 export const JOINCODE_REQUIRED = env.PUBLIC_JOINCODE === "yes";
+// Requires a relay with NIP-50 support.
+export const SEARCH_ENABLED = env.PUBLIC_SEARCH === "yes";
 export const LABELS = (env.PUBLIC_LABELS ?? "")
   .split(",")
   .map((l) => l.trim())

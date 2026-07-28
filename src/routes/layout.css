@@ -31,18 +31,35 @@ body {
   display: none;
 }
 
-/* Form inputs in dark mode — the forms plugin defaults to a white background,
-   which would punch holes through panels. Override at the element level so we
-   don't have to add `dark:bg-neutral-800` to every <input>/<textarea>. */
-:where(.dark) input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]):not([type="submit"]):not([type="reset"]):not([type="button"]),
-:where(.dark) textarea,
-:where(.dark) select {
-  background-color: var(--color-neutral-800);
-  color: var(--color-neutral-100);
-}
-:where(.dark) input::placeholder,
-:where(.dark) textarea::placeholder {
-  color: var(--color-neutral-500);
+ @layer base {
+    /* Form inputs in dark mode — the forms plugin defaults to a white background,
+    which would punch holes through panels. Override at the element level so we
+    don't have to add `dark:bg-neutral-800` to every <input>/<textarea>. */
+    :where(.dark) input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]):not([type="submit"]):not([type="reset"]):not([type="button"]),
+    :where(.dark) textarea,
+    :where(.dark) select {
+    background-color: var(--color-neutral-800);
+    color: var(--color-neutral-100);
+    }
+    :where(.dark) input::placeholder,
+    :where(.dark) textarea::placeholder {
+    color: var(--color-neutral-500);
+    }
+
+    /* Redraw the native search clear button so it follows our palette instead
+    of the OS accent color. Firefox renders no button at all. */
+    input[type="search"]::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    width: 1.2em;
+    height: 1.2em;
+    background-color: var(--color-neutral-400);
+    -webkit-mask: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="black" d="M12 10.6 6.6 5.2 5.2 6.6l5.4 5.4-5.4 5.4 1.4 1.4 5.4-5.4 5.4 5.4 1.4-1.4-5.4-5.4 5.4-5.4-1.4-1.4z"/></svg>')
+      no-repeat center / contain;
+    cursor: pointer;
+    }
+    :where(.dark) input[type="search"]::-webkit-search-cancel-button {
+    background-color: var(--color-neutral-500);
+    }
 }
 
 /* Tighter heading rhythm for all rendered (prose) content. Overrides the

@@ -5,7 +5,8 @@
   import { groupsStore } from "$lib/groups.svelte";
   import { overviewStore, loadOverview } from "$lib/overview.svelte";
   import { partialsStore } from "$lib/partials.svelte";
-  import { MODE, GROUP_ID } from "$lib/config";
+  import { MODE, GROUP_ID, SEARCH_ENABLED } from "$lib/config";
+  import SearchInline from "$lib/components/SearchInline.svelte";
   import type { NostrUser } from "@nostr/gadgets/metadata";
 
   const partial = $derived(partialsStore.get("home"));
@@ -50,6 +51,12 @@
     </span>
   {/if}
 {/snippet}
+
+{#if SEARCH_ENABLED}
+  <div class="mt-2 mb-6">
+    <SearchInline />
+  </div>
+{/if}
 
 {#if partial}
   <div class="mt-2 mb-8">
