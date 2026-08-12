@@ -24,6 +24,7 @@
     openJoinModal,
   } from "$lib/join.svelte";
   import { setActiveGroup } from "$lib/active.svelte";
+  import { applyHighlights, clearHighlights } from "$lib/pageHighlight";
   import { RELAY_URL, MODE } from "$lib/config";
   import ThreadScrubber from "$lib/components/ThreadScrubber.svelte";
   import MessageEditor from "$lib/components/MessageEditor.svelte";
@@ -208,6 +209,28 @@
   // Reload when navigating between threads
   $effect(() => {
     if (page.params.id) loadThread(page.params.id);
+  });
+
+  // Arriving from search (?q=…): paint the terms over the title and post
+  // bodies, and scroll to the first match once per navigation. Re-runs as
+  // replies stream in so late matches get painted too.
+  let threadEl = $state<HTMLElement | null>(null);
+  let scrolledFor = "";
+  $effect(() => {
+    const q = page.url.searchParams.get("q")?.trim() ?? "";
+    allPosts; // Repaint when posts load or change
+    if (!threadEl || !q) {
+      clearHighlights();
+      return;
+    }
+    const roots = threadEl.querySelectorAll("h1, [data-quote-post-index]");
+    const first = applyHighlights(roots, q.split(/\s+/));
+    const key = `${page.params.id}|${q}`;
+    if (first && scrolledFor !== key) {
+      scrolledFor = key;
+      first.startContainer.parentElement?.scrollIntoView({ block: "center" });
+    }
+    return clearHighlights;
   });
 
   // A thread belongs to its own group; make that the active group so chat and
@@ -421,7 +444,7 @@
 {/snippet}
 
 {#if detail}
-  <div class="flex items-start gap-6">
+  <div class="flex items-start gap-6" bind:this={threadEl}>
     <div class="min-w-0 flex-1 {!scrubberVisible ? 'md:pr-18' : ''}">
       <div
         class="relative z-10 bg-white pb-1 md:sticky md:-top-2 md:-mx-10 md:-mt-6 md:px-10 md:pt-6 md:pb-3 dark:bg-neutral-900"

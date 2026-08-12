@@ -98,6 +98,13 @@ export function createSearchState() {
     get active() {
       return resultsQuery.trim().length >= 2;
     },
+    get resultsQuery() {
+      return resultsQuery;
+    },
+    // Thread link carrying the query, so the page can highlight the terms
+    threadUrl(threadId: string) {
+      return `/thread/${threadId}?q=${encodeURIComponent(resultsQuery.trim())}`;
+    },
     schedule,
     highlight,
     navigate,

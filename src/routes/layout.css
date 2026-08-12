@@ -65,6 +65,15 @@ body {
     }
 }
 
+/* Search terms painted on thread pages via the CSS Custom Highlight API,
+   matching the <mark> tint used in the search results. */
+::highlight(search-terms) {
+  background-color: color-mix(in srgb, var(--color-secondary) 40%, transparent);
+}
+.dark ::highlight(search-terms) {
+  background-color: color-mix(in srgb, var(--color-secondary) 30%, transparent);
+}
+
 /* Tighter heading rhythm for all rendered (prose) content. Overrides the
    typography plugin's em-based heading margins; the first block stays flush. */
 .prose :is(h1, h2, h3, h4, h5, h6) {

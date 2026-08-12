@@ -15,7 +15,7 @@
 
   function select(r: SearchResult) {
     open = false;
-    goto(`/thread/${r.threadId}`);
+    goto(search.threadUrl(r.threadId));
   }
 
   function onKeydown(e: KeyboardEvent) {

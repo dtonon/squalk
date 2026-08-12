@@ -41,7 +41,7 @@
   {#each search.results as r, i (r.threadId)}
     <a
       id="{idBase}-{i}"
-      href="/thread/{r.threadId}"
+      href={search.threadUrl(r.threadId)}
       role="option"
       aria-selected={i === search.activeIndex}
       class="block rounded px-4 py-2 {i === search.activeIndex

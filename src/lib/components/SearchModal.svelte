@@ -21,7 +21,7 @@
 
   function select(r: SearchResult) {
     closeSearch();
-    goto(`/thread/${r.threadId}`);
+    goto(search.threadUrl(r.threadId));
   }
 
   // Global "/" opens the search from any page, unless typing somewhere else
