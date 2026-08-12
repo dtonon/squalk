@@ -12,20 +12,44 @@ export type SearchResult = {
   createdAt: number;
 };
 
-// Window the snippet around the first term match so the highlight is visible
-// even when the match sits deep in a long post.
+// Window the snippet around the best term cluster: the anchor occurrence
+// whose window covers the most distinct query terms, so a multi-word query
+// excerpts the passage matching the whole phrase, not the first lone word.
+// Ties go to the earliest position.
 function snippetOf(content: string, query: string): string {
   const flat = content.replace(/\s+/g, " ").trim();
   const MAX = 140;
   if (flat.length <= MAX) return flat;
   const lower = flat.toLowerCase();
-  let idx = -1;
-  for (const t of query.toLowerCase().split(/\s+/).filter(Boolean)) {
-    const i = lower.indexOf(t);
-    if (i !== -1 && (idx === -1 || i < idx)) idx = i;
+  const terms = [...new Set(query.toLowerCase().split(/\s+/).filter(Boolean))];
+
+  const occurrences: { i: number; term: string }[] = [];
+  for (const t of terms) {
+    let i = 0;
+    while ((i = lower.indexOf(t, i)) !== -1) {
+      occurrences.push({ i, term: t });
+      i += t.length;
+    }
   }
-  if (idx <= 40) return flat.slice(0, MAX) + "…";
-  const start = idx - 40;
+  if (occurrences.length === 0) return flat.slice(0, MAX) + "…";
+  occurrences.sort((a, b) => a.i - b.i);
+
+  const span = MAX - 40; // Visible chars from the anchor to the window's end
+  let best = occurrences[0];
+  let bestScore = 0;
+  for (const o of occurrences) {
+    const seen = new Set<string>();
+    for (const p of occurrences) {
+      if (p.i >= o.i && p.i + p.term.length <= o.i + span) seen.add(p.term);
+    }
+    if (seen.size > bestScore) {
+      bestScore = seen.size;
+      best = o;
+    }
+  }
+
+  if (best.i <= 40) return flat.slice(0, MAX) + "…";
+  const start = best.i - 40;
   const end = Math.min(flat.length, start + MAX);
   return "…" + flat.slice(start, end) + (end < flat.length ? "…" : "");
 }
