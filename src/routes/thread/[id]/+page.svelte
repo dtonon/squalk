@@ -224,7 +224,7 @@
       return;
     }
     const roots = threadEl.querySelectorAll("h1, [data-quote-post-index]");
-    const first = applyHighlights(roots, q.split(/\s+/));
+    const first = applyHighlights(roots, q);
     const key = `${page.params.id}|${q}`;
     if (first && scrolledFor !== key) {
       scrolledFor = key;

@@ -45,10 +45,16 @@ export function createSearchState() {
     return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
 
-  // Split into alternating plain/matched segments for <mark> rendering
+  // Split into alternating plain/matched segments for <mark> rendering. The
+  // whole query goes first in the alternation, so a contiguous phrase match
+  // becomes a single mark instead of one per word.
   function highlight(text: string): { text: string; hit: boolean }[] {
     if (!text || terms.length === 0) return [{ text, hit: false }];
-    const alts = terms.map(escapeRe).join("|");
+    const phrase =
+      terms.length > 1
+        ? [escapeRe(resultsQuery.trim()).replace(/\s+/g, "\\s+")]
+        : [];
+    const alts = [...phrase, ...terms.map(escapeRe)].join("|");
     const exact = new RegExp(`^(${alts})$`, "i");
     return text
       .split(new RegExp(`(${alts})`, "gi"))
