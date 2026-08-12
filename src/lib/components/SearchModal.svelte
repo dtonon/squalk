@@ -27,7 +27,20 @@
   // Global "/" opens the search from any page, unless typing somewhere else
   function onWindowKeydown(e: KeyboardEvent) {
     if (searchModal.open) {
-      if (e.key === "Escape") closeSearch();
+      if (e.key === "Escape") {
+        closeSearch();
+        return;
+      }
+      // Typing fast right after "/" can outrun the async focus; route the
+      // keystroke into the input so no leading characters get lost
+      if (
+        e.key.length === 1 &&
+        !e.metaKey &&
+        !e.ctrlKey &&
+        !e.altKey &&
+        document.activeElement !== inputEl
+      )
+        inputEl?.focus();
       return;
     }
     if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey) return;
