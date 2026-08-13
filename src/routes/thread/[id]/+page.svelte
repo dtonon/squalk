@@ -19,9 +19,9 @@
   import { showToast } from "$lib/toast.svelte";
   import {
     withJoin,
+    joinState,
     membershipOf,
     ensureMembershipChecked,
-    openJoinModal,
   } from "$lib/join.svelte";
   import { setActiveGroup } from "$lib/active.svelte";
   import { applyHighlights, clearHighlights } from "$lib/pageHighlight";
@@ -136,7 +136,7 @@
 
   function onJoinToReply() {
     if (!detail) return;
-    openJoinModal(detail.groupId, async () => {
+    withJoin(detail.groupId, async () => {
       await tick();
       editorEl?.focus();
     });
@@ -514,9 +514,10 @@
               </p>
               <button
                 onclick={onJoinToReply}
-                class="bg-accent hover:bg-accent-hover rounded px-6 py-1.5 font-medium text-white"
+                disabled={joinState.busy}
+                class="bg-accent hover:bg-accent-hover rounded px-6 py-1.5 font-medium text-white disabled:opacity-50"
               >
-                Join to reply
+                {joinState.busy ? "Joining…" : "Join to reply"}
               </button>
             </div>
           {:else}

@@ -82,3 +82,12 @@ export function getGroupFlags(groupId: string): GroupFlags | null {
     isHidden: group.isHidden,
   };
 }
+
+// Display name for a group from whichever store holds it, falling back to the
+// id when metadata hasn't loaded.
+export function getGroupName(groupId: string): string {
+  if (MODE === "full") {
+    return groupsStore.list.find((x) => x.id === groupId)?.name ?? groupId;
+  }
+  return group?.name ?? groupId;
+}

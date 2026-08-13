@@ -18,7 +18,8 @@
   import {
     membershipOf,
     ensureMembershipChecked,
-    openJoinModal,
+    withJoin,
+    joinState,
   } from "$lib/join.svelte";
   import { sortPref } from "$lib/sort.svelte";
   import { page } from "$app/state";
@@ -71,12 +72,7 @@
       openLogin(onNewTopic);
       return;
     }
-    await ensureMembershipChecked(groupId);
-    if (membershipOf(groupId) !== "member") {
-      openJoinModal(groupId, openDraft);
-      return;
-    }
-    openDraft();
+    await withJoin(groupId, openDraft);
   }
 
   function onPrivateJoin() {
@@ -84,7 +80,7 @@
       openLogin();
       return;
     }
-    openJoinModal(groupId, () => loadThreads(groupId, sort));
+    withJoin(groupId, () => loadThreads(groupId, sort));
   }
 
   function relativeTime(ts: number): string {
@@ -138,9 +134,14 @@
       <div class="flex items-center gap-2">
         <button
           onclick={onNewTopic}
-          class="bg-accent hover:bg-accent-hover rounded px-4 py-1.5 font-medium text-white md:px-6 md:text-sm"
+          disabled={joinState.busy}
+          class="bg-accent hover:bg-accent-hover rounded px-4 py-1.5 font-medium text-white disabled:opacity-50 md:px-6 md:text-sm"
         >
-          {joinToPost ? "Join to post" : "New discussion"}
+          {joinState.busy
+            ? "Joining…"
+            : joinToPost
+              ? "Join to post"
+              : "New discussion"}
         </button>
         <SortToggle {sort} />
       </div>
@@ -165,9 +166,14 @@
       </p>
       <button
         onclick={onPrivateJoin}
-        class="bg-accent hover:bg-accent-hover mt-5 rounded px-6 py-1.5 font-medium text-white"
+        disabled={joinState.busy}
+        class="bg-accent hover:bg-accent-hover mt-5 rounded px-6 py-1.5 font-medium text-white disabled:opacity-50"
       >
-        {auth.user ? "Request to join" : "Log in to join"}
+        {joinState.busy
+          ? "Joining…"
+          : auth.user
+            ? "Request to join"
+            : "Log in to join"}
       </button>
     </div>
   {:else}

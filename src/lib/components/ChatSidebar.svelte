@@ -15,9 +15,9 @@
   } from "$lib/moderation.svelte";
   import {
     withJoin,
+    joinState,
     membershipOf,
     ensureMembershipChecked,
-    openJoinModal,
   } from "$lib/join.svelte";
   import { activeGroup } from "$lib/active.svelte";
   import type { NostrUser } from "@nostr/gadgets/metadata";
@@ -76,7 +76,7 @@
   });
 
   function onJoinToChat() {
-    openJoinModal(activeGroup.id, () => tick().then(() => inputEl?.focus()));
+    withJoin(activeGroup.id, () => tick().then(() => inputEl?.focus()));
   }
 
   function requestDeleteMessage(msg: ChatMessageData) {
@@ -486,9 +486,10 @@
     {:else if joinToChat}
       <button
         onclick={onJoinToChat}
-        class="bg-accent hover:bg-accent-hover w-full rounded px-3 py-2 text-sm font-medium text-white"
+        disabled={joinState.busy}
+        class="bg-accent hover:bg-accent-hover w-full rounded px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
       >
-        Join to chat
+        {joinState.busy ? "Joining…" : "Join to chat"}
       </button>
     {:else}
       <div class="relative">
