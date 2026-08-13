@@ -10,10 +10,11 @@ function escapeRe(s: string): string {
 
 // Highlight the query inside the given roots using the CSS Custom Highlight
 // API, which paints ranges without touching the DOM, so it never conflicts
-// with Svelte re-renders. Where the terms appear contiguously as the whole
-// query, one range covers the phrase; individual terms are only marked
-// outside those. Returns the first match in document order (for scrolling),
-// or null. No-op on unsupported browsers.
+// with Svelte re-renders. When the whole query appears contiguously anywhere
+// on the page, only those phrase occurrences are painted; per-word marks are
+// a fallback for pages that matched on scattered terms. Returns the first
+// match in document order (for scrolling), or null. No-op on unsupported
+// browsers.
 export function applyHighlights(
   roots: Iterable<Element>,
   query: string,
@@ -29,23 +30,22 @@ export function applyHighlights(
       ? new RegExp(terms.map(escapeRe).join("\\s+"), "gi")
       : null;
 
-  const ranges: Range[] = [];
+  const phraseRanges: Range[] = [];
+  const termRanges: Range[] = [];
   for (const root of roots) {
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     let node: Node | null;
     while ((node = walker.nextNode())) {
       const text = node.textContent ?? "";
-      const taken: [number, number][] = [];
 
       if (phraseRe) {
         phraseRe.lastIndex = 0;
         let m: RegExpExecArray | null;
         while ((m = phraseRe.exec(text))) {
-          taken.push([m.index, m.index + m[0].length]);
           const range = new Range();
           range.setStart(node, m.index);
           range.setEnd(node, m.index + m[0].length);
-          ranges.push(range);
+          phraseRanges.push(range);
         }
       }
 
@@ -53,18 +53,16 @@ export function applyHighlights(
       for (const term of terms) {
         let i = 0;
         while ((i = lower.indexOf(term, i)) !== -1) {
-          const end = i + term.length;
-          if (!taken.some(([s, e]) => i < e && end > s)) {
-            const range = new Range();
-            range.setStart(node, i);
-            range.setEnd(node, end);
-            ranges.push(range);
-          }
-          i = end;
+          const range = new Range();
+          range.setStart(node, i);
+          range.setEnd(node, i + term.length);
+          termRanges.push(range);
+          i += term.length;
         }
       }
     }
   }
+  const ranges = phraseRanges.length > 0 ? phraseRanges : termRanges;
   if (ranges.length === 0) return null;
 
   CSS.highlights.set(HIGHLIGHT_NAME, new Highlight(...ranges));
