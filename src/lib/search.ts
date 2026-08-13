@@ -12,16 +12,19 @@ export type SearchResult = {
   createdAt: number;
 };
 
-// Window the snippet around the best term cluster: the anchor occurrence
-// whose window covers the most distinct query terms, so a multi-word query
-// excerpts the passage matching the whole phrase, not the first lone word.
-// Ties go to the earliest position.
-function snippetOf(content: string, query: string): string {
+// Window the snippet around the best match: a full-phrase occurrence when
+// present, otherwise the term cluster covering the most distinct query
+// terms. The score ranks how well this content matched (phrase beats any
+// scattered cluster), so dedupe can keep the best snippet per thread.
+function snippetOf(
+  content: string,
+  query: string,
+): { text: string; score: number } {
   const flat = content.replace(/\s+/g, " ").trim();
   const MAX = 140;
-  if (flat.length <= MAX) return flat;
   const lower = flat.toLowerCase();
-  const terms = [...new Set(query.toLowerCase().split(/\s+/).filter(Boolean))];
+  const phrase = query.toLowerCase().trim().replace(/\s+/g, " ");
+  const terms = [...new Set(phrase.split(" "))].filter(Boolean);
 
   const occurrences: { i: number; term: string }[] = [];
   for (const t of terms) {
@@ -31,27 +34,36 @@ function snippetOf(content: string, query: string): string {
       i += t.length;
     }
   }
-  if (occurrences.length === 0) return flat.slice(0, MAX) + "…";
   occurrences.sort((a, b) => a.i - b.i);
 
-  const span = MAX - 40; // Visible chars from the anchor to the window's end
-  let best = occurrences[0];
-  let bestScore = 0;
-  for (const o of occurrences) {
-    const seen = new Set<string>();
-    for (const p of occurrences) {
-      if (p.i >= o.i && p.i + p.term.length <= o.i + span) seen.add(p.term);
-    }
-    if (seen.size > bestScore) {
-      bestScore = seen.size;
-      best = o;
+  let anchor = occurrences[0]?.i ?? -1;
+  let score = 0;
+  const phraseIdx = terms.length > 1 ? lower.indexOf(phrase) : -1;
+  if (phraseIdx !== -1) {
+    anchor = phraseIdx;
+    score = terms.length + 100; // Full phrase beats any scattered cluster
+  } else {
+    const span = MAX - 40; // Visible chars from the anchor to the window's end
+    for (const o of occurrences) {
+      const seen = new Set<string>();
+      for (const p of occurrences) {
+        if (p.i >= o.i && p.i + p.term.length <= o.i + span) seen.add(p.term);
+      }
+      if (seen.size > score) {
+        score = seen.size;
+        anchor = o.i;
+      }
     }
   }
 
-  if (best.i <= 40) return flat.slice(0, MAX) + "…";
-  const start = best.i - 40;
+  if (flat.length <= MAX) return { text: flat, score };
+  if (anchor <= 40) return { text: flat.slice(0, MAX) + "…", score };
+  const start = anchor - 40;
   const end = Math.min(flat.length, start + MAX);
-  return "…" + flat.slice(start, end) + (end < flat.length ? "…" : "");
+  return {
+    text: "…" + flat.slice(start, end) + (end < flat.length ? "…" : ""),
+    score,
+  };
 }
 
 // NIP-50 search over the forum relay: thread OPs (kind 11) and replies
@@ -72,39 +84,45 @@ export async function searchThreads(query: string): Promise<SearchResult[]> {
     return h !== undefined && (groups.size === 0 || groups.has(h));
   });
 
-  const byThread = new Map<string, SearchResult>();
-  const opless: SearchResult[] = [];
+  type Candidate = SearchResult & { score: number };
+  const byThread = new Map<string, Candidate>();
+  const needTitle: Candidate[] = [];
   for (const e of events) {
-    if (e.kind === 11) {
-      const existing = byThread.get(e.id);
-      // An OP match wins over a reply match on the same thread
-      if (existing && existing.matchKind === "thread") continue;
-      byThread.set(e.id, {
-        threadId: e.id,
-        title: e.tags.find((t) => t[0] === "title")?.[1] ?? "(untitled)",
-        snippet: snippetOf(e.content, query),
-        matchKind: "thread",
+    const isOp = e.kind === 11;
+    const threadId = isOp ? e.id : e.tags.find((t) => t[0] === "E")?.[1];
+    if (!threadId) continue;
+    const title = isOp
+      ? (e.tags.find((t) => t[0] === "title")?.[1] ?? "(untitled)")
+      : "";
+    const { text, score } = snippetOf(e.content, query);
+    const existing = byThread.get(threadId);
+    if (!existing) {
+      const r: Candidate = {
+        threadId,
+        title,
+        snippet: text,
+        matchKind: isOp ? "thread" : "reply",
         createdAt: e.created_at,
-      });
-    } else {
-      const root = e.tags.find((t) => t[0] === "E")?.[1];
-      if (!root || byThread.has(root)) continue;
-      const r: SearchResult = {
-        threadId: root,
-        title: "",
-        snippet: snippetOf(e.content, query),
-        matchKind: "reply",
-        createdAt: e.created_at,
+        score,
       };
-      byThread.set(root, r);
-      opless.push(r);
+      byThread.set(threadId, r);
+      if (!isOp) needTitle.push(r);
+    } else {
+      // Keep the snippet of whichever event matched the query best
+      if (score > existing.score) {
+        existing.snippet = text;
+        existing.matchKind = isOp ? "thread" : "reply";
+        existing.score = score;
+      }
+      if (isOp && !existing.title) existing.title = title;
     }
   }
 
   // Backfill titles for reply-only matches; the group relay truncates
   // multi-id queries, so fetch each OP on its own
   await Promise.all(
-    opless.map(async (r) => {
+    needTitle.map(async (r) => {
+      if (r.title) return; // The OP appeared in the same result set
       const ops = await queryForum({ kinds: [11], ids: [r.threadId] });
       const op: Event | undefined = ops[0];
       r.title = op?.tags.find((t) => t[0] === "title")?.[1] ?? "(untitled)";
