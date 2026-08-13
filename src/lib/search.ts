@@ -1,6 +1,7 @@
 import type { Event } from "@nostr/tools/core";
 import type { Filter } from "@nostr/tools/filter";
 import { queryForum } from "$lib/relay";
+import { bestMatch } from "$lib/textMatch";
 import { GROUP_ID, MODE } from "$lib/config";
 import { groupsStore } from "$lib/groups.svelte";
 
@@ -12,49 +13,17 @@ export type SearchResult = {
   createdAt: number;
 };
 
-// Window the snippet around the best match: a full-phrase occurrence when
-// present, otherwise the term cluster covering the most distinct query
-// terms. The score ranks how well this content matched (phrase beats any
-// scattered cluster), so dedupe can keep the best snippet per thread.
+// Window the snippet around the best match (full phrase > longest
+// contiguous run > densest single-term cluster, per textMatch rules). The
+// score ranks how well this content matched, so dedupe can keep the best
+// snippet per thread and the result list can order its tiers.
 function snippetOf(
   content: string,
   query: string,
 ): { text: string; score: number } {
   const flat = content.replace(/\s+/g, " ").trim();
   const MAX = 140;
-  const lower = flat.toLowerCase();
-  const phrase = query.toLowerCase().trim().replace(/\s+/g, " ");
-  const terms = [...new Set(phrase.split(" "))].filter(Boolean);
-
-  const occurrences: { i: number; term: string }[] = [];
-  for (const t of terms) {
-    let i = 0;
-    while ((i = lower.indexOf(t, i)) !== -1) {
-      occurrences.push({ i, term: t });
-      i += t.length;
-    }
-  }
-  occurrences.sort((a, b) => a.i - b.i);
-
-  let anchor = occurrences[0]?.i ?? -1;
-  let score = 0;
-  const phraseIdx = terms.length > 1 ? lower.indexOf(phrase) : -1;
-  if (phraseIdx !== -1) {
-    anchor = phraseIdx;
-    score = terms.length + 100; // Full phrase beats any scattered cluster
-  } else {
-    const span = MAX - 40; // Visible chars from the anchor to the window's end
-    for (const o of occurrences) {
-      const seen = new Set<string>();
-      for (const p of occurrences) {
-        if (p.i >= o.i && p.i + p.term.length <= o.i + span) seen.add(p.term);
-      }
-      if (seen.size > score) {
-        score = seen.size;
-        anchor = o.i;
-      }
-    }
-  }
+  const { anchor, score } = bestMatch(flat, query, MAX - 40);
 
   if (flat.length <= MAX) return { text: flat, score };
   if (anchor <= 40) return { text: flat.slice(0, MAX) + "…", score };
@@ -129,7 +98,13 @@ export async function searchThreads(query: string): Promise<SearchResult[]> {
     }),
   );
 
-  // Keep the relay's relevance order (arrival order); a thread keeps the
-  // position of its best-ranked match
-  return [...byThread.values()];
+  // Tiered ordering: full-phrase matches, then contiguous multi-word runs
+  // (longest first), then single-word matches capped to keep noise down.
+  // Within a tier the relay's relevance (arrival) order is preserved —
+  // Array.prototype.sort is stable.
+  const SINGLES_LIMIT = 5;
+  let singles = 0;
+  return [...byThread.values()]
+    .sort((a, b) => b.score - a.score)
+    .filter((r) => r.score >= 100 || ++singles <= SINGLES_LIMIT);
 }

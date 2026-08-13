@@ -1,4 +1,5 @@
 import { searchThreads, type SearchResult } from "$lib/search";
+import { findPhraseSpans, findMatchSpans } from "$lib/textMatch";
 
 // Debounced-search state machine shared by the inline (homepage) and modal
 // search shells, so behavior lives in one place and the shells only differ
@@ -11,10 +12,6 @@ export function createSearchState() {
   let activeIndex = $state(-1);
   let timer: ReturnType<typeof setTimeout> | null = null;
   let seq = 0;
-
-  const terms = $derived(
-    resultsQuery.split(/\s+/).filter((t) => t.length >= 2),
-  );
 
   function schedule() {
     const q = query.trim();
@@ -41,29 +38,26 @@ export function createSearchState() {
     }, 300);
   }
 
-  function escapeRe(s: string): string {
-    return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  }
-
   // Split into alternating plain/matched segments for <mark> rendering.
   // When the text contains the whole query as a contiguous phrase, only the
-  // phrase is marked; scattered single words are marked only as a fallback,
-  // to show why a phrase-less text matched at all.
+  // phrase is marked; otherwise contiguous runs (as single blocks) and
+  // single words are marked as a fallback, to show why the text matched.
   function highlight(text: string): { text: string; hit: boolean }[] {
-    if (!text || terms.length === 0) return [{ text, hit: false }];
-    const phrase =
-      terms.length > 1
-        ? escapeRe(resultsQuery.trim()).replace(/\s+/g, "\\s+")
-        : null;
-    const alts =
-      phrase && new RegExp(phrase, "i").test(text)
-        ? phrase
-        : terms.map(escapeRe).join("|");
-    const exact = new RegExp(`^(${alts})$`, "i");
-    return text
-      .split(new RegExp(`(${alts})`, "gi"))
-      .filter((s) => s !== "")
-      .map((s) => ({ text: s, hit: exact.test(s) }));
+    if (!text) return [{ text, hit: false }];
+    const phrase = findPhraseSpans(text, resultsQuery);
+    const spans =
+      phrase.length > 0 ? phrase : findMatchSpans(text, resultsQuery);
+    if (spans.length === 0) return [{ text, hit: false }];
+    const out: { text: string; hit: boolean }[] = [];
+    let pos = 0;
+    for (const s of spans) {
+      if (s.start > pos)
+        out.push({ text: text.slice(pos, s.start), hit: false });
+      out.push({ text: text.slice(s.start, s.end), hit: true });
+      pos = s.end;
+    }
+    if (pos < text.length) out.push({ text: text.slice(pos), hit: false });
+    return out;
   }
 
   // Arrow/Enter handling; returns true when the event was consumed
