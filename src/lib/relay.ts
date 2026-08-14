@@ -108,11 +108,20 @@ export function resetForumConnection(): void {
 }
 
 // NIP-11 document of the forum relay, fetched once per session. Used for NIP-43
-// discovery: clients must only send relay join requests to relays advertising
-// it, and the `self` pubkey signs the membership events we read back.
-let relayInfo: Promise<{ self: string | null; nips: string[] }> | null = null;
+// discovery (clients must only send relay join requests to relays advertising
+// it; `self` signs the membership events we read back) and for the access gate,
+// which can show the relay's name before anything else is readable.
+export type ForumRelayInfo = {
+  self: string | null;
+  nips: string[];
+  name: string;
+  description: string;
+  icon: string;
+  authRequired: boolean;
+};
+let relayInfo: Promise<ForumRelayInfo> | null = null;
 
-export function forumRelayInfo() {
+export function forumRelayInfo(): Promise<ForumRelayInfo> {
   if (!relayInfo) {
     relayInfo = import("@nostr/tools/nip11")
       .then(({ fetchRelayInformation }) => fetchRelayInformation(RELAY_URL))
@@ -123,9 +132,20 @@ export function forumRelayInfo() {
           self: typeof self === "string" ? self : null,
           // Relays mix numbers and strings in this list
           nips: (info.supported_nips ?? []).map(String),
+          name: info.name ?? "",
+          description: info.description ?? "",
+          icon: info.icon ?? "",
+          authRequired: info.limitation?.auth_required === true,
         };
       })
-      .catch(() => ({ self: null, nips: [] }));
+      .catch(() => ({
+        self: null,
+        nips: [],
+        name: "",
+        description: "",
+        icon: "",
+        authRequired: false,
+      }));
   }
   return relayInfo;
 }

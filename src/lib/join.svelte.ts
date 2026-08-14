@@ -319,34 +319,52 @@ const fail = (
 // Runs the two-level join: relay first (a group join needs relay membership),
 // then group. Everything free happens silently; the first refusal is reported
 // as the step needing user input.
+// Relay-level join (NIP-43). `refused` is set when the relay declined for an
+// unclear reason: a group refusal right after is then more likely the relay
+// gate than the group's.
+async function ensureRelayAccess(
+  pubkey: string,
+  codes: Codes,
+): Promise<{ outcome: Outcome; refused: boolean }> {
+  await ensureRelayMembershipChecked(pubkey);
+  if (relayMembership[pubkey] !== "guest") {
+    return { outcome: { ok: true }, refused: false };
+  }
+  const tags: string[][] = [["-"]];
+  if (codes.relay) tags.push(["claim", codes.relay]);
+  try {
+    await publishSigned(28934, tags);
+    relayMembership[pubkey] = "member";
+  } catch (e) {
+    const msg = reason(e);
+    if (prefixed(msg, "duplicate:")) {
+      relayMembership[pubkey] = "member";
+    } else if (prefixed(msg, "restricted:")) {
+      // A bare request refused is the expected probe, not a user error
+      return {
+        outcome: fail(
+          "relay-code",
+          codes.relay ? stripPrefix(msg) : null,
+          true,
+        ),
+        refused: true,
+      };
+    } else if (prefixed(msg, "blocked:")) {
+      return { outcome: fail("error", stripPrefix(msg)), refused: true };
+    } else {
+      return { outcome: { ok: true }, refused: true };
+    }
+  }
+  return { outcome: { ok: true }, refused: false };
+}
+
 async function ensureAccess(groupId: string, codes: Codes): Promise<Outcome> {
   const pubkey = auth.user?.pubkey;
   if (!pubkey) return fail("error", "Not logged in");
 
-  await ensureRelayMembershipChecked(pubkey);
-  // Set when the relay refused the join for an unclear reason: a group
-  // refusal right after is then more likely the relay gate than the group's.
-  let relayRefused = false;
-  if (relayMembership[pubkey] === "guest") {
-    const tags: string[][] = [["-"]];
-    if (codes.relay) tags.push(["claim", codes.relay]);
-    try {
-      await publishSigned(28934, tags);
-      relayMembership[pubkey] = "member";
-    } catch (e) {
-      const msg = reason(e);
-      if (prefixed(msg, "duplicate:")) {
-        relayMembership[pubkey] = "member";
-      } else if (prefixed(msg, "restricted:")) {
-        // A bare request refused is the expected probe, not a user error
-        return fail("relay-code", codes.relay ? stripPrefix(msg) : null, true);
-      } else if (prefixed(msg, "blocked:")) {
-        return fail("error", stripPrefix(msg));
-      } else {
-        relayRefused = true;
-      }
-    }
-  }
+  const relay = await ensureRelayAccess(pubkey, codes);
+  if (!relay.outcome.ok) return relay.outcome;
+  const relayRefused = relay.refused;
 
   await ensureMembershipChecked(groupId);
   const k = memberKey(groupId);
@@ -383,7 +401,7 @@ async function ensureAccess(groupId: string, codes: Codes): Promise<Outcome> {
 }
 
 function openModal(
-  groupId: string,
+  groupId: string | null,
   refusal: Refusal,
   cb: (() => void | Promise<void>) | null,
 ) {
@@ -449,7 +467,7 @@ export function closeJoinModal() {
 // Re-runs the join with the code entered for the current step. Errors keep the
 // modal open for a retry; a further gate switches the modal to that step.
 export async function submitJoinCode(code?: string) {
-  if (!modalGroup || busy) return;
+  if (!modalOpen || busy) return;
   busy = true;
   modalError = null;
   const groupId = modalGroup;
@@ -457,7 +475,12 @@ export async function submitJoinCode(code?: string) {
   const codes: Codes =
     modalStep === "relay-code" ? { relay: code } : { group: code };
   try {
-    const outcome = await ensureAccess(groupId, codes);
+    const pubkey = auth.user?.pubkey;
+    const outcome = groupId
+      ? await ensureAccess(groupId, codes)
+      : pubkey
+        ? (await ensureRelayAccess(pubkey, codes)).outcome
+        : fail("error", "Not logged in");
     if (!outcome.ok) {
       openModal(groupId, outcome, cb);
       return;
@@ -468,6 +491,24 @@ export async function submitJoinCode(code?: string) {
     if (cb) await cb();
   } catch (e) {
     modalError = reason(e);
+  } finally {
+    busy = false;
+  }
+}
+
+// Relay-only join, for a relay that refuses reads from non-members: no group
+// is involved, so the modal (if any) targets the relay alone.
+export async function joinRelay(cb: () => void | Promise<void>): Promise<void> {
+  const pubkey = auth.user?.pubkey;
+  if (!pubkey || busy) return;
+  busy = true;
+  try {
+    const { outcome } = await ensureRelayAccess(pubkey, {});
+    if (!outcome.ok) {
+      openModal(null, outcome, cb);
+      return;
+    }
+    await cb();
   } finally {
     busy = false;
   }
