@@ -10,24 +10,15 @@ import {
   buildPTagHints,
 } from "$lib/mentions";
 import { convertForumUrls } from "$lib/linkify";
+import {
+  fetchThread,
+  type PostData,
+  type ThreadDetail,
+} from "$lib/forum/thread";
+
+export type { PostData };
 
 const isNostrId = (id: string) => /^[0-9a-f]{64}$/.test(id);
-
-export type PostData = {
-  id: string;
-  pubkey: string;
-  createdAt: number;
-  content: string;
-};
-
-type ThreadDetail = {
-  id: string;
-  title: string;
-  labels: string[];
-  groupId: string; // the thread's NIP-29 group (its `h` tag)
-  op: PostData;
-  replies: PostData[];
-};
 
 let detail = $state<ThreadDetail | null>(null);
 let profiles = $state<Record<string, NostrUser>>({});
@@ -104,39 +95,13 @@ export async function loadThread(id: string) {
     return;
   }
 
-  const [threadEvents, replyEvents] = await Promise.all([
-    queryForum({ kinds: [11], ids: [id] }),
-    queryForum({ kinds: [1111], "#E": [id] }),
-  ]);
-
-  const event = threadEvents[0];
-  if (!event) {
+  const next = await fetchThread(queryForum, id, GROUP_ID);
+  if (!next) {
     status = "notfound";
     return;
   }
-
-  const replies = replyEvents.sort((a, b) => a.created_at - b.created_at);
-
-  detail = {
-    id: event.id,
-    title: event.tags.find((t) => t[0] === "title")?.[1] ?? "(untitled)",
-    labels: event.tags.filter((t) => t[0] === "t" && t[1]).map((t) => t[1]),
-    groupId: event.tags.find((t) => t[0] === "h")?.[1] ?? GROUP_ID,
-    op: {
-      id: event.id,
-      pubkey: event.pubkey,
-      createdAt: event.created_at,
-      content: event.content,
-    },
-    replies: replies.map((r) => ({
-      id: r.id,
-      pubkey: r.pubkey,
-      createdAt: r.created_at,
-      content: r.content,
-    })),
-  };
-
-  [event.pubkey, ...replies.map((r) => r.pubkey)].forEach(loadProfile);
+  detail = next;
+  [next.op.pubkey, ...next.replies.map((r) => r.pubkey)].forEach(loadProfile);
   status = "ready";
 }
 

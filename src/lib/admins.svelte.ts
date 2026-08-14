@@ -1,6 +1,7 @@
 import { MODE } from "$lib/config";
 import { groupStore } from "$lib/group.svelte";
 import { queryForum } from "$lib/relay";
+import { fetchRoomAdmins } from "$lib/forum/groups";
 
 // room id -> admin pubkeys (NIP-29 kind 39001 `p` tags), across all rooms.
 let byRoom = $state<Record<string, string[]>>({});
@@ -48,17 +49,7 @@ export async function loadRoomAdmins(roomIds: string[]) {
   loadedKey = key;
 
   try {
-    const events = await queryForum({
-      kinds: [39001],
-      "#d": roomIds,
-    });
-    const map: Record<string, string[]> = {};
-    for (const e of events) {
-      const d = e.tags.find((t) => t[0] === "d")?.[1];
-      if (!d) continue;
-      map[d] = e.tags.filter((t) => t[0] === "p" && t[1]).map((t) => t[1]);
-    }
-    byRoom = map;
+    byRoom = await fetchRoomAdmins(queryForum, roomIds);
   } finally {
     loaded = true;
   }

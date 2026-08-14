@@ -1,22 +1,15 @@
-import type { AbstractRelay } from "@nostr/tools/abstract-relay";
-import type { Event } from "@nostr/tools/core";
-import type { Filter } from "@nostr/tools/filter";
 import { loadNostrUser, type NostrUser } from "$lib/gadgets";
 import { ensureForumRelay } from "$lib/relay";
 import { ingestNostrUser } from "$lib/profiles.svelte";
+import { relayQuery } from "$lib/forum/query";
+import {
+  fetchOverview,
+  overviewPubkeys,
+  type RecentThread,
+  type RoomActivity,
+} from "$lib/forum/overview";
 
-export type RoomActivity = {
-  latestAt: number;
-  latestPubkey: string;
-};
-
-export type RecentThread = {
-  id: string;
-  title: string;
-  groupId: string;
-  authorPubkey: string;
-  createdAt: number;
-};
+export type { RecentThread, RoomActivity };
 
 let activity = $state<Record<string, RoomActivity>>({});
 let admins = $state<Record<string, string>>({}); // room id -> first admin pubkey
@@ -43,24 +36,6 @@ export const overviewStore = {
   },
 };
 
-function querySync(relay: AbstractRelay, filter: Filter): Promise<Event[]> {
-  return new Promise((resolve) => {
-    const events: Event[] = [];
-    const sub = relay.subscribe([filter], {
-      onevent(e) {
-        events.push(e);
-      },
-      oneose() {
-        sub.close();
-        resolve(events);
-      },
-      onclose() {
-        resolve(events);
-      },
-    });
-  });
-}
-
 async function loadProfile(pubkey: string) {
   if (profiles[pubkey]) return;
   const user = await loadNostrUser(pubkey);
@@ -77,54 +52,14 @@ export async function loadOverview(roomIds: string[]) {
   loadedKey = key;
 
   loading = true;
-  const relay = await ensureForumRelay();
   try {
-    // One tiny query per room for its newest event (thread or reply).
-    const latest = await Promise.all(
-      roomIds.map((id) =>
-        querySync(relay, { kinds: [11, 1111], "#h": [id], limit: 1 }),
-      ),
-    );
-    const act: Record<string, RoomActivity> = {};
-    roomIds.forEach((id, i) => {
-      const e = latest[i][0];
-      if (e) act[id] = { latestAt: e.created_at, latestPubkey: e.pubkey };
-    });
-    activity = act;
-
-    // Each room's admin (NIP-29 kind 39001, first `p` tag) for the card byline.
-    const adminEvents = await Promise.all(
-      roomIds.map((id) => querySync(relay, { kinds: [39001], "#d": [id] })),
-    );
-    const adm: Record<string, string> = {};
-    roomIds.forEach((id, i) => {
-      const pk = adminEvents[i][0]?.tags.find((t) => t[0] === "p")?.[1];
-      if (pk) adm[id] = pk;
-    });
-    admins = adm;
-
-    // Most recent discussions (thread OPs) across all rooms. The group relay
-    // truncates multi-value "#h" filters, so query each room and merge.
-    const perRoom = await Promise.all(
-      roomIds.map((id) =>
-        querySync(relay, { kinds: [11], "#h": [id], limit: 20 }),
-      ),
-    );
-    const threads = perRoom.flat();
-    threads.sort((a, b) => b.created_at - a.created_at);
-    recent = threads.slice(0, 20).map((e) => ({
-      id: e.id,
-      title: e.tags.find((t) => t[0] === "title")?.[1] ?? "(untitled)",
-      groupId: e.tags.find((t) => t[0] === "h")?.[1] ?? "",
-      authorPubkey: e.pubkey,
-      createdAt: e.created_at,
-    }));
-
-    for (const a of Object.values(act)) loadProfile(a.latestPubkey);
-    for (const pk of Object.values(adm)) loadProfile(pk);
-    for (const t of recent) loadProfile(t.authorPubkey);
+    const q = relayQuery(await ensureForumRelay());
+    const o = await fetchOverview(q, roomIds);
+    activity = o.activity;
+    admins = o.admins;
+    recent = o.recent;
+    overviewPubkeys(o).forEach(loadProfile);
   } finally {
-    // shared forum connection is long-lived — don't close it here
     loading = false;
   }
 }
