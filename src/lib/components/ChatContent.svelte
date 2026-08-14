@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { loadNostrUser, type NostrUser } from "@nostr/gadgets/metadata";
+  import { loadNostrUser, type NostrUser } from "$lib/gadgets";
   import { tokenizeChat } from "$lib/linkify";
   import {
     resolveThreadRef,

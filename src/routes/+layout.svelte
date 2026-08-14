@@ -179,7 +179,9 @@
   <link rel="icon" href={favicon} />
 </svelte:head>
 
-{#if relayAccess.state !== "open"}
+<!-- The server and the pre-probe client render the forum; the gate only
+   replaces it once a probe confirms the relay refuses this visitor. -->
+{#if relayAccess.state !== "open" && relayAccess.state !== "checking"}
   <RelayGate />
 {:else}
   <div

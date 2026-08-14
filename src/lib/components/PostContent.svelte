@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { loadNostrUser, type NostrUser } from "@nostr/gadgets/metadata";
+  import { loadNostrUser, type NostrUser } from "$lib/gadgets";
   import * as nip19 from "@nostr/tools/nip19";
   import {
     resolveThreadRef,

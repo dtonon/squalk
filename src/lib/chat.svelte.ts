@@ -1,5 +1,5 @@
 import type { Event } from "@nostr/tools";
-import { loadNostrUser, type NostrUser } from "@nostr/gadgets/metadata";
+import { loadNostrUser, type NostrUser } from "$lib/gadgets";
 import { RELAY_URL } from "$lib/config";
 import { auth } from "$lib/auth.svelte";
 import { queryForum, publishForum, subscribeForum } from "$lib/relay";

@@ -30,7 +30,7 @@
   import MessageEditor from "$lib/components/MessageEditor.svelte";
   import PostContent from "$lib/components/PostContent.svelte";
   import Tag from "$lib/components/Tag.svelte";
-  import { type NostrUser } from "@nostr/gadgets/metadata";
+  import type { NostrUser } from "$lib/gadgets";
 
   type Author = { pubkey: string; name: string; picture?: string };
 

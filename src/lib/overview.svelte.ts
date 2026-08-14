@@ -1,7 +1,7 @@
 import type { AbstractRelay } from "@nostr/tools/abstract-relay";
 import type { Event } from "@nostr/tools/core";
 import type { Filter } from "@nostr/tools/filter";
-import { loadNostrUser, type NostrUser } from "@nostr/gadgets/metadata";
+import { loadNostrUser, type NostrUser } from "$lib/gadgets";
 import { ensureForumRelay } from "$lib/relay";
 import { ingestNostrUser } from "$lib/profiles.svelte";
 

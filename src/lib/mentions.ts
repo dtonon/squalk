@@ -1,5 +1,5 @@
 import * as nip19 from "@nostr/tools/nip19";
-import { loadRelayList } from "@nostr/gadgets/lists";
+import { loadRelayList } from "$lib/gadgets";
 
 const RELAY_HINT_TIMEOUT_MS = 1500;
 

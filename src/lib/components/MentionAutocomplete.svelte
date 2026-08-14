@@ -1,7 +1,7 @@
 <script lang="ts">
   import { tick } from "svelte";
   import * as nip19 from "@nostr/tools/nip19";
-  import { loadRelayList } from "@nostr/gadgets/lists";
+  import { loadRelayList } from "$lib/gadgets";
   import {
     profileStore,
     searchLocalProfiles,

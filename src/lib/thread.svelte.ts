@@ -1,4 +1,4 @@
-import { loadNostrUser, type NostrUser } from "@nostr/gadgets/metadata";
+import { loadNostrUser, type NostrUser } from "$lib/gadgets";
 import { RELAY_URL, GROUP_ID } from "$lib/config";
 import { queryForum, publishForum } from "$lib/relay";
 import { threads as mockThreads } from "$lib/mock";

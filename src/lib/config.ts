@@ -18,6 +18,9 @@ export const GROUP_ID = env.PUBLIC_GROUP_ID ?? "";
 if (MODE === "simple" && !GROUP_ID) {
   throw new Error("PUBLIC_GROUP_ID is required in simple mode");
 }
+// Server-side rendering: opt-in, and only meaningful when the build targets the
+// Node adapter (svelte.config.js reads the same variable).
+export const SSR_ENABLED = env.PUBLIC_SSR === "yes";
 // Requires a relay with NIP-50 support.
 export const SEARCH_ENABLED = env.PUBLIC_SEARCH === "yes";
 export const LABELS = (env.PUBLIC_LABELS ?? "")
