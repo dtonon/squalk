@@ -3,6 +3,8 @@ import type { NostrUser } from "$lib/gadgets";
 import type { GroupMetadata, GroupSummary } from "./groups";
 import type { Resource } from "./resources";
 import type { Partial } from "./partials";
+import type { SortMode, ThreadPage } from "./threads";
+import type { Overview } from "./overview";
 
 // What the server rendered a page with. Stores treat these as the baseline
 // (see the `page.data` fallbacks) until their own live fetch lands.
@@ -16,6 +18,18 @@ export type ForumShell = {
 };
 
 export type Profiles = Record<string, NostrUser>;
+
+export type ThreadsSnapshot = ThreadPage & {
+  groupId: string;
+  sort: SortMode;
+  snapshotAt: number;
+  profiles: Profiles;
+};
+
+export type OverviewSnapshot = Overview & {
+  roomIds: string[];
+  profiles: Profiles;
+};
 
 type Fetch = typeof fetch;
 

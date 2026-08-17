@@ -1,3 +1,4 @@
+import { page } from "$app/state";
 import { loadNostrUser, type NostrUser } from "$lib/gadgets";
 import { ensureForumRelay } from "$lib/relay";
 import { ingestNostrUser } from "$lib/profiles.svelte";
@@ -21,15 +22,34 @@ let cursor: number | null = null; // sort-key value of the last loaded thread
 let snapshotAt = 0; // upper time bound, frozen at initial load
 let reqId = 0; // supersedes in-flight loads when the sort/group changes
 
+// Which listing the client asked for, and whether its first page is in.
+let requested = $state<{ groupId: string; sort: SortMode } | null>(null);
+let settled = $state(false);
+
+// The server snapshot stands in until the live listing lands, but only for
+// the listing that was requested: a different room or sort shows "Loading…".
+function fallback() {
+  const s = page.data.threads;
+  if (!s) return null;
+  if (
+    requested &&
+    (requested.groupId !== s.groupId || requested.sort !== s.sort)
+  )
+    return null;
+  return s;
+}
+
 export const threadStore = {
   get threads() {
-    return threads;
+    if (settled || threads.length > 0) return threads;
+    return fallback()?.threads ?? threads;
   },
   get profiles() {
-    return profiles;
+    const base = fallback()?.profiles;
+    return base ? { ...base, ...profiles } : profiles;
   },
   get exhausted() {
-    return exhausted;
+    return settled ? exhausted : (fallback()?.done ?? exhausted);
   },
   get loading() {
     return loading;
@@ -63,6 +83,7 @@ async function runLoad(append: boolean, groupId: string) {
     threads = append ? [...threads, ...page.threads] : page.threads;
     cursor = page.nextCursor ?? cursor;
     exhausted = page.done || page.threads.length === 0;
+    settled = true;
     for (const t of page.threads) {
       loadProfile(t.authorPubkey);
       loadProfile(t.latestPubkey);
@@ -78,6 +99,8 @@ async function runLoad(append: boolean, groupId: string) {
 
 export async function loadThreads(groupId: string, sort: SortMode = "active") {
   sortMode = sort;
+  requested = { groupId, sort };
+  settled = false;
   threads = [];
   cursor = null;
   exhausted = false;

@@ -1,3 +1,4 @@
+import { page } from "$app/state";
 import { loadNostrUser, type NostrUser } from "$lib/gadgets";
 import { ensureForumRelay } from "$lib/relay";
 import { ingestNostrUser } from "$lib/profiles.svelte";
@@ -17,19 +18,26 @@ let recent = $state<RecentThread[]>([]);
 let profiles = $state<Record<string, NostrUser>>({});
 let loading = $state(false);
 let loadedKey = ""; // room-id set last loaded for, to avoid redundant refetches
+let settled = $state(false); // first live load finished
+
+// Until the live fetch lands, the server snapshot (if any) stands in.
+function fallback() {
+  return settled ? null : (page.data.overview ?? null);
+}
 
 export const overviewStore = {
   get activity() {
-    return activity;
+    return fallback()?.activity ?? activity;
   },
   get admins() {
-    return admins;
+    return fallback()?.admins ?? admins;
   },
   get recent() {
-    return recent;
+    return fallback()?.recent ?? recent;
   },
   get profiles() {
-    return profiles;
+    const base = page.data.overview?.profiles;
+    return base ? { ...base, ...profiles } : profiles;
   },
   get loading() {
     return loading;
@@ -58,6 +66,7 @@ export async function loadOverview(roomIds: string[]) {
     activity = o.activity;
     admins = o.admins;
     recent = o.recent;
+    settled = true;
     overviewPubkeys(o).forEach(loadProfile);
   } finally {
     loading = false;

@@ -1,6 +1,11 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
-import type { ForumShell, Profiles } from "$lib/forum/snapshot";
+import type {
+  ForumShell,
+  OverviewSnapshot,
+  Profiles,
+  ThreadsSnapshot,
+} from "$lib/forum/snapshot";
 import type { ThreadDetail } from "$lib/forum/thread";
 
 declare global {
@@ -12,6 +17,8 @@ declare global {
       shell?: ForumShell | null;
       profiles?: Profiles | null;
       thread?: ThreadDetail | null;
+      threads?: ThreadsSnapshot | null;
+      overview?: OverviewSnapshot | null;
     }
     // interface PageState {}
     // interface Platform {}
