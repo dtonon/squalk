@@ -3,6 +3,14 @@ import * as nip19 from "@nostr/tools/nip19";
 import type { NostrUser } from "$lib/gadgets";
 import type { Query } from "./query";
 
+// Public relays with broad kind-0 coverage.
+export const PROFILE_RELAYS = [
+  "wss://purplepag.es",
+  "wss://relay.nostr.band",
+  "wss://relay.damus.io",
+  "wss://nos.lol",
+];
+
 // Same shape @nostr/gadgets produces, built here from raw kind-0 events so the
 // server can resolve authors without that (browser-only) library.
 export function bareUser(pubkey: string): NostrUser {

@@ -1,3 +1,4 @@
+import { page } from "$app/state";
 import { GROUP_ID, MODE } from "$lib/config";
 import { queryForum } from "$lib/relay";
 import { groupsStore } from "$lib/groups.svelte";
@@ -15,12 +16,13 @@ export type GroupFlags = {
 let group = $state<GroupMetadata | null>(null);
 let loaded = $state(false);
 
+// Until the live fetch lands, the server snapshot (if any) stands in.
 export const groupStore = {
   get data() {
-    return group;
+    return group ?? page.data.shell?.group ?? null;
   },
   get loaded() {
-    return loaded;
+    return loaded || !!page.data.shell;
   },
 };
 

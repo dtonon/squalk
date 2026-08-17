@@ -4,6 +4,7 @@ import { SvelteMap, SvelteSet } from "svelte/reactivity";
 import type { NostrUser } from "@nostr/gadgets/metadata";
 import { GROUP_ID } from "$lib/config";
 import { queryForum } from "$lib/relay";
+import { PROFILE_RELAYS } from "$lib/forum/profiles";
 
 export type ProfileEntry = {
   pubkey: string;
@@ -27,12 +28,6 @@ const SEARCH_RELAYS = [
 // Indexer relays used for kind:0 / kind:3 lookups. The forum relay almost
 // never has these — they live on each author's outbox relays — so we query
 // a small set of well-known aggregators.
-const PROFILE_RELAYS = [
-  "wss://purplepag.es",
-  "wss://relay.nostr.band",
-  "wss://relay.damus.io",
-  "wss://nos.lol",
-];
 const FETCH_BATCH_SIZE = 500;
 
 const profiles = new SvelteMap<string, ProfileEntry>();

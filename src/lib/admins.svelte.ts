@@ -1,3 +1,4 @@
+import { page } from "$app/state";
 import { MODE } from "$lib/config";
 import { groupStore } from "$lib/group.svelte";
 import { queryForum } from "$lib/relay";
@@ -8,12 +9,13 @@ let byRoom = $state<Record<string, string[]>>({});
 let loaded = $state(false);
 let loadedKey = "";
 
+// Until the live fetch lands, the server snapshot (if any) stands in.
 export const roomAdminsStore = {
   get byRoom() {
-    return byRoom;
+    return loaded ? byRoom : (page.data.shell?.adminsByRoom ?? {});
   },
   get loaded() {
-    return loaded;
+    return loaded || !!page.data.shell;
   },
 };
 
@@ -22,11 +24,11 @@ export const roomAdminsStore = {
 export const adminPubkeys = {
   get list(): string[] {
     return MODE === "full"
-      ? [...new Set(Object.values(byRoom).flat())]
+      ? [...new Set(Object.values(roomAdminsStore.byRoom).flat())]
       : (groupStore.data?.admins ?? []);
   },
   get loaded(): boolean {
-    return MODE === "full" ? loaded : groupStore.loaded;
+    return MODE === "full" ? roomAdminsStore.loaded : groupStore.loaded;
   },
 };
 
@@ -38,7 +40,7 @@ export function isGroupAdmin(
 ): boolean {
   if (!pubkey || !groupId) return false;
   return MODE === "full"
-    ? (byRoom[groupId]?.includes(pubkey) ?? false)
+    ? (roomAdminsStore.byRoom[groupId]?.includes(pubkey) ?? false)
     : (groupStore.data?.admins?.includes(pubkey) ?? false);
 }
 

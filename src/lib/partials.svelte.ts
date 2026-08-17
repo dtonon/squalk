@@ -1,3 +1,4 @@
+import { page } from "$app/state";
 import { adminPubkeys } from "$lib/admins.svelte";
 import { queryForum } from "$lib/relay";
 import {
@@ -12,12 +13,14 @@ export type { Partial, PartialSlot };
 let all = $state<Partial[]>([]);
 let loaded = $state(false);
 
+// Until the live fetch lands, the server snapshot (if any) stands in.
 export const partialsStore = {
   get(slot: PartialSlot): Partial | undefined {
-    return pickPartial(all, slot, adminPubkeys.list);
+    const source = loaded ? all : (page.data.shell?.partials ?? []);
+    return pickPartial(source, slot, adminPubkeys.list);
   },
   get loaded() {
-    return loaded;
+    return loaded || !!page.data.shell;
   },
 };
 
