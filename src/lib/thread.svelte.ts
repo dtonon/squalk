@@ -1,4 +1,5 @@
 import { loadNostrUser, type NostrUser } from "$lib/gadgets";
+import { page } from "$app/state";
 import { RELAY_URL, GROUP_ID } from "$lib/config";
 import { queryForum, publishForum } from "$lib/relay";
 import { threads as mockThreads } from "$lib/mock";
@@ -26,15 +27,18 @@ let profiles = $state<Record<string, NostrUser>>({});
 // in a private group the current (non-member) user can't read.
 let status = $state<"loading" | "ready" | "notfound">("loading");
 
+// Until the live fetch lands, the server snapshot (if any) stands in. Its
+// profiles stay as a base layer: the live ones arrive one by one.
 export const threadDetailStore = {
   get detail() {
-    return detail;
+    return detail ?? page.data.thread ?? null;
   },
   get profiles() {
-    return profiles;
+    const base = page.data.profiles;
+    return base ? { ...base, ...profiles } : profiles;
   },
   get status() {
-    return status;
+    return status === "loading" && page.data.thread ? "ready" : status;
   },
 };
 
