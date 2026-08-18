@@ -90,12 +90,20 @@ npm run dev -- --open
 
 ## Building
 
-To create a production version of your app:
+Two deployment targets share the same code base, selected by `PUBLIC_SSR`:
 
-```sh
-npm run build
-```
+- **Static (default, `PUBLIC_SSR=no`)** — `npm run build` (or `just build`) writes a single-page bundle to `build/`; serve it from any web server with `index.html` as the fallback for unknown paths. Everything is fetched by the browser.
+- **Server-rendered (`PUBLIC_SSR=yes`)** — `just build-ssr` writes a Node app to `build/`. Pages arrive as crawlable HTML (threads, rooms, resources, contacts, with description/Open Graph tags, JSON-LD, a live `robots.txt` and `sitemap.xml`, and real 404s), then the browser takes over exactly as in the static build. The server reads the relay anonymously, so it only ever renders public content; members see their private rooms once the client is running.
 
-You can preview the production build with `npm run preview`.
+Preview a build locally with `npm run preview` (static) or `node --env-file=.env.production build` (server).
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+## Deploying
+
+`just deploy <host>` rsyncs the static bundle to `~/squalk/` on the host and purges the Cloudflare cache.
+
+`just deploy-ssr <host>` ships the Node build, `package.json`/`package-lock.json` and `.env.production` (as `~/squalk/.env`, since the server reads the `PUBLIC_*` values at runtime), runs `npm ci --omit=dev` and restarts the `squalk` systemd unit. On the host you need:
+
+- Node 22 or newer (the relay client uses the built-in `WebSocket`).
+- The unit from [`deploy/squalk.service`](deploy/squalk.service), with `ORIGIN` set to the public URL — it feeds canonical links, `robots.txt` and the sitemap.
+- A reverse proxy (Caddy, nginx) in front of the port in `PORT`.
+- If Cloudflare sits in front, a cache rule that caches HTML and respects origin headers: pages and snapshots are sent with `Cache-Control: public, max-age=0, s-maxage=300, stale-while-revalidate=3600`, so the edge serves them for five minutes and refreshes in the background for an hour after that. `just deploy-ssr` purges the cache after each release.
