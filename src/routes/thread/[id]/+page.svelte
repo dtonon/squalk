@@ -30,6 +30,8 @@
   import MessageEditor from "$lib/components/MessageEditor.svelte";
   import PostContent from "$lib/components/PostContent.svelte";
   import Tag from "$lib/components/Tag.svelte";
+  import Meta from "$lib/components/Meta.svelte";
+  import { excerpt } from "$lib/seo";
   import type { NostrUser } from "$lib/gadgets";
 
   type Author = { pubkey: string; name: string; picture?: string };
@@ -119,6 +121,25 @@
 
   const detail = $derived(threadDetailStore.detail);
   const profiles = $derived(threadDetailStore.profiles);
+
+  // Structured data for crawlers: the OP as a forum posting.
+  const jsonLd = $derived(
+    detail
+      ? {
+          "@context": "https://schema.org",
+          "@type": "DiscussionForumPosting",
+          headline: detail.title,
+          text: detail.op.content,
+          url: page.url.origin + page.url.pathname,
+          datePublished: new Date(detail.op.createdAt * 1000).toISOString(),
+          author: {
+            "@type": "Person",
+            name: resolveAuthor(detail.op.pubkey, profiles).name,
+          },
+          commentCount: detail.replies.length,
+        }
+      : undefined,
+  );
 
   // Replying needs membership regardless of flags. Only gate a confirmed guest;
   // while membership resolves the editor stays and submit awaits the check, so a
@@ -322,9 +343,12 @@
   });
 </script>
 
-<svelte:head>
-  <title>{detail?.title ?? "Thread"}</title>
-</svelte:head>
+<Meta
+  title={detail?.title ?? "Thread"}
+  description={detail ? excerpt(detail.op.content) : ""}
+  type="article"
+  {jsonLd}
+/>
 
 {#snippet avatar(author: Author)}
   {#if author.picture}

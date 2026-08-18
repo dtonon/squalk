@@ -7,9 +7,25 @@
   import { partialsStore } from "$lib/partials.svelte";
   import { MODE, GROUP_ID, SEARCH_ENABLED } from "$lib/config";
   import SearchInline from "$lib/components/SearchInline.svelte";
+  import Meta from "$lib/components/Meta.svelte";
+  import { groupStore } from "$lib/group.svelte";
+  import { excerpt } from "$lib/seo";
   import type { NostrUser } from "@nostr/gadgets/metadata";
 
   const partial = $derived(partialsStore.get("home"));
+
+  const description = $derived(
+    partial
+      ? excerpt(partial.content)
+      : MODE === "simple"
+        ? (groupStore.data?.about ?? "")
+        : "",
+  );
+  // A partial's leading image doubles as the social preview.
+  const image = $derived(
+    partial?.content.match(/^https?:\/\/\S+\.(?:png|jpe?g|webp|gif)$/im)?.[0] ??
+      groupStore.data?.picture,
+  );
 
   // Full mode: load per-room activity + recent threads once the rooms are known.
   $effect(() => {
@@ -35,9 +51,7 @@
   }
 </script>
 
-<svelte:head>
-  <title>{MODE === "full" ? "Rooms" : "Discussions"}</title>
-</svelte:head>
+<Meta title={MODE === "full" ? "Rooms" : "Discussions"} {description} {image} />
 
 {#snippet pic(a: { name: string; picture?: string })}
   {#if a.picture}

@@ -3,6 +3,8 @@
   import { resourcesStore } from "$lib/resources.svelte";
   import { adminPubkeys } from "$lib/admins.svelte";
   import PostContent from "$lib/components/PostContent.svelte";
+  import Meta from "$lib/components/Meta.svelte";
+  import { excerpt } from "$lib/seo";
 
   const slug = $derived(page.params.slug ?? "");
   const resource = $derived(resourcesStore.list.find((r) => r.slug === slug));
@@ -10,23 +12,10 @@
   const ready = $derived(resourcesStore.loaded && adminPubkeys.loaded);
   const notFound = $derived(ready && !resource);
 
-  // First non-empty line of the body, trimmed of markdown markers, for SEO.
-  const description = $derived(
-    (resource?.content ?? "")
-      .replace(/^#+\s*/gm, "")
-      .split("\n")
-      .map((l) => l.trim())
-      .find(Boolean)
-      ?.slice(0, 160) ?? "",
-  );
+  const description = $derived(excerpt(resource?.content ?? ""));
 </script>
 
-<svelte:head>
-  <title>{resource?.title ?? "Resource"}</title>
-  {#if description}
-    <meta name="description" content={description} />
-  {/if}
-</svelte:head>
+<Meta title={resource?.title ?? "Resource"} {description} type="article" />
 
 <div class="mx-auto max-w-6xl">
   <a
@@ -56,8 +45,12 @@
       <PostContent content={resource.content} headingOffset={0} />
     </div>
   {:else if notFound}
-    <p class="py-12 text-center text-neutral-400 dark:text-neutral-500">Resource not found.</p>
+    <p class="py-12 text-center text-neutral-400 dark:text-neutral-500">
+      Resource not found.
+    </p>
   {:else}
-    <p class="py-12 text-center text-neutral-400 dark:text-neutral-500">Loading…</p>
+    <p class="py-12 text-center text-neutral-400 dark:text-neutral-500">
+      Loading…
+    </p>
   {/if}
 </div>

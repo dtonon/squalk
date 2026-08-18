@@ -16,6 +16,7 @@
   import { partialsStore } from "$lib/partials.svelte";
   import PostContent from "$lib/components/PostContent.svelte";
   import { page } from "$app/state";
+  import Meta from "$lib/components/Meta.svelte";
 
   const partial = $derived(partialsStore.get("contacts"));
 
@@ -86,10 +87,7 @@
   }
 </script>
 
-<svelte:head>
-  <title>Contacts</title>
-  <meta name="description" content="Admins and contacts for this community." />
-</svelte:head>
+<Meta title="Contacts" description="Admins and contacts for this community." />
 
 <div class="mx-auto max-w-6xl">
   <h1 class="text-accent py-2 text-[1.65rem]">Contacts</h1>

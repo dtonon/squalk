@@ -1,4 +1,5 @@
 import { browser } from "$app/environment";
+import { error } from "@sveltejs/kit";
 import type { NostrUser } from "$lib/gadgets";
 import type { GroupMetadata, GroupSummary } from "./groups";
 import type { Resource } from "./resources";
@@ -37,14 +38,22 @@ type Fetch = typeof fetch;
 // HTML; in the browser it is consumed only while hydrating that HTML. Client
 // navigations get null, leaving the stores to fetch live (and authenticated)
 // data as they always did — the same path a client-only build takes.
+// A 404 from the endpoint becomes a real 404 page on the server, so crawlers
+// never index an empty shell; the client keeps its own not-found handling.
 export async function snapshot<T>(
   fetch: Fetch,
   url: string,
 ): Promise<T | null> {
   if (browser && !hasInlinedResponse(url)) return null;
+  let res: Response;
   try {
-    const res = await fetch(url);
-    if (!res.ok) return null;
+    res = await fetch(url);
+  } catch {
+    return null;
+  }
+  if (res.status === 404 && !browser) error(404, "Not found");
+  if (!res.ok) return null;
+  try {
     return (await res.json()) as T;
   } catch {
     return null;

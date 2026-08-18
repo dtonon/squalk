@@ -21,6 +21,11 @@ if (MODE === "simple" && !GROUP_ID) {
 // Server-side rendering: opt-in, and only meaningful when the build targets the
 // Node adapter (svelte.config.js reads the same variable).
 export const SSR_ENABLED = env.PUBLIC_SSR === "yes";
+// Server-rendered pages and snapshots are anonymous, so a shared cache may
+// hold them: fresh for 5 minutes, served stale for an hour while revalidating.
+// Browsers always revalidate (max-age=0) so a login shows its content at once.
+export const CACHE_CONTROL =
+  "public, max-age=0, s-maxage=300, stale-while-revalidate=3600";
 // Requires a relay with NIP-50 support.
 export const SEARCH_ENABLED = env.PUBLIC_SEARCH === "yes";
 export const LABELS = (env.PUBLIC_LABELS ?? "")

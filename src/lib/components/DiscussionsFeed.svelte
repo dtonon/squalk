@@ -11,6 +11,10 @@
     type Author,
   } from "$lib/components/ThreadItem.svelte";
   import SortToggle from "$lib/components/SortToggle.svelte";
+  import Meta from "$lib/components/Meta.svelte";
+  import { groupStore } from "$lib/group.svelte";
+  import { groupsStore } from "$lib/groups.svelte";
+  import { MODE } from "$lib/config";
   import type { NostrUser } from "@nostr/gadgets/metadata";
   import { auth, openLogin } from "$lib/auth.svelte";
   import { openDraft } from "$lib/draft.svelte";
@@ -44,6 +48,12 @@
   $effect(() => {
     if (urlSort) sortPref.value = urlSort;
   });
+
+  const about = $derived(
+    MODE === "full"
+      ? (groupsStore.list.find((g) => g.id === groupId)?.about ?? "")
+      : (groupStore.data?.about ?? ""),
+  );
 
   const flags = $derived(getGroupFlags(groupId));
   const member = $derived(membershipOf(groupId));
@@ -123,9 +133,7 @@
   );
 </script>
 
-<svelte:head>
-  <title>{title}</title>
-</svelte:head>
+<Meta {title} description={about} />
 
 <div class="mx-auto max-w-6xl">
   <div class="flex flex-wrap items-center justify-between gap-2 py-2">
