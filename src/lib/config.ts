@@ -18,9 +18,9 @@ export const GROUP_ID = env.PUBLIC_GROUP_ID ?? "";
 if (MODE === "simple" && !GROUP_ID) {
   throw new Error("PUBLIC_GROUP_ID is required in simple mode");
 }
-// Server-side rendering: opt-in, and only meaningful when the build targets the
-// Node adapter (svelte.config.js reads the same variable).
-export const SSR_ENABLED = env.PUBLIC_SSR === "yes";
+// Server-side rendering: opt-in, decided at build time (vite.config.ts bakes
+// PUBLIC_SSR in; svelte.config.js picks the matching adapter).
+export const SSR_ENABLED = __SQUALK_SSR__;
 // Server-rendered pages and snapshots are anonymous, so a shared cache may
 // hold them: fresh for 5 minutes, served stale for an hour while revalidating.
 // Browsers always revalidate (max-age=0) so a login shows its content at once.

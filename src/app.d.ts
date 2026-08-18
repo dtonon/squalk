@@ -9,6 +9,9 @@ import type {
 import type { ThreadDetail } from "$lib/forum/thread";
 
 declare global {
+  // Injected by vite.config.ts from PUBLIC_SSR
+  const __SQUALK_SSR__: boolean;
+
   namespace App {
     // interface Error {}
     // interface Locals {}
