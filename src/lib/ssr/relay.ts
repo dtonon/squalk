@@ -12,15 +12,20 @@ import type { Query } from "$lib/forum/query";
 // cached briefly to absorb crawler bursts.
 const QUERY_TIMEOUT = 2500;
 const PROFILE_TIMEOUT = 1500;
+const CONNECT_TIMEOUT = 1500;
 const CACHE_TTL = 30_000;
+const DEAD_RELAY_TTL = 5 * 60_000;
 const CACHE_MAX = 2000;
 
 const pool = new SimplePool();
 const cache = new Map<string, { at: number; result: Promise<Event[]> }>();
+// Relays that failed to connect are skipped for a while, so a dead profile
+// relay doesn't add its connect timeout to every cold page.
+const deadUntil = new Map<string, number>();
 
-// Resolve at EOSE from every relay or at the deadline, whichever comes first,
-// with whatever arrived: a stalled relay must not cost the events the others
-// already delivered.
+// Ask every reachable relay and resolve as soon as each has answered (EOSE or
+// closed), or at the deadline, whichever comes first — always with whatever
+// arrived, so one stalled relay never costs the events the others delivered.
 function boundedQuery(
   relays: string[],
   filter: Filter,
@@ -28,24 +33,54 @@ function boundedQuery(
 ): Promise<Event[]> {
   return new Promise((resolve) => {
     const events: Event[] = [];
+    const subs: { close(): void }[] = [];
     let done = false;
-    let sub: { close(): void } | null = null;
+    let pending = 0;
     const finish = () => {
       if (done) return;
       done = true;
       clearTimeout(timer);
-      sub?.close();
+      for (const s of subs) {
+        try {
+          s.close();
+        } catch {
+          // Already closed
+        }
+      }
       resolve(events);
     };
     const timer = setTimeout(finish, maxWait);
-    try {
-      sub = pool.subscribeMany(relays, filter, {
-        onevent: (e) => events.push(e),
-        oneose: finish,
-      });
-      if (done) sub.close(); // EOSE fired synchronously
-    } catch {
-      finish();
+
+    const now = Date.now();
+    const live = relays.filter((url) => (deadUntil.get(url) ?? 0) <= now);
+    pending = live.length;
+    if (pending === 0) return finish();
+
+    for (const url of live) {
+      let settled = false;
+      const settle = () => {
+        if (settled) return;
+        settled = true;
+        if (--pending <= 0) finish();
+      };
+      pool.ensureRelay(url, { connectionTimeout: CONNECT_TIMEOUT }).then(
+        (relay) => {
+          if (done) return settle();
+          const sub = relay.subscribe([filter], {
+            onevent: (e) => events.push(e),
+            oneose: () => {
+              sub.close();
+              settle();
+            },
+            onclose: settle,
+          });
+          subs.push(sub);
+        },
+        () => {
+          deadUntil.set(url, Date.now() + DEAD_RELAY_TTL);
+          settle();
+        },
+      );
     }
   });
 }
