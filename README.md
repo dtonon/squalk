@@ -105,5 +105,11 @@ Preview a build locally with `npm run preview` (static) or `node --env-file=.env
 
 - Node 22 or newer (the relay client uses the built-in `WebSocket`).
 - The unit from [`deploy/squalk.service`](deploy/squalk.service), with `ORIGIN` set to the public URL — it feeds canonical links, `robots.txt` and the sitemap.
-- A reverse proxy (Caddy, nginx) in front of the port in `PORT`.
+- A reverse proxy in front of the port in `PORT`, replacing whatever served the static files before. With Caddy:
+
+  ```
+  forum.example.com {
+      reverse_proxy 127.0.0.1:3000
+  }
+  ```
 - If Cloudflare sits in front, a cache rule that caches HTML and respects origin headers: pages and snapshots are sent with `Cache-Control: public, max-age=0, s-maxage=300, stale-while-revalidate=3600`, so the edge serves them for five minutes and refreshes in the background for an hour after that. `just deploy-ssr` purges the cache after each release.
