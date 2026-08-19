@@ -20,12 +20,13 @@ deploy target: build
   rsync -av --delete --progress build/ {{target}}:~/squalk/
   @just purge-web-cache
 
-# Ships the Node build plus its runtime deps and env, then restarts the unit
+# Ships the Node build plus its runtime deps and env, then restarts the unit.
+# The remote step runs in a login shell so the user's PATH (npm, nvm…) applies.
 deploy-ssr target: build-ssr
   rsync -av --delete --progress --exclude node_modules build/ {{target}}:~/squalk/build/
   rsync -av package.json package-lock.json {{target}}:~/squalk/
   rsync -av .env.production {{target}}:~/squalk/.env
-  ssh {{target}} 'cd ~/squalk && npm ci --omit=dev && sudo systemctl restart squalk'
+  ssh {{target}} '$SHELL -l -c "cd ~/squalk && npm ci --omit=dev && sudo systemctl restart squalk"'
   @just purge-web-cache
 
 purge-web-cache:
