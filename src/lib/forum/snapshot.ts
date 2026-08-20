@@ -1,5 +1,6 @@
 import { browser } from "$app/environment";
 import { error } from "@sveltejs/kit";
+import { SSR_WARM } from "$lib/config";
 import type { NostrUser } from "$lib/gadgets";
 import type { GroupMetadata, GroupSummary } from "./groups";
 import type { Resource } from "./resources";
@@ -37,14 +38,18 @@ type Fetch = typeof fetch;
 // Read a snapshot endpoint. On the server the response is inlined into the
 // HTML; in the browser it is consumed only while hydrating that HTML. Client
 // navigations get null, leaving the stores to fetch live (and authenticated)
-// data as they always did — the same path a client-only build takes.
+// data as they always did — the same path a client-only build takes — but
+// may still poke the endpoint so the server has the page cached.
 // A 404 from the endpoint becomes a real 404 page on the server, so crawlers
 // never index an empty shell; the client keeps its own not-found handling.
 export async function snapshot<T>(
   fetch: Fetch,
   url: string,
 ): Promise<T | null> {
-  if (browser && !hasInlinedResponse(url)) return null;
+  if (browser && !hasInlinedResponse(url)) {
+    if (SSR_WARM) fetch(url).catch(() => {});
+    return null;
+  }
   let res: Response;
   try {
     res = await fetch(url);

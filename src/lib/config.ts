@@ -21,6 +21,11 @@ if (MODE === "simple" && !GROUP_ID) {
 // Server-side rendering: opt-in, decided at build time (vite.config.ts bakes
 // PUBLIC_SSR in; svelte.config.js picks the matching adapter).
 export const SSR_ENABLED = __SQUALK_SSR__;
+// With SSR on, a client-side navigation also asks the server for the same
+// snapshot (without waiting for it) so the page is already cached for the
+// next refresh, shared link or crawler. Costs one server→relay query per
+// navigation; opt out with PUBLIC_SSR_WARM=no.
+export const SSR_WARM = SSR_ENABLED && env.PUBLIC_SSR_WARM !== "no";
 // Server-rendered pages and snapshots are anonymous, so a shared cache may
 // hold them: fresh for 5 minutes, served stale for an hour while revalidating.
 // Browsers always revalidate (max-age=0) so a login shows its content at once.

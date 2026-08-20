@@ -28,6 +28,7 @@ Squalk is configured entirely through environment variables (all prefixed `PUBLI
 | `PUBLIC_TITLE` | no | group name | Title shown in the top bar. When empty it falls back to the group's name. |
 | `PUBLIC_JOINCODE` | no | `no` | `yes` to show an invite-code field when a join request is rejected (for code-gated relays). |
 | `PUBLIC_SSR` | no | `no` | `yes` to render pages on the server (crawlable HTML, real 404s). The build then targets Node (`node build`) instead of a static bundle; see [Deploying](#deploying). |
+| `PUBLIC_SSR_WARM` | no | `yes` | With `PUBLIC_SSR=yes`, each client-side navigation also asks the server to fetch and cache that page, so a later refresh, shared link or crawler hit is served warm. Costs one extra relay query per navigation on the server; set to `no` to disable. |
 | `PUBLIC_SEARCH` | no | `no` | `yes` to show a search box at the top of the homepage. Requires a relay with NIP-50 search support. |
 | `PUBLIC_LABELS` | no | — | Comma-separated discussion labels offered when composing, e.g. `bug,feature,question`. |
 | `PUBLIC_BLOSSOM_URL` | no | — | Blossom server URL used for media uploads, e.g. `https://blossom.primal.net`. Uploads are disabled when unset. |
