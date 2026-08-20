@@ -29,6 +29,8 @@ Squalk is configured entirely through environment variables (all prefixed `PUBLI
 | `PUBLIC_JOINCODE` | no | `no` | `yes` to show an invite-code field when a join request is rejected (for code-gated relays). |
 | `PUBLIC_SSR` | no | `no` | `yes` to render pages on the server (crawlable HTML, real 404s). The build then targets Node (`node build`) instead of a static bundle; see [Deploying](#deploying). |
 | `PUBLIC_SSR_WARM` | no | `yes` | With `PUBLIC_SSR=yes`, each client-side navigation also asks the server to fetch and cache that page, so a later refresh, shared link or crawler hit is served warm. Costs one extra relay query per navigation on the server; set to `no` to disable. |
+| `PUBLIC_SSR_CACHE_FRESH` | no | `300` | Seconds a server-rendered snapshot is served as is. Also the edge cache's `s-maxage`. |
+| `PUBLIC_SSR_CACHE_STALE` | no | `21600` | Seconds after which a snapshot is no longer served while being refreshed in the background (until then a stale page is answered instantly and updated for the next visitor). Also the edge cache's `stale-while-revalidate`. |
 | `PUBLIC_SEARCH` | no | `no` | `yes` to show a search box at the top of the homepage. Requires a relay with NIP-50 search support. |
 | `PUBLIC_LABELS` | no | — | Comma-separated discussion labels offered when composing, e.g. `bug,feature,question`. |
 | `PUBLIC_BLOSSOM_URL` | no | — | Blossom server URL used for media uploads, e.g. `https://blossom.primal.net`. Uploads are disabled when unset. |
@@ -113,4 +115,4 @@ Preview a build locally with `npm run preview` (static) or `node --env-file=.env
       reverse_proxy 127.0.0.1:3000
   }
   ```
-- If Cloudflare sits in front, a cache rule that caches HTML and respects origin headers: pages and snapshots are sent with `Cache-Control: public, max-age=0, s-maxage=300, stale-while-revalidate=3600`, so the edge serves them for five minutes and refreshes in the background for an hour after that. `just deploy-ssr` purges the cache after each release.
+- If Cloudflare sits in front, a cache rule that caches HTML and respects origin headers: pages and snapshots are sent with `Cache-Control: public, max-age=0, s-maxage=<PUBLIC_SSR_CACHE_FRESH>, stale-while-revalidate=<PUBLIC_SSR_CACHE_STALE>` (by default served for five minutes, then refreshed in the background for up to six hours), the same windows the server's own in-memory cache uses. `just deploy-ssr` purges the cache after each release.

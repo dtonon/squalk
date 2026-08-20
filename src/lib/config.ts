@@ -26,11 +26,21 @@ export const SSR_ENABLED = __SQUALK_SSR__;
 // next refresh, shared link or crawler. Costs one server→relay query per
 // navigation; opt out with PUBLIC_SSR_WARM=no.
 export const SSR_WARM = SSR_ENABLED && env.PUBLIC_SSR_WARM !== "no";
-// Server-rendered pages and snapshots are anonymous, so a shared cache may
-// hold them: fresh for 5 minutes, served stale for an hour while revalidating.
-// Browsers always revalidate (max-age=0) so a login shows its content at once.
-export const CACHE_CONTROL =
-  "public, max-age=0, s-maxage=300, stale-while-revalidate=3600";
+// Lifetime of server-rendered snapshots, in seconds. Within FRESH a cached
+// page is served as is; up to STALE it is still served at once but refreshed
+// in the background; beyond that it is fetched again before answering. Only
+// crawlers and cold refreshes see the snapshot — the browser always refetches
+// live data after hydration — so these trade first-paint staleness for speed.
+function seconds(raw: string | undefined, fallback: number): number {
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 0 ? n : fallback;
+}
+export const SSR_CACHE_FRESH = seconds(env.PUBLIC_SSR_CACHE_FRESH, 300);
+export const SSR_CACHE_STALE = seconds(env.PUBLIC_SSR_CACHE_STALE, 6 * 3600);
+// The same policy for a shared HTTP cache in front (Cloudflare honours it once
+// HTML caching is enabled). Browsers always revalidate (max-age=0) so a login
+// shows its content at once.
+export const CACHE_CONTROL = `public, max-age=0, s-maxage=${SSR_CACHE_FRESH}, stale-while-revalidate=${SSR_CACHE_STALE}`;
 // Requires a relay with NIP-50 support.
 export const SEARCH_ENABLED = env.PUBLIC_SEARCH === "yes";
 export const LABELS = (env.PUBLIC_LABELS ?? "")

@@ -1,7 +1,7 @@
 import { SimplePool } from "@nostr/tools";
 import type { Event } from "@nostr/tools/core";
 import type { Filter } from "@nostr/tools/filter";
-import { RELAY_URL } from "$lib/config";
+import { RELAY_URL, SSR_CACHE_FRESH, SSR_CACHE_STALE } from "$lib/config";
 import { PROFILE_RELAYS } from "$lib/forum/profiles";
 import type { Query } from "$lib/forum/query";
 
@@ -10,20 +10,22 @@ import type { Query } from "$lib/forum/query";
 // private rooms once the client takes over. Every query is bounded so a slow
 // relay degrades to an empty page, never a hung request.
 //
-// Results are cached in memory. Freshness only matters to crawlers and cold
-// refreshes — the browser always refetches live data after hydration — so
-// forum data lives as long as the edge cache (CACHE_CONTROL's s-maxage) and
-// profiles, which rarely change, for an hour.
+// Results are cached in memory with the fresh/stale windows from config:
+// fresh entries are returned as they are, stale ones are returned at once and
+// refreshed in the background, expired ones are fetched again. Profiles
+// rarely change, so their fresh window is at least an hour.
 const QUERY_TIMEOUT = 2500;
 const PROFILE_TIMEOUT = 1500;
 const CONNECT_TIMEOUT = 1500;
-const FORUM_TTL = 5 * 60_000;
-const PROFILE_TTL = 60 * 60_000;
+const FORUM_FRESH = SSR_CACHE_FRESH * 1000;
+const PROFILE_FRESH = Math.max(FORUM_FRESH, 60 * 60_000);
+const STALE = Math.max(SSR_CACHE_STALE * 1000, FORUM_FRESH);
 const DEAD_RELAY_TTL = 5 * 60_000;
 const CACHE_MAX = 2000;
 
 const pool = new SimplePool();
-const cache = new Map<string, { at: number; result: Promise<Event[]> }>();
+type Entry = { at: number; result: Promise<Event[]>; refreshing: boolean };
+const cache = new Map<string, Entry>();
 // Relays that failed to connect are skipped for a while, so a dead profile
 // relay doesn't add its connect timeout to every cold page.
 const deadUntil = new Map<string, number>();
@@ -94,20 +96,36 @@ function cachedQuery(
   relays: string[],
   filter: Filter,
   maxWait: number,
-  ttl: number,
+  fresh: number,
 ): Promise<Event[]> {
   const key = relays.join(",") + "|" + JSON.stringify(filter);
   const now = Date.now();
   const hit = cache.get(key);
-  if (hit && now - hit.at < ttl) return hit.result;
+  if (hit) {
+    const age = now - hit.at;
+    if (age < fresh) return hit.result;
+    if (age < STALE) {
+      if (!hit.refreshing) {
+        hit.refreshing = true;
+        boundedQuery(relays, filter, maxWait).then((events) => {
+          cache.set(key, {
+            at: Date.now(),
+            result: Promise.resolve(events),
+            refreshing: false,
+          });
+        });
+      }
+      return hit.result;
+    }
+  }
   if (cache.size >= CACHE_MAX) cache.clear();
   const result = boundedQuery(relays, filter, maxWait);
-  cache.set(key, { at: now, result });
+  cache.set(key, { at: now, result, refreshing: false });
   return result;
 }
 
 export const forumQuery: Query = (filter) =>
-  cachedQuery([RELAY_URL], filter, QUERY_TIMEOUT, FORUM_TTL);
+  cachedQuery([RELAY_URL], filter, QUERY_TIMEOUT, FORUM_FRESH);
 
 // Profiles mostly live off the forum relay; ask it too for members who only
 // published there.
@@ -116,5 +134,5 @@ export const profileQuery: Query = (filter) =>
     [RELAY_URL, ...PROFILE_RELAYS],
     filter,
     PROFILE_TIMEOUT,
-    PROFILE_TTL,
+    PROFILE_FRESH,
   );
