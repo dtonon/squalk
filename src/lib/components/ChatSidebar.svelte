@@ -478,7 +478,7 @@
     {/if}
     {#if !auth.user}
       <button
-        onclick={openLogin}
+        onclick={() => openLogin()}
         class="bg-accent hover:bg-accent-hover w-full rounded px-3 py-2 text-sm font-medium text-white"
       >
         Login to chat
