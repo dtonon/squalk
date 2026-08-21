@@ -42,5 +42,8 @@
     "@djot/djot": "^0.3.2",
     "@nostr/gadgets": "npm:@jsr/nostr__gadgets@^0.1.8",
     "@nostr/tools": "npm:@jsr/nostr__tools@^2.23.3"
+  },
+  "overrides": {
+    "lightningcss": "^1.33.0"
   }
 }
