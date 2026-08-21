@@ -24,6 +24,8 @@ const DEAD_RELAY_TTL = 5 * 60_000;
 const CACHE_MAX = 2000;
 
 const pool = new SimplePool();
+// Open relay sockets keep the process alive after SIGTERM until systemd kills it
+process.on("sveltekit:shutdown", () => pool.destroy());
 type Entry = { at: number; result: Promise<Event[]>; refreshing: boolean };
 const cache = new Map<string, Entry>();
 // Relays that failed to connect are skipped for a while, so a dead profile
