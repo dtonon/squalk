@@ -131,6 +131,10 @@
   const rows = $derived(
     threadStore.threads.map((t) => toRow(t, threadStore.profiles)),
   );
+
+  const empty = $derived(
+    rows.length === 0 && !threadStore.loading && threadStore.exhausted,
+  );
 </script>
 
 <Meta {title} description={about} />
@@ -138,7 +142,7 @@
 <div class="mx-auto max-w-6xl">
   <div class="flex flex-wrap items-center justify-between gap-2 py-2">
     <h1 class="text-accent text-[1.65rem] leading-7">{title}</h1>
-    {#if !showPrivateGate && !checkingAccess}
+    {#if !showPrivateGate && !checkingAccess && !empty}
       <div class="flex items-center gap-2">
         <button
           onclick={onNewTopic}
@@ -182,6 +186,19 @@
           : auth.user
             ? "Request to join"
             : "Log in to join"}
+      </button>
+    </div>
+  {:else if empty}
+    <div class="flex flex-col items-center gap-6 py-24 text-center">
+      <p class="text-2xl text-neutral-500 md:text-3xl dark:text-neutral-400">
+        This room is still empty
+      </p>
+      <button
+        onclick={onNewTopic}
+        disabled={joinState.busy}
+        class="bg-accent hover:bg-accent-hover rounded px-6 py-2 font-medium text-white disabled:opacity-50"
+      >
+        {joinState.busy ? "Joining…" : "Be the first one to open a discussion"}
       </button>
     </div>
   {:else}
