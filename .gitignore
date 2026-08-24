@@ -1,4 +1,5 @@
 node_modules
+.local
 
 # Output
 .output
@@ -17,6 +18,10 @@ Thumbs.db
 .env.*
 !.env.example
 !.env.test
+
+# Deploy: only the example unit is tracked
+/deploy/*
+!/deploy/production-example.service
 
 # Vite
 vite.config.js.timestamp-*

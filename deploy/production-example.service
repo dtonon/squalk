@@ -1,0 +1,25 @@
+# Example systemd unit for the server-rendered build (PUBLIC_SSR=yes).
+# Copy to /etc/systemd/system/<instance>.service, adjust the paths, the port
+# and ORIGIN, then: systemctl daemon-reload && systemctl enable --now <instance>
+[Unit]
+Description=Squalk forum
+After=network.target
+
+[Service]
+Type=simple
+# Ephemeral unprivileged user, created by systemd for the service's lifetime
+# (implies ProtectSystem=strict, ProtectHome=read-only, PrivateTmp,
+# NoNewPrivileges). The app dir stays root-owned; the service only reads it.
+DynamicUser=yes
+WorkingDirectory=/srv/squalk
+# PUBLIC_* values read at runtime by the server (deploy-ssr copies .env.<mode> here)
+EnvironmentFile=/srv/squalk/.env
+# ORIGIN is the public URL: it drives canonical links, robots.txt and the sitemap
+Environment=NODE_ENV=production PORT=3000 ORIGIN=https://forum.example.com
+ExecStart=/usr/bin/node build
+Restart=on-failure
+TimeoutStopSec=10
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

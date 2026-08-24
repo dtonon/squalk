@@ -104,10 +104,10 @@ Preview a build locally with `npm run preview` (static) or `node --env-file=.env
 
 `just deploy <host>` rsyncs the static bundle to `~/squalk/` on the host and purges the Cloudflare cache.
 
-`just deploy-ssr <host>` ships the Node build, `package.json`/`package-lock.json` and `.env.production` (as `~/squalk/.env`, since the server reads the `PUBLIC_*` values at runtime), runs `npm ci --omit=dev` and restarts the `squalk` systemd unit. On the host you need:
+`just deploy-ssr <mode>` builds with `--mode <mode>` (so vite bakes `.env.<mode>` in), ships the Node build, `package.json`/`package-lock.json` and `.env.<mode>` (as `.env` in the app dir, since the server reads the `PUBLIC_*` values at runtime), runs `npm ci --omit=dev` and restarts the instance's systemd unit. Everything instance-specific lives in `.env.<mode>.local` (gitignored, never shipped): `DEPLOY_HOST`, `DEPLOY_DIR` and `DEPLOY_SERVICE` (all required), plus the Cloudflare credentials (`CF_ZONE_ID`/`CF_API_TOKEN`) for the cache purge. Multiple instances coexist by giving each its own mode, directory, unit and port. On the host you need:
 
 - Node 22 or newer (the relay client uses the built-in `WebSocket`).
-- The unit from [`deploy/squalk.service`](deploy/squalk.service), with `ORIGIN` set to the public URL — it feeds canonical links, `robots.txt` and the sitemap.
+- The unit from [`deploy/production-example.service`](deploy/production-example.service), with `ORIGIN` set to the public URL — it feeds canonical links, `robots.txt` and the sitemap.
 - A reverse proxy in front of the port in `PORT`, replacing whatever served the static files before. With Caddy:
 
   ```
