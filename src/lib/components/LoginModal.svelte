@@ -7,6 +7,10 @@
     loginWithNostrConnect,
     loginWithNsec,
   } from "$lib/auth.svelte";
+  import { TITLE, MODE } from "$lib/config";
+  import { groupStore } from "$lib/group.svelte";
+  import { themeState } from "$lib/theme.svelte";
+  import type { NstartModal } from "nstart-modal";
   import { onDestroy, tick } from "svelte";
   import { renderSVG } from "uqr";
 
@@ -20,6 +24,19 @@
   let copied = $state(false);
   let nsecInput = $state<HTMLInputElement | null>(null);
   let bunkerInput = $state<HTMLInputElement | null>(null);
+
+  // Nstart sign-up wizard (an iframe overlay). Built lazily and reused; it is
+  // rebuilt only when the theme it was built for changes.
+  let wizard: NstartModal | null = null;
+  let wizardTheme: string | null = null;
+  // The login dialog hides while the wizard is up and comes back on cancel
+  let signingUp = $state(false);
+
+  const appName = $derived(
+    TITLE ||
+      (MODE === "simple" ? groupStore.data?.name : "") ||
+      (typeof location !== "undefined" ? location.host : ""),
+  );
 
   // Client-initiated NIP-46 flow, alive only while the bunker view is shown
   let connect = $state<ReturnType<typeof loginWithNostrConnect> | null>(null);
@@ -131,6 +148,62 @@
     reset();
   }
 
+  // The accent color as Nstart wants it (hex, no #), so the wizard matches the
+  // forum; env overrides are already applied to the CSS variable.
+  function accentHex(): string | undefined {
+    const v = getComputedStyle(document.documentElement)
+      .getPropertyValue("--color-accent")
+      .trim();
+    return /^#[0-9a-fA-F]{6}$/.test(v) ? v.slice(1) : undefined;
+  }
+
+  async function handleSignup() {
+    if (busy) return;
+    error = null;
+    stopConnect();
+    const { NstartModal } = await import("nstart-modal");
+    if (!wizard || wizardTheme !== themeState.theme) {
+      wizard?.destroy();
+      wizardTheme = themeState.theme;
+      wizard = new NstartModal({
+        baseUrl: "https://nstart.me",
+        an: appName,
+        aa: accentHex(),
+        am: themeState.theme,
+        // Only bunker:// or nsec come back; ncryptsec has no login here
+        aac: true,
+        onComplete: ({ nostrLogin }) => void completeSignup(nostrLogin),
+        onCancel: () => {
+          signingUp = false;
+        },
+      });
+    }
+    signingUp = true;
+    wizard.open();
+  }
+
+  async function completeSignup(nostrLogin: string | null) {
+    signingUp = false;
+    if (!nostrLogin) {
+      error = "Sign-up finished without a login credential";
+      return;
+    }
+    busy = true;
+    try {
+      if (nostrLogin.startsWith("bunker://")) {
+        await loginWithBunker(nostrLogin);
+      } else {
+        await loginWithNsec(nostrLogin);
+      }
+      closeLogin();
+      reset();
+    } catch (e) {
+      error = e instanceof Error ? e.message : "Failed to login";
+    } finally {
+      busy = false;
+    }
+  }
+
   async function showNsecView() {
     stopConnect();
     view = "nsec";
@@ -154,16 +227,19 @@
   }
 
   function onKeydown(e: KeyboardEvent) {
-    if (!auth.loginModalOpen) return;
+    if (!auth.loginModalOpen || signingUp) return;
     if (e.key === "Escape") onClose();
   }
 
-  onDestroy(stopConnect);
+  onDestroy(() => {
+    stopConnect();
+    wizard?.destroy();
+  });
 </script>
 
 <svelte:window onkeydown={onKeydown} />
 
-{#if auth.loginModalOpen}
+{#if auth.loginModalOpen && !signingUp}
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
     <button
       type="button"
@@ -229,6 +305,24 @@
           class="text-accent mt-4 block w-full text-center text-sm hover:underline"
         >
           Or log in using your nsec
+        </button>
+
+        <div
+          class="my-5 border-t border-neutral-200 dark:border-neutral-700"
+        ></div>
+
+        <p
+          class="mb-3 text-center text-sm text-neutral-600 dark:text-neutral-400"
+        >
+          Don't have an account yet?
+        </p>
+        <button
+          type="button"
+          onclick={handleSignup}
+          disabled={busy}
+          class="border-accent text-accent hover:bg-accent/10 w-full rounded border px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Sign up
         </button>
       {:else if view === "bunker"}
         {#if connect}
