@@ -135,6 +135,13 @@
   const empty = $derived(
     rows.length === 0 && !threadStore.loading && threadStore.exhausted,
   );
+
+  const fairlyNew = $derived(
+    rows.length > 0 &&
+      rows.length < 4 &&
+      !threadStore.loading &&
+      threadStore.exhausted,
+  );
 </script>
 
 <Meta {title} description={about} />
@@ -223,6 +230,19 @@
           class="rounded border border-neutral-200 px-6 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
         >
           {threadStore.loadingMore ? "Loading…" : "Show more"}
+        </button>
+      </div>
+    {:else if fairlyNew}
+      <div class="flex flex-col items-center gap-6 py-16 text-center">
+        <p class="text-2xl text-neutral-500 md:text-3xl dark:text-neutral-400">
+          This room is fairly new
+        </p>
+        <button
+          onclick={onNewTopic}
+          disabled={joinState.busy}
+          class="bg-accent hover:bg-accent-hover rounded px-6 py-2 font-medium text-white disabled:opacity-50"
+        >
+          {joinState.busy ? "Joining…" : "Start a new discussion"}
         </button>
       </div>
     {:else if rows.length > 0}
