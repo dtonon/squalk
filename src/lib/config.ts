@@ -18,6 +18,15 @@ export const GROUP_ID = env.PUBLIC_GROUP_ID ?? "";
 if (MODE === "simple" && !GROUP_ID) {
   throw new Error("PUBLIC_GROUP_ID is required in simple mode");
 }
+// Relays used to hand a nostrconnect:// URI to a remote signer (NIP-46).
+// Comma-separated override via PUBLIC_NOSTRCONNECT_RELAYS.
+export const NOSTRCONNECT_RELAYS: string[] = (
+  env.PUBLIC_NOSTRCONNECT_RELAYS ||
+  "wss://bucket.coracle.social,wss://relay.primal.net"
+)
+  .split(",")
+  .map((r) => r.trim())
+  .filter(Boolean);
 // Server-side rendering: opt-in, decided at build time (vite.config.ts bakes
 // PUBLIC_SSR in; svelte.config.js picks the matching adapter).
 export const SSR_ENABLED = __SQUALK_SSR__;
