@@ -8,8 +8,16 @@
     entryFromUser,
     type ProfileEntry,
   } from "$lib/profiles.svelte";
-  import { userPostsStore, loadUserPosts } from "$lib/userPosts.svelte";
-  import type { UserPost } from "$lib/forum/userPosts";
+  import {
+    userPostsStore,
+    loadUserPosts,
+    loadMoreUserPosts,
+  } from "$lib/userPosts.svelte";
+  import type {
+    UserPost,
+    UserPostKind,
+    UserPostPage,
+  } from "$lib/forum/userPosts";
   import Meta from "$lib/components/Meta.svelte";
   import { summarize } from "$lib/seo";
 
@@ -85,12 +93,12 @@
   {jsonLd}
 />
 
-{#snippet postList(items: UserPost[], empty: string)}
-  {#if items.length === 0}
+{#snippet postList(kind: UserPostKind, list: UserPostPage, empty: string)}
+  {#if list.items.length === 0}
     <p class="py-3 text-sm text-neutral-400 dark:text-neutral-500">{empty}</p>
   {:else}
     <ul class="divide-y divide-neutral-100 dark:divide-neutral-800">
-      {#each items as p (p.id)}
+      {#each list.items as p (p.id)}
         {@const text = summarize(p.content, 200)}
         <li class="py-3">
           <a href={postHref(p)} class="group block">
@@ -125,6 +133,19 @@
         </li>
       {/each}
     </ul>
+    {#if !list.done}
+      {@const busy = userPostsStore.loadingMore[kind]}
+      <div class="flex justify-center py-6">
+        <button
+          onclick={() => loadMoreUserPosts(kind)}
+          disabled={busy}
+          aria-busy={busy}
+          class="rounded border border-neutral-200 px-6 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+        >
+          {busy ? "Loading…" : "Show more"}
+        </button>
+      </div>
+    {/if}
   {/if}
 {/snippet}
 
@@ -212,7 +233,7 @@
             Loading…
           </p>
         {:else}
-          {@render postList(posts.roots, "No discussions yet.")}
+          {@render postList("roots", posts.roots, "No discussions yet.")}
         {/if}
       </section>
 
@@ -228,7 +249,7 @@
             Loading…
           </p>
         {:else}
-          {@render postList(posts.replies, "No replies yet.")}
+          {@render postList("replies", posts.replies, "No replies yet.")}
         {/if}
       </section>
     </div>
