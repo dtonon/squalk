@@ -305,10 +305,9 @@ export function ingestProfileEvent(evt: Event) {
   if (entry) upsertProfile(entry);
 }
 
-export function ingestNostrUser(user: NostrUser) {
-  if (!user.pubkey) return;
+export function entryFromUser(user: NostrUser): ProfileEntry {
   const md = user.metadata ?? {};
-  const entry: ProfileEntry = {
+  return {
     pubkey: user.pubkey,
     npub: user.npub,
     name: md.name,
@@ -320,5 +319,9 @@ export function ingestNostrUser(user: NostrUser) {
     lud16: md.lud16,
     fetchedAt: user.lastUpdated || 0,
   };
-  upsertProfile(entry);
+}
+
+export function ingestNostrUser(user: NostrUser) {
+  if (!user.pubkey) return;
+  upsertProfile(entryFromUser(user));
 }

@@ -20,6 +20,7 @@
     ensureMembershipChecked,
   } from "$lib/join.svelte";
   import { activeGroup } from "$lib/active.svelte";
+  import { profilePath } from "$lib/forum/profiles";
   import type { NostrUser } from "@nostr/gadgets/metadata";
   import MentionAutocomplete from "$lib/components/MentionAutocomplete.svelte";
   import ChatContent from "$lib/components/ChatContent.svelte";
@@ -348,21 +349,30 @@
           {/if}
           <div>
             <div class="mb-1 flex items-center gap-2">
-              {#if author.picture}
-                <img
-                  src={author.picture}
-                  alt=""
-                  class="h-6 w-6 shrink-0 rounded-full object-cover"
-                />
-              {:else}
-                <span
-                  class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-xs font-semibold text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400"
-                >
-                  {author.name[0].toUpperCase()}
-                </span>
-              {/if}
-              <span class="font-medium text-neutral-500 dark:text-neutral-400"
-                >{author.name}</span
+              <a
+                href={profilePath(msg.pubkey)}
+                class="shrink-0"
+                aria-hidden="true"
+                tabindex="-1"
+              >
+                {#if author.picture}
+                  <img
+                    src={author.picture}
+                    alt=""
+                    class="h-6 w-6 rounded-full object-cover"
+                  />
+                {:else}
+                  <span
+                    class="flex h-6 w-6 items-center justify-center rounded-full bg-neutral-200 text-xs font-semibold text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400"
+                  >
+                    {author.name[0].toUpperCase()}
+                  </span>
+                {/if}
+              </a>
+              <a
+                href={profilePath(msg.pubkey)}
+                class="hover:text-accent truncate font-medium text-neutral-500 dark:text-neutral-400"
+                >{author.name}</a
               >
               <div class="ml-auto flex items-center gap-1">
                 <div class="relative">

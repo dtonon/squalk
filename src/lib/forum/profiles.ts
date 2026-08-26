@@ -55,3 +55,21 @@ export async function fetchProfiles(
   }
   return out;
 }
+
+// In-app profile page, always addressed by npub.
+export function profilePath(pubkey: string): string {
+  return `/profile/${nip19.npubEncode(pubkey)}`;
+}
+
+// The pubkey behind a profile URL segment: npub, nprofile or bare hex.
+export function decodeProfileId(id: string): string | null {
+  if (/^[0-9a-f]{64}$/.test(id)) return id;
+  try {
+    const decoded = nip19.decode(id);
+    if (decoded.type === "npub") return decoded.data;
+    if (decoded.type === "nprofile") return decoded.data.pubkey;
+  } catch {
+    // Not a bech32 entity
+  }
+  return null;
+}

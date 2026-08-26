@@ -1,6 +1,7 @@
 <script lang="ts">
   import { loadNostrUser, type NostrUser } from "$lib/gadgets";
   import { tokenizeChat } from "$lib/linkify";
+  import { profilePath } from "$lib/forum/profiles";
   import {
     resolveThreadRef,
     threadRefHref,
@@ -39,9 +40,7 @@
 <span class="break-words whitespace-pre-wrap"
   >{#each tokens as t (t)}{#if t.type === "mention"}{@const u =
         profiles[t.pubkey] ?? resolvedUsers[t.pubkey]}<a
-        href="https://njump.me/{t.entity}"
-        target="_blank"
-        rel="noopener noreferrer"
+        href={profilePath(t.pubkey)}
         class="text-accent hover:underline">@{u?.shortName ?? t.fallback}</a
       >{:else if t.type === "entity"}{@const ref = t.id
         ? resolvedThreads[t.id]

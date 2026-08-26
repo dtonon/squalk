@@ -1,6 +1,7 @@
 <script lang="ts">
   import { loadNostrUser, type NostrUser } from "$lib/gadgets";
   import * as nip19 from "@nostr/tools/nip19";
+  import { profilePath } from "$lib/forum/profiles";
   import {
     resolveThreadRef,
     threadRefHref,
@@ -611,11 +612,8 @@
       >
     {:else if inline.type === "mention"}
       {@const u = profiles[inline.pubkey] ?? resolvedUsers[inline.pubkey]}
-      <a
-        href="https://njump.me/{inline.entity}"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="text-accent hover:underline">@{u?.shortName ?? inline.fallback}</a
+      <a href={profilePath(inline.pubkey)} class="text-accent hover:underline"
+        >@{u?.shortName ?? inline.fallback}</a
       >
     {:else if inline.type === "thread-quote"}
       {@const u = profiles[inline.pubkey] ?? resolvedUsers[inline.pubkey]}
@@ -700,7 +698,7 @@
         src={block.src}
         alt={block.alt}
         loading="lazy"
-        class="block mx-auto w-full max-h-[80vh] object-contain rounded"
+        class="mx-auto block max-h-[80vh] w-full rounded object-contain"
       />
     {:else if block.type === "blockquote"}
       <blockquote

@@ -26,6 +26,7 @@
   import { setActiveGroup } from "$lib/active.svelte";
   import { applyHighlights, clearHighlights } from "$lib/pageHighlight";
   import { RELAY_URL, MODE } from "$lib/config";
+  import { profilePath } from "$lib/forum/profiles";
   import ThreadScrubber from "$lib/components/ThreadScrubber.svelte";
   import MessageEditor from "$lib/components/MessageEditor.svelte";
   import PostContent from "$lib/components/PostContent.svelte";
@@ -373,20 +374,31 @@
 )}
   {@const author = resolveAuthor(p.pubkey, profiles)}
   <div use:bindEl class="md:flex md:items-start md:gap-6">
-    <div class="hidden flex-shrink-0 md:block">
+    <a
+      href={profilePath(author.pubkey)}
+      class="hidden flex-shrink-0 md:block"
+      aria-hidden="true"
+      tabindex="-1"
+    >
       {@render avatar(author)}
-    </div>
+    </a>
     <div class="min-w-0 flex-1">
       <div
         class="mb-4 flex items-center justify-between md:mb-3 md:items-baseline"
       >
         <div class="flex min-w-0 items-center gap-3">
-          <div class="flex-shrink-0 md:hidden">
+          <a
+            href={profilePath(author.pubkey)}
+            class="flex-shrink-0 md:hidden"
+            aria-hidden="true"
+            tabindex="-1"
+          >
             {@render avatar(author)}
-          </div>
-          <span
-            class="truncate font-medium text-neutral-500 dark:text-neutral-400"
-            >{author.name}</span
+          </a>
+          <a
+            href={profilePath(author.pubkey)}
+            class="hover:text-accent truncate font-medium text-neutral-500 dark:text-neutral-400"
+            >{author.name}</a
           >
         </div>
         <div class="ml-4 flex flex-shrink-0 items-center gap-1">

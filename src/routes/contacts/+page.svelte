@@ -11,8 +11,10 @@
   import {
     profileStore,
     ensureProfile,
+    entryFromUser,
     type ProfileEntry,
   } from "$lib/profiles.svelte";
+  import { profilePath } from "$lib/forum/profiles";
   import { partialsStore } from "$lib/partials.svelte";
   import PostContent from "$lib/components/PostContent.svelte";
   import { page } from "$app/state";
@@ -58,20 +60,7 @@
   // Server-rendered profile, used until the live one is fetched.
   function snapshotEntry(pk: string): ProfileEntry | undefined {
     const u = page.data.profiles?.[pk];
-    if (!u) return undefined;
-    const md = u.metadata ?? {};
-    return {
-      pubkey: pk,
-      npub: u.npub,
-      name: md.name,
-      displayName: md.display_name,
-      nip05: md.nip05,
-      picture: md.picture ?? u.image,
-      about: md.about,
-      website: md.website,
-      lud16: md.lud16,
-      fetchedAt: u.lastUpdated || 0,
-    };
+    return u ? entryFromUser(u) : undefined;
   }
 
   function displayName(c: Contact): string {
@@ -113,26 +102,35 @@
           class="rounded-lg border border-neutral-100 p-4 shadow-sm dark:border-neutral-800"
         >
           <div class="flex gap-4">
-            {#if c.entry?.picture}
-              <img
-                src={c.entry.picture}
-                alt=""
-                class="h-14 w-14 shrink-0 rounded-full object-cover"
-              />
-            {:else}
-              <span
-                class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-lg font-semibold text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400"
-              >
-                {displayName(c)[0].toUpperCase()}
-              </span>
-            {/if}
+            <a
+              href={profilePath(c.pubkey)}
+              class="shrink-0"
+              aria-hidden="true"
+              tabindex="-1"
+            >
+              {#if c.entry?.picture}
+                <img
+                  src={c.entry.picture}
+                  alt=""
+                  class="h-14 w-14 rounded-full object-cover"
+                />
+              {:else}
+                <span
+                  class="flex h-14 w-14 items-center justify-center rounded-full bg-neutral-200 text-lg font-semibold text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400"
+                >
+                  {displayName(c)[0].toUpperCase()}
+                </span>
+              {/if}
+            </a>
 
             <div class="flex min-w-0 flex-1 items-start justify-between gap-3">
               <div class="min-w-0">
                 <p
                   class="truncate text-2xl font-medium text-neutral-900 dark:text-neutral-100"
                 >
-                  {displayName(c)}
+                  <a href={profilePath(c.pubkey)} class="hover:text-accent">
+                    {displayName(c)}
+                  </a>
                 </p>
                 {#if c.entry?.nip05}
                   <p class="truncate text-neutral-400 dark:text-neutral-500">
@@ -141,12 +139,10 @@
                 {/if}
               </div>
               <a
-                href="https://njump.me/{c.npub}"
-                target="_blank"
-                rel="noopener noreferrer"
+                href={profilePath(c.pubkey)}
                 class="text-accent shrink-0 text-sm hover:underline"
               >
-                View profile ↗
+                View profile
               </a>
             </div>
           </div>
