@@ -255,6 +255,61 @@
     return clearHighlights;
   });
 
+  // Arriving with a #post-… hash (a reply link): the target only exists once
+  // the replies have loaded, so scroll when it appears, once per navigation.
+  let scrolledHashFor = "";
+  $effect(() => {
+    const hash = page.url.hash;
+    allPosts; // Re-check as replies stream in
+    if (!threadEl || !hash.startsWith("#post-")) return;
+    const key = `${page.params.id}|${hash}`;
+    if (scrolledHashFor === key) return;
+    const el = document.getElementById(hash.slice(1));
+    if (!el) return;
+    scrolledHashFor = key;
+    scrollToPost(el);
+  });
+
+  // On desktop the thread scrolls inside <main> under a sticky title with a
+  // fade below it, so place the post under both; elsewhere the scroll margin
+  // is enough.
+  const HEADER_FADE = 32; // the h-8 gradient
+  const HEADER_GAP = 12;
+  function scrollToPost(el: HTMLElement) {
+    const main = document.querySelector("main");
+    const header = threadEl?.querySelector("[data-thread-header]");
+    if (!main || !header || !window.matchMedia("(min-width: 768px)").matches) {
+      el.scrollIntoView({ block: "start" });
+      return;
+    }
+    const headerBottom =
+      main.getBoundingClientRect().top + header.getBoundingClientRect().height;
+    const offset = headerBottom + HEADER_FADE + HEADER_GAP;
+    main.scrollTop += el.getBoundingClientRect().top - offset;
+  }
+
+  // In-thread quote links ("… said") get the same placement instead of the
+  // browser's default anchor jump.
+  $effect(() => {
+    const root = threadEl;
+    if (!root) return;
+    const onClick = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0) return;
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const a = (e.target as Element).closest("a[href^='#post-']");
+      if (!a) return;
+      const hash = a.getAttribute("href") ?? "";
+      const el = document.getElementById(hash.slice(1));
+      if (!el) return;
+      e.preventDefault();
+      scrolledHashFor = `${page.params.id}|${hash}`;
+      goto(hash, { noScroll: true });
+      scrollToPost(el);
+    };
+    root.addEventListener("click", onClick);
+    return () => root.removeEventListener("click", onClick);
+  });
+
   // A thread belongs to its own group; make that the active group so chat and
   // replies target the right room.
   $effect(() => {
@@ -483,6 +538,7 @@
   <div class="flex items-start gap-6" bind:this={threadEl}>
     <div class="min-w-0 flex-1 {!scrubberVisible ? 'md:pr-18' : ''}">
       <div
+        data-thread-header
         class="relative z-10 bg-white pb-1 md:sticky md:-top-2 md:-mx-10 md:-mt-6 md:px-10 md:pt-6 md:pb-3 dark:bg-neutral-900"
       >
         <a
