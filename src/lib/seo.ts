@@ -28,11 +28,20 @@ export function excerpt(markdown: string, max = 160): string {
 }
 
 // The whole body flattened to one plain-text line, trimmed to `max` chars.
-// Headings, bare media URLs, code fences and block markers are dropped.
+// Headings, bare media URLs, code blocks, quoted text and list markers are
+// dropped, so a reply reads as its own words.
 export function summarize(markdown: string, max = 200): string {
-  const lines = markdown
-    .split("\n")
-    .map((l) => l.trim().replace(/^(?:>\s*|[-*+]\s+|\d+[.)]\s+)+/, ""))
-    .filter((l) => isProse(l) && !l.startsWith("```"));
+  let inCode = false;
+  const lines: string[] = [];
+  for (const raw of markdown.split("\n")) {
+    const l = raw.trim();
+    if (l.startsWith("```")) {
+      inCode = !inCode;
+      continue;
+    }
+    if (inCode || l.startsWith(">")) continue;
+    const line = l.replace(/^(?:[-*+]\s+|\d+[.)]\s+)+/, "");
+    if (isProse(line)) lines.push(line);
+  }
   return truncate(stripInline(lines.join(" ")), max);
 }
