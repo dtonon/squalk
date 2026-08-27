@@ -2,6 +2,7 @@
   import { page } from "$app/state";
   import { MODE } from "$lib/config";
   import { getGroupName } from "$lib/group.svelte";
+  import { groupsStore } from "$lib/groups.svelte";
   import {
     profileStore,
     ensureProfile,
@@ -43,6 +44,15 @@
       ? userPostsStore.posts
       : (page.data.posts ?? null),
   );
+
+  // Rooms the loaded posts come from, in the rooms list order (full mode).
+  const seenOn = $derived.by(() => {
+    if (MODE !== "full" || !posts) return [];
+    const ids = new Set(
+      [...posts.roots.items, ...posts.replies.items].map((p) => p.groupId),
+    );
+    return groupsStore.list.filter((g) => ids.has(g.id));
+  });
 
   const npub = $derived(entry?.npub ?? page.params.id ?? "");
   const name = $derived(
@@ -202,6 +212,16 @@
             View on njump ↗
           </a>
         </div>
+
+        {#if seenOn.length > 0}
+          <p class="mt-2 text-neutral-500 dark:text-neutral-400">
+            <span class="text-neutral-400 dark:text-neutral-500">Seen on:</span>
+            {#each seenOn as r, i (r.id)}<a
+                href="/room/{r.id}"
+                class="text-accent hover:underline">{r.name}</a
+              >{i < seenOn.length - 1 ? ", " : ""}{/each}
+          </p>
+        {/if}
       </div>
 
       {#if entry?.picture}
