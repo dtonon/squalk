@@ -64,10 +64,11 @@
   // The main column is its own scroll container (overflow-y-auto) and persists
   // across navigations, so SvelteKit's window-only scroll restoration never
   // resets it. Scroll it back to top on forward navigation; leave back/forward
-  // (popstate) alone so returning to a listing keeps its place.
+  // (popstate) alone so returning to a listing keeps its place, and hash
+  // targets (#post-…) alone so the page can place the anchored post itself.
   let mainEl = $state<HTMLElement | null>(null);
   afterNavigate((nav) => {
-    if (nav.type !== "popstate") mainEl?.scrollTo(0, 0);
+    if (nav.type !== "popstate" && !nav.to?.url.hash) mainEl?.scrollTo(0, 0);
   });
 
   // Nothing is fetched until the relay confirms it will serve this visitor:

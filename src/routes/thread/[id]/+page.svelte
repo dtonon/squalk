@@ -390,12 +390,25 @@
     await quotePost(post, text);
   }
 
+  // The scrubber sticks where the OP starts. Measure independently of the
+  // current scroll (the page may mount already scrolled, e.g. arriving from a
+  // profile with a reply link) and again when the header changes height.
   $effect(() => {
-    if (!opEl) return;
+    const el = opEl;
+    const header = threadEl?.querySelector("[data-thread-header]");
+    if (!el || !header) return;
     const main = document.querySelector("main");
     if (!main) return;
-    opTopOffset =
-      opEl.getBoundingClientRect().top - main.getBoundingClientRect().top;
+    const measure = () => {
+      opTopOffset =
+        el.getBoundingClientRect().top -
+        main.getBoundingClientRect().top +
+        main.scrollTop;
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(header);
+    return () => ro.disconnect();
   });
 </script>
 
