@@ -1,8 +1,17 @@
+<script module lang="ts">
+  import { TITLE, GROUP_ID, MODE } from "$lib/config";
+  import { groupStore } from "$lib/group.svelte";
+
+  // Forum name from the env, or the group name in simple mode.
+  export function siteName(): string {
+    return (
+      TITLE || (MODE === "simple" ? (groupStore.data?.name ?? GROUP_ID) : "")
+    );
+  }
+</script>
+
 <script lang="ts">
   import { page } from "$app/state";
-  import { TITLE } from "$lib/config";
-  import { groupStore } from "$lib/group.svelte";
-  import { GROUP_ID, MODE } from "$lib/config";
 
   type Props = {
     title: string;
@@ -25,9 +34,7 @@
     jsonLd ? JSON.stringify(jsonLd).replace(/</g, "\\u003c") : "",
   );
 
-  const siteName = $derived(
-    TITLE || (MODE === "simple" ? (groupStore.data?.name ?? GROUP_ID) : ""),
-  );
+  const site = $derived(siteName());
   const canonical = $derived(page.url.origin + page.url.pathname);
 </script>
 
@@ -41,8 +48,8 @@
   <meta property="og:title" content={title} />
   <meta property="og:type" content={type} />
   <meta property="og:url" content={canonical} />
-  {#if siteName}
-    <meta property="og:site_name" content={siteName} />
+  {#if site}
+    <meta property="og:site_name" content={site} />
   {/if}
   {#if image}
     <meta property="og:image" content={image} />

@@ -7,7 +7,7 @@
   import { partialsStore } from "$lib/partials.svelte";
   import { MODE, GROUP_ID, SEARCH_ENABLED } from "$lib/config";
   import SearchInline from "$lib/components/SearchInline.svelte";
-  import Meta from "$lib/components/Meta.svelte";
+  import Meta, { siteName } from "$lib/components/Meta.svelte";
   import { groupStore } from "$lib/group.svelte";
   import { excerpt } from "$lib/seo";
   import type { NostrUser } from "@nostr/gadgets/metadata";
@@ -51,7 +51,11 @@
   }
 </script>
 
-<Meta title={MODE === "full" ? "Rooms" : "Discussions"} {description} {image} />
+<Meta
+  title={siteName() || (MODE === "full" ? "Rooms" : "Discussions")}
+  {description}
+  {image}
+/>
 
 {#snippet pic(a: { name: string; picture?: string })}
   {#if a.picture}
