@@ -62,3 +62,14 @@ export const BLOSSOM_URL = (env.PUBLIC_BLOSSOM_URL ?? "").replace(/\/$/, "");
 // CSS variables defined in layout.css. Hover shades are derived in the layout.
 export const ACCENT_COLOR = env.PUBLIC_ACCENT_COLOR ?? "";
 export const SECONDARY_COLOR = env.PUBLIC_SECONDARY_COLOR ?? "";
+
+// Favicon: any URL (absolute, or root-relative for a file in static/). The
+// default is a ring in the accent color (a circle with a transparent hole of
+// half its radius), inlined as an SVG data URI.
+const DEFAULT_ACCENT = "#e32a6d";
+export const FAVICON =
+  env.PUBLIC_FAVICON ||
+  "data:image/svg+xml," +
+    encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path fill-rule="evenodd" fill="${ACCENT_COLOR || DEFAULT_ACCENT}" d="M16 0a16 16 0 1 0 0 32a16 16 0 1 0 0-32zM16 8a8 8 0 1 1 0 16a8 8 0 1 1 0-16z"/></svg>`,
+    );

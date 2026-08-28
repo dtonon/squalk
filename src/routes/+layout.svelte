@@ -1,6 +1,5 @@
 <script lang="ts">
   import "./layout.css";
-  import favicon from "$lib/assets/favicon.svg";
   import Navbar from "$lib/components/Navbar.svelte";
   import LeftSidebar from "$lib/components/LeftSidebar.svelte";
   import MobileMenu from "$lib/components/MobileMenu.svelte";
@@ -33,6 +32,7 @@
     ACCENT_COLOR,
     SECONDARY_COLOR,
     SEARCH_ENABLED,
+    FAVICON,
   } from "$lib/config";
 
   let { children } = $props();
@@ -177,7 +177,7 @@
 </script>
 
 <svelte:head>
-  <link rel="icon" href={favicon} />
+  <link rel="icon" href={FAVICON} />
 </svelte:head>
 
 <!-- The server and the pre-probe client render the forum; the gate only
