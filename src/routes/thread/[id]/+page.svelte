@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, tick } from "svelte";
   import { page } from "$app/state";
-  import { goto } from "$app/navigation";
+  import { afterNavigate, goto } from "$app/navigation";
   import * as nip19 from "@nostr/tools/nip19";
   import {
     threadDetailStore,
@@ -208,6 +208,20 @@
     );
   }
 
+  // The OP shares the thread URL, a reply its anchored URL.
+  async function shareLink(p: PostData, isOp: boolean) {
+    if (!detail) return;
+    openMenuId = null;
+    const url =
+      page.url.origin + `/thread/${detail.id}` + (isOp ? "" : `#post-${p.id}`);
+    try {
+      await navigator.clipboard.writeText(url);
+      showToast("Link copied");
+    } catch {
+      showToast("Could not copy the link");
+    }
+  }
+
   $effect(() => {
     if (!openMenuId) return;
     const close = () => (openMenuId = null);
@@ -255,20 +269,26 @@
     return clearHighlights;
   });
 
-  // Arriving with a #post-… hash (a reply link): the target only exists once
-  // the replies have loaded, so scroll when it appears, once per navigation.
+  // Arriving with a #post-… hash (a reply link): scroll to the post once per
+  // navigation. It may only exist once the replies have loaded, so re-check as
+  // they stream in; on a direct load it is already there and SvelteKit's own
+  // deep-link scroll runs after ours, so afterNavigate applies ours again.
   let scrolledHashFor = "";
-  $effect(() => {
+  function scrollToHash(force = false) {
     const hash = page.url.hash;
-    allPosts; // Re-check as replies stream in
     if (!threadEl || !hash.startsWith("#post-")) return;
     const key = `${page.params.id}|${hash}`;
-    if (scrolledHashFor === key) return;
+    if (!force && scrolledHashFor === key) return;
     const el = document.getElementById(hash.slice(1));
     if (!el) return;
     scrolledHashFor = key;
     scrollToPost(el);
+  }
+  $effect(() => {
+    allPosts;
+    scrollToHash();
   });
+  afterNavigate(() => scrollToHash(true));
 
   // On desktop the thread scrolls inside <main> under a sticky title with a
   // fade below it, so place the post under both; elsewhere the scroll margin
@@ -470,33 +490,42 @@
           >
         </div>
         <div class="ml-4 flex flex-shrink-0 items-center gap-1">
-          {#if canDeletePost(p)}
-            {@const tooOld =
-              !canModerate && !withinSelfDeleteWindow(p.createdAt)}
-            <div class="relative">
-              <button
-                onclick={(e) => toggleMenu(p.id, e)}
-                class="flex items-center justify-center rounded p-1 text-neutral-300 transition-colors hover:bg-neutral-100 hover:text-neutral-500 dark:text-neutral-600 dark:hover:bg-neutral-800 dark:hover:text-neutral-400"
-                aria-label="Post actions"
-                aria-haspopup="menu"
-                aria-expanded={openMenuId === p.id}
+          <div class="relative">
+            <button
+              onclick={(e) => toggleMenu(p.id, e)}
+              class="flex items-center justify-center rounded p-1 text-neutral-300 transition-colors hover:bg-neutral-100 hover:text-neutral-500 dark:text-neutral-600 dark:hover:bg-neutral-800 dark:hover:text-neutral-400"
+              aria-label="Post actions"
+              aria-haspopup="menu"
+              aria-expanded={openMenuId === p.id}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                viewBox="0 0 20 20"
+                fill="currentColor"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-4 w-4"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
+                <path
+                  d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"
+                />
+              </svg>
+            </button>
+            {#if openMenuId === p.id}
+              <div
+                role="menu"
+                class="absolute top-7 right-0 z-20 w-36 rounded-lg border border-neutral-100 bg-white py-1 text-sm shadow-lg dark:border-neutral-800 dark:bg-neutral-900"
+              >
+                <button
+                  role="menuitem"
+                  onclick={(e) => {
+                    e.stopPropagation();
+                    shareLink(p, index === 0);
+                  }}
+                  class="w-full px-3 py-1.5 text-left text-neutral-700 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                  >Share link</button
                 >
-                  <path
-                    d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"
-                  />
-                </svg>
-              </button>
-              {#if openMenuId === p.id}
-                <div
-                  role="menu"
-                  class="absolute top-7 right-0 z-20 w-36 rounded-lg border border-neutral-100 bg-white py-1 text-sm shadow-lg dark:border-neutral-800 dark:bg-neutral-900"
-                >
+                {#if canDeletePost(p)}
+                  {@const tooOld =
+                    !canModerate && !withinSelfDeleteWindow(p.createdAt)}
                   <button
                     role="menuitem"
                     disabled={tooOld}
@@ -507,10 +536,10 @@
                     class="w-full px-3 py-1.5 text-left text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:text-neutral-400 disabled:hover:bg-transparent dark:disabled:text-neutral-600"
                     >Delete{tooOld ? " (too old)" : ""}</button
                   >
-                </div>
-              {/if}
-            </div>
-          {/if}
+                {/if}
+              </div>
+            {/if}
+          </div>
           <span class="text-sm text-neutral-400 dark:text-neutral-500"
             >{formatDate(p.createdAt)}</span
           >
