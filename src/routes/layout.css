@@ -85,6 +85,12 @@ body {
   font-size: 1.65rem;
   color: var(--color-accent);
 }
+.prose :is(h2) {
+  font-size: 1.35rem;
+}
+.prose :is(h3) {
+  font-size: 1.15rem;
+}
 .prose :is(p) {
   margin-top: 0;
 }

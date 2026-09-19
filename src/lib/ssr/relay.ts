@@ -10,6 +10,11 @@ import type { Query } from "$lib/forum/query";
 // private rooms once the client takes over. Every query is bounded so a slow
 // relay degrades to an empty page, never a hung request.
 //
+// A relay that is down or refuses anonymous reads (NIP-42 auth-required) is
+// not the same as an empty result: the query rejects with RelayUnavailable so
+// endpoints answer 503 rather than 404, and the client renders as it would
+// without SSR (probing the relay and showing the gate when it must).
+//
 // Results are cached in memory with the fresh/stale windows from config:
 // fresh entries are returned as they are, stale ones are returned at once and
 // refreshed in the background, expired ones are fetched again. Profiles
@@ -23,6 +28,13 @@ const STALE = Math.max(SSR_CACHE_STALE * 1000, FORUM_FRESH);
 const DEAD_RELAY_TTL = 5 * 60_000;
 const CACHE_MAX = 2000;
 
+export class RelayUnavailable extends Error {
+  constructor() {
+    super("No relay answered");
+    this.name = "RelayUnavailable";
+  }
+}
+
 const pool = new SimplePool();
 // Open relay sockets keep the process alive after SIGTERM until systemd kills it
 process.on("sveltekit:shutdown", () => pool.destroy());
@@ -35,15 +47,18 @@ const deadUntil = new Map<string, number>();
 // Ask every reachable relay and resolve as soon as each has answered (EOSE or
 // closed), or at the deadline, whichever comes first — always with whatever
 // arrived, so one stalled relay never costs the events the others delivered.
+// Rejects when no relay reached EOSE: a CLOSED (auth-required), a failed
+// connection or the deadline are not answers.
 function boundedQuery(
   relays: string[],
   filter: Filter,
   maxWait: number,
 ): Promise<Event[]> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const events: Event[] = [];
     const subs: { close(): void }[] = [];
     let done = false;
+    let answered = false;
     let pending = 0;
     const finish = () => {
       if (done) return;
@@ -56,7 +71,8 @@ function boundedQuery(
           // Already closed
         }
       }
-      resolve(events);
+      if (answered) resolve(events);
+      else reject(new RelayUnavailable());
     };
     const timer = setTimeout(finish, maxWait);
 
@@ -78,10 +94,14 @@ function boundedQuery(
           const sub = relay.subscribe([filter], {
             onevent: (e) => events.push(e),
             oneose: () => {
+              answered = true;
               sub.close();
               settle();
             },
             onclose: settle,
+            // The library fakes an EOSE after its own timeout; the deadline
+            // above must win so a silent relay does not count as an answer
+            eoseTimeout: maxWait * 2,
           });
           subs.push(sub);
         },
@@ -109,20 +129,31 @@ function cachedQuery(
     if (age < STALE) {
       if (!hit.refreshing) {
         hit.refreshing = true;
-        boundedQuery(relays, filter, maxWait).then((events) => {
-          cache.set(key, {
-            at: Date.now(),
-            result: Promise.resolve(events),
-            refreshing: false,
-          });
-        });
+        boundedQuery(relays, filter, maxWait).then(
+          (events) => {
+            cache.set(key, {
+              at: Date.now(),
+              result: Promise.resolve(events),
+              refreshing: false,
+            });
+          },
+          // Keep serving the stale entry, try again next time
+          () => {
+            hit.refreshing = false;
+          },
+        );
       }
       return hit.result;
     }
   }
   if (cache.size >= CACHE_MAX) cache.clear();
   const result = boundedQuery(relays, filter, maxWait);
-  cache.set(key, { at: now, result, refreshing: false });
+  const entry: Entry = { at: now, result, refreshing: false };
+  cache.set(key, entry);
+  // A failure is never cached, so the next request asks the relay again
+  result.catch(() => {
+    if (cache.get(key) === entry) cache.delete(key);
+  });
   return result;
 }
 

@@ -206,12 +206,14 @@ export async function loginWithBunker(input: string) {
 
 // Client-initiated flow: show `uri` (QR/link) and await `done`. `cancel` stops
 // waiting when the user leaves the view.
-export function loginWithNostrConnect(): {
+// `onAck` reports the signer's first reply so the UI can show progress while
+// the session is finalized.
+export function loginWithNostrConnect(onAck?: () => void): {
   uri: string;
   done: Promise<void>;
   cancel: () => void;
 } {
-  const nc: NostrConnect = startNostrConnect();
+  const nc: NostrConnect = startNostrConnect(onAck);
   return {
     uri: nc.uri,
     done: nc.session.then(loginWithBunkerSession),

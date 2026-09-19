@@ -1,8 +1,8 @@
 import { json } from "@sveltejs/kit";
-import { CACHE_CONTROL } from "$lib/config";
+import { snapshotHandler } from "$lib/ssr/endpoint";
 import { loadShell } from "$lib/ssr/shell";
+import type { RequestHandler } from "./$types";
 
-export async function GET({ setHeaders }) {
-  setHeaders({ "cache-control": CACHE_CONTROL });
-  return json(await loadShell());
-}
+export const GET: RequestHandler = snapshotHandler(async () =>
+  json(await loadShell()),
+);

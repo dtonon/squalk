@@ -1,5 +1,5 @@
 import { error, json } from "@sveltejs/kit";
-import { MODE, GROUP_ID, CACHE_CONTROL } from "$lib/config";
+import { MODE, GROUP_ID } from "$lib/config";
 import { fetchGroups } from "$lib/forum/groups";
 import {
   fetchThreadPage,
@@ -8,12 +8,13 @@ import {
 } from "$lib/forum/threads";
 import { fetchProfiles } from "$lib/forum/profiles";
 import type { ThreadsSnapshot } from "$lib/forum/snapshot";
+import { snapshotHandler } from "$lib/ssr/endpoint";
 import { forumQuery, profileQuery } from "$lib/ssr/relay";
+import type { RequestHandler } from "./$types";
 
 // First page of a group's listing. Unknown rooms are a 404 so crawlers don't
 // index empty shells; private rooms are simply empty to the anonymous server.
-export async function GET({ params, url, setHeaders }) {
-  setHeaders({ "cache-control": CACHE_CONTROL });
+export const GET: RequestHandler = snapshotHandler(async ({ params, url }) => {
   const groupId = params.group;
   if (MODE === "simple") {
     if (groupId !== GROUP_ID) error(404, "Not found");
@@ -41,4 +42,4 @@ export async function GET({ params, url, setHeaders }) {
     profiles,
   };
   return json(body);
-}
+});

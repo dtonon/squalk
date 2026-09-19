@@ -1,7 +1,9 @@
-import { CACHE_CONTROL, MODE, GROUP_ID } from "$lib/config";
+import { MODE, GROUP_ID } from "$lib/config";
 import { fetchGroups } from "$lib/forum/groups";
+import { snapshotHandler } from "$lib/ssr/endpoint";
 import { forumQuery } from "$lib/ssr/relay";
 import { loadShell } from "$lib/ssr/shell";
+import type { RequestHandler } from "./$types";
 
 const THREADS_PER_ROOM = 1000;
 
@@ -25,7 +27,7 @@ function xml(origin: string, entries: Entry[]): string {
 
 // Public pages only: rooms the anonymous server can see, their threads, and
 // the admin-authored resources.
-export async function GET({ url, setHeaders }) {
+export const GET: RequestHandler = snapshotHandler(async ({ url }) => {
   const entries: Entry[] = [{ path: "/" }, { path: "/contacts" }];
   const shell = await loadShell();
   const admins = new Set(shell.admins);
@@ -49,8 +51,7 @@ export async function GET({ url, setHeaders }) {
     for (const e of ops)
       entries.push({ path: `/thread/${e.id}`, lastmod: e.created_at });
   }
-  setHeaders({ "cache-control": CACHE_CONTROL });
   return new Response(xml(url.origin, entries), {
     headers: { "content-type": "application/xml" },
   });
-}
+});

@@ -38,8 +38,15 @@
       (typeof location !== "undefined" ? location.host : ""),
   );
 
-  // Client-initiated NIP-46 flow, alive only while the bunker view is shown
-  let connect = $state<ReturnType<typeof loginWithNostrConnect> | null>(null);
+  // Client-initiated NIP-46 flow, alive only while the bunker view is shown.
+  // `finalizing` flips when the signer first answers, so the QR gives way to
+  // a progress state while the session completes.
+  // $state.raw so identity checks against the raw object (connect === nc)
+  // hold; the object is replaced wholesale, never mutated.
+  let connect = $state.raw<ReturnType<typeof loginWithNostrConnect> | null>(
+    null,
+  );
+  let finalizing = $state(false);
   const qrSvg = $derived(
     connect ? renderSVG(connect.uri, { pixelSize: 4, border: 2 }) : "",
   );
@@ -57,6 +64,7 @@
   function stopConnect() {
     connect?.cancel();
     connect = null;
+    finalizing = false;
   }
 
   function reset() {
@@ -116,7 +124,9 @@
 
   function startConnect() {
     stopConnect();
-    const nc = loginWithNostrConnect();
+    const nc = loginWithNostrConnect(() => {
+      if (connect === nc) finalizing = true;
+    });
     connect = nc;
     nc.done
       .then(() => {
@@ -127,6 +137,7 @@
       .catch((e) => {
         if (connect !== nc) return; // cancelled by leaving the view
         connect = null;
+        finalizing = false;
         error = `${e instanceof Error ? e.message : "Connection failed"}. Go back and retry.`;
       });
   }
@@ -325,71 +336,89 @@
           Sign up
         </button>
       {:else if view === "bunker"}
-        {#if connect}
-          <a
-            href={connect.uri}
-            aria-label="Open in your signer app"
-            class="mx-auto block w-48 rounded bg-white p-1 [&>svg]:h-auto [&>svg]:w-full"
-          >
-            {@html qrSvg}
-          </a>
-          <button
-            type="button"
-            onclick={copyUri}
-            aria-label={copied ? "Copied" : "Copy the connection string"}
-            class="mx-auto mt-3 flex w-full max-w-64 items-center gap-2 rounded-full bg-neutral-100 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
-          >
-            <span class="min-w-0 flex-1 truncate font-mono">{connect.uri}</span>
-            <span class="shrink-0">{copied ? "Copied" : "Copy"}</span>
-          </button>
-          <p
-            class="mt-2 text-center text-xs text-neutral-500 dark:text-neutral-400"
+        {#if finalizing}
+          <div
+            class="flex flex-col items-center gap-3 py-10"
+            role="status"
             aria-live="polite"
           >
-            Scan or paste this in your signer app, then approve the connection.
+            <span
+              class="inline-block h-5 w-5 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-600 dark:border-neutral-600 dark:border-t-neutral-300"
+            ></span>
+            <p class="text-sm text-neutral-600 dark:text-neutral-400">
+              Connected to your signer — finishing login…
+            </p>
+          </div>
+        {:else}
+          {#if connect}
+            <a
+              href={connect.uri}
+              aria-label="Open in your signer app"
+              class="mx-auto block w-48 rounded bg-white p-1 [&>svg]:h-auto [&>svg]:w-full"
+            >
+              {@html qrSvg}
+            </a>
+            <button
+              type="button"
+              onclick={copyUri}
+              aria-label={copied ? "Copied" : "Copy the connection string"}
+              class="mx-auto mt-3 flex w-full max-w-64 items-center gap-2 rounded-full bg-neutral-100 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+            >
+              <span class="min-w-0 flex-1 truncate font-mono"
+                >{connect.uri}</span
+              >
+              <span class="shrink-0">{copied ? "Copied" : "Copy"}</span>
+            </button>
+            <p
+              class="mt-2 text-center text-xs text-neutral-500 dark:text-neutral-400"
+              aria-live="polite"
+            >
+              Scan or paste this in your signer app, then approve the
+              connection.
+            </p>
+          {/if}
+
+          <div class="my-4 flex items-center gap-3" aria-hidden="true">
+            <div
+              class="flex-1 border-t border-neutral-200 dark:border-neutral-700"
+            ></div>
+            <span class="text-xs text-neutral-400">or</span>
+            <div
+              class="flex-1 border-t border-neutral-200 dark:border-neutral-700"
+            ></div>
+          </div>
+
+          <label
+            for="bunker-input"
+            class="mb-1 block text-sm text-neutral-700 dark:text-neutral-300"
+          >
+            Paste a bunker URL
+          </label>
+          <input
+            id="bunker-input"
+            bind:this={bunkerInput}
+            type="text"
+            placeholder="bunker://…"
+            bind:value={bunkerUrl}
+            disabled={busy}
+            autocomplete="off"
+            autocapitalize="off"
+            autocorrect="off"
+            spellcheck="false"
+            onkeydown={(e) => e.key === "Enter" && handleBunker()}
+            class="focus:ring-accent w-full rounded border border-neutral-200 px-3 py-2 font-mono text-sm focus:ring-1 focus:outline-none disabled:opacity-50 dark:border-neutral-700"
+          />
+          <button
+            onclick={handleBunker}
+            disabled={busy || !bunkerUrl.trim()}
+            class="bg-accent hover:bg-accent-hover mt-3 w-full rounded px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {busy ? "Connecting…" : "Log in"}
+          </button>
+          <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+            A NIP-05 address that points to a bunker works too.
           </p>
         {/if}
-
-        <div class="my-4 flex items-center gap-3" aria-hidden="true">
-          <div
-            class="flex-1 border-t border-neutral-200 dark:border-neutral-700"
-          ></div>
-          <span class="text-xs text-neutral-400">or</span>
-          <div
-            class="flex-1 border-t border-neutral-200 dark:border-neutral-700"
-          ></div>
-        </div>
-
-        <label
-          for="bunker-input"
-          class="mb-1 block text-sm text-neutral-700 dark:text-neutral-300"
-        >
-          Paste a bunker URL
-        </label>
-        <input
-          id="bunker-input"
-          bind:this={bunkerInput}
-          type="text"
-          placeholder="bunker://…"
-          bind:value={bunkerUrl}
-          disabled={busy}
-          autocomplete="off"
-          autocapitalize="off"
-          autocorrect="off"
-          spellcheck="false"
-          onkeydown={(e) => e.key === "Enter" && handleBunker()}
-          class="focus:ring-accent w-full rounded border border-neutral-200 px-3 py-2 font-mono text-sm focus:ring-1 focus:outline-none disabled:opacity-50 dark:border-neutral-700"
-        />
-        <button
-          onclick={handleBunker}
-          disabled={busy || !bunkerUrl.trim()}
-          class="bg-accent hover:bg-accent-hover mt-3 w-full rounded px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {busy ? "Connecting…" : "Log in"}
-        </button>
-        <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
-          A NIP-05 address that points to a bunker works too.
-        </p>
         <button
           type="button"
           onclick={showExtensionView}

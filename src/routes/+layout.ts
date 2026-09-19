@@ -4,8 +4,12 @@ import { snapshot, type ForumShell } from "$lib/forum/snapshot";
 
 export const ssr = SSR_ENABLED;
 
-// Runs for every page, so the cache policy for rendered HTML is set here.
+// Runs for every page, so the cache policy for rendered HTML is set here. A
+// page rendered without its shell (relay down or refusing anonymous reads) is
+// an empty placeholder the client fills in, not worth keeping in a shared cache.
 export async function load({ fetch, setHeaders }) {
-  if (!browser) setHeaders({ "cache-control": CACHE_CONTROL });
-  return { shell: await snapshot<ForumShell>(fetch, "/api/shell") };
+  const shell = await snapshot<ForumShell>(fetch, "/api/shell");
+  if (!browser)
+    setHeaders({ "cache-control": shell ? CACHE_CONTROL : "no-store" });
+  return { shell };
 }
