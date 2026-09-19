@@ -334,7 +334,6 @@
       case "str":
         return tokenizeInline(node.text);
       case "soft_break":
-        return [{ type: "text", value: " " }];
       case "hard_break":
         return [{ type: "br" }];
       case "non_breaking_space":
