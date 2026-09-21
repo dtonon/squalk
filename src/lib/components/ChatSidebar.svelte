@@ -251,8 +251,11 @@
   }
 
   // Anchor to bottom on new messages, unless user is reading older ones.
+  // Also runs when the mobile panel becomes visible: while hidden the list
+  // has no height, so earlier scrolls were no-ops.
   $effect(() => {
     messages.length;
+    mobileActive;
     if (!listEl || userScrolledUp) return;
     tick().then(() => {
       if (listEl) listEl.scrollTop = listEl.scrollHeight;
