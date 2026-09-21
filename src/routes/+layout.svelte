@@ -33,6 +33,7 @@
     SECONDARY_COLOR,
     SEARCH_ENABLED,
     FAVICON,
+    RELAY_URL,
   } from "$lib/config";
 
   let { children } = $props();
@@ -210,9 +211,32 @@
            it first and it reappears once the top is reached. Desktop only. -->
         <div class="hidden md:block md:h-6" aria-hidden="true"></div>
         <div
-          class="min-h-[calc(100dvh_-_4rem)] bg-white px-6 pt-4 pb-20 shadow-lg md:min-h-full md:rounded-t-xl md:px-10 md:pt-6 md:pt-8 dark:bg-neutral-900"
+          class="flex min-h-[calc(100dvh_-_4rem)] flex-col bg-white px-6 pt-4 pb-20 shadow-lg md:min-h-[calc(100%_-_1.5rem)] md:rounded-t-xl md:px-10 md:pt-6 md:pt-8 md:pb-6 dark:bg-neutral-900"
         >
-          {@render children()}
+          <div class="flex-1">
+            {@render children()}
+          </div>
+          <footer
+            class="mt-auto pt-16 pb-4 text-center text-[90%] text-neutral-500/70 dark:text-neutral-400/70"
+          >
+            This forum is built on
+            <a
+              href="https://njump.me"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="underline hover:text-neutral-700 dark:hover:text-neutral-200"
+              >Nostr</a
+            >
+            with
+            <a
+              href="https://github.com/dtonon/squalk"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="underline hover:text-neutral-700 dark:hover:text-neutral-200"
+              >Squalk</a
+            >
+            - Hosting relay is {RELAY_URL.replace(/^wss?:\/\//, "")}
+          </footer>
         </div>
       </main>
       {#if showChat}
