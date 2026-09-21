@@ -24,14 +24,20 @@ export const autogrow: Action<
     const vPad = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
     const vBorder =
       parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth);
+    const min = lh * Math.max(node.rows, 1) + vPad + vBorder;
     const max = lh * maxRows + vPad + vBorder;
     node.style.height = "auto";
-    const next = Math.min(node.scrollHeight, max);
+    // scrollHeight is 0 while hidden (display:none); never go below `rows`.
+    const next = Math.min(Math.max(node.scrollHeight, min), max);
     node.style.height = `${next}px`;
     node.style.overflowY = node.scrollHeight > max ? "auto" : "hidden";
   }
 
   node.addEventListener("input", resize);
+  // Re-measure when the textarea becomes visible or changes width.
+  const ro =
+    typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null;
+  ro?.observe(node);
   resize();
 
   return {
@@ -43,6 +49,7 @@ export const autogrow: Action<
     },
     destroy() {
       node.removeEventListener("input", resize);
+      ro?.disconnect();
     },
   };
 };
