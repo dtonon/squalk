@@ -770,7 +770,7 @@
 {/snippet}
 
 <div
-  class="prose max-w-none leading-5 text-neutral-700 dark:text-neutral-300 [&_:not(pre)>code]:rounded [&_:not(pre)>code]:bg-neutral-100 [&_:not(pre)>code]:px-1 [&_:not(pre)>code]:py-0.5 dark:[&_:not(pre)>code]:bg-neutral-800 dark:[&_:not(pre)>code]:text-neutral-200 [&_blockquote_p]:before:content-none [&_blockquote_p]:after:content-none [&_code]:before:content-none [&_code]:after:content-none [&_img]:my-5 [&_p]:my-3 [&_pre]:bg-neutral-100 [&_pre]:text-neutral-800 dark:[&_pre]:bg-neutral-800 dark:[&_pre]:text-neutral-200 [&_table]:my-0"
+  class="prose max-w-none leading-5 wrap-anywhere text-neutral-700 dark:text-neutral-300 [&_:not(pre)>code]:rounded [&_:not(pre)>code]:bg-neutral-100 [&_:not(pre)>code]:px-1 [&_:not(pre)>code]:py-0.5 dark:[&_:not(pre)>code]:bg-neutral-800 dark:[&_:not(pre)>code]:text-neutral-200 [&_blockquote_p]:before:content-none [&_blockquote_p]:after:content-none [&_code]:before:content-none [&_code]:after:content-none [&_img]:my-5 [&_p]:my-3 [&_pre]:bg-neutral-100 [&_pre]:text-neutral-800 dark:[&_pre]:bg-neutral-800 dark:[&_pre]:text-neutral-200 [&_table]:my-0"
 >
   {@render renderBlocks(blocks)}
 </div>
