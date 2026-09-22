@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { loadEnv } from "vite";
 import adapterNode from "@sveltejs/adapter-node";
 import adapterStatic from "@sveltejs/adapter-static";
@@ -12,10 +13,23 @@ const env = loadEnv(
 );
 const ssr = (process.env.PUBLIC_SSR ?? env.PUBLIC_SSR) === "yes";
 
+// Instance assets: a build run with `--mode <mode>` serves the files in
+// .local/<mode>/static (gitignored) instead of the shared static/ folder.
+const argv = process.argv;
+const modeIdx = argv.findIndex((a) => a === "--mode" || a === "-m");
+const mode =
+  modeIdx !== -1
+    ? argv[modeIdx + 1]
+    : argv.find((a) => a.startsWith("--mode="))?.slice(7);
+const instanceAssets = mode ? `.local/${mode}/static` : undefined;
+const assets =
+  instanceAssets && existsSync(instanceAssets) ? instanceAssets : "static";
+
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
   kit: {
     adapter: ssr ? adapterNode() : adapterStatic({ fallback: "index.html" }),
+    files: { assets },
   },
 };
 
