@@ -7,6 +7,15 @@
   import { SEARCH_ENABLED } from "$lib/config";
   import { draftState, resumeDraft } from "$lib/draft.svelte";
   import ThemeToggle from "$lib/components/ThemeToggle.svelte";
+  import UserAvatar from "$lib/components/UserAvatar.svelte";
+  import { notificationsStore } from "$lib/notifications.svelte";
+
+  const unread = $derived(notificationsStore.unreadCount);
+  const profileLabel = $derived(
+    unread > 0
+      ? `Your profile, ${unread} new notification${unread === 1 ? "" : "s"}`
+      : "Your profile",
+  );
 
   type Props = {
     open: boolean;
@@ -83,7 +92,7 @@
       transition:fade={{ duration: 150 }}
     ></button>
     <div
-      class="absolute inset-y-0 right-0 flex w-72 max-w-[80%] flex-col bg-white dark:bg-neutral-900 px-6 py-4 shadow-xl"
+      class="absolute inset-y-0 right-0 flex w-72 max-w-[80%] flex-col bg-white px-6 py-4 shadow-xl dark:bg-neutral-900"
       role="dialog"
       aria-modal="true"
       aria-label="Menu"
@@ -97,7 +106,7 @@
         <button
           type="button"
           onclick={onClose}
-          class="-mr-1 rounded p-1 text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+          class="-mr-1 rounded p-1 text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
           aria-label="Close menu"
         >
           <svg
@@ -142,19 +151,25 @@
         {#if mode === "full"}
           <nav class="mt-4" aria-label="Rooms">
             <p
-              class="pb-1 font-semibold tracking-wider text-neutral-400 dark:text-neutral-500 uppercase"
+              class="pb-1 font-semibold tracking-wider text-neutral-400 uppercase dark:text-neutral-500"
             >
               Rooms
             </p>
             {#if groupsStore.list.length === 0 && !groupsStore.loaded}
-              <p class="py-1.5 text-base text-neutral-400 dark:text-neutral-500">Loading rooms…</p>
+              <p
+                class="py-1.5 text-base text-neutral-400 dark:text-neutral-500"
+              >
+                Loading rooms…
+              </p>
             {/if}
             {#each groupsStore.list as room}
               <a
                 href="/room/{room.id}"
                 onclick={onClose}
                 class="block py-1.5 text-xl
-									{activeRoom === room.id ? 'text-accent' : 'hover:text-accent text-neutral-700 dark:text-neutral-300'}"
+									{activeRoom === room.id
+                  ? 'text-accent'
+                  : 'hover:text-accent text-neutral-700 dark:text-neutral-300'}"
               >
                 {room.name}
               </a>
@@ -164,7 +179,7 @@
 
         <nav class="mt-4" aria-label="Resources">
           <p
-            class="pb-1 font-semibold tracking-wider text-neutral-400 dark:text-neutral-500 uppercase"
+            class="pb-1 font-semibold tracking-wider text-neutral-400 uppercase dark:text-neutral-500"
           >
             Resources
           </p>
@@ -174,8 +189,9 @@
               onclick={onClose}
               aria-current={activeResource === r.slug ? "page" : undefined}
               class="hover:text-accent block py-1.5 text-xl
-                {activeResource === r.slug ? 'text-accent' : 'text-neutral-700 dark:text-neutral-300'}"
-              >{r.title}</a
+                {activeResource === r.slug
+                ? 'text-accent'
+                : 'text-neutral-700 dark:text-neutral-300'}">{r.title}</a
             >
           {/each}
           <a
@@ -183,11 +199,15 @@
             onclick={onClose}
             aria-current={contactsActive ? "page" : undefined}
             class="hover:text-accent block py-1.5 text-lg
-              {contactsActive ? 'text-accent' : 'text-neutral-700 dark:text-neutral-300'}">Contacts</a
+              {contactsActive
+              ? 'text-accent'
+              : 'text-neutral-700 dark:text-neutral-300'}">Contacts</a
           >
         </nav>
 
-        <div class="mt-4 flex flex-col gap-2 border-t border-neutral-100 dark:border-neutral-800 pt-4">
+        <div
+          class="mt-4 flex flex-col gap-2 border-t border-neutral-100 pt-4 dark:border-neutral-800"
+        >
           {#if draftState.iconized}
             <button
               type="button"
@@ -199,33 +219,23 @@
           {/if}
           {#if auth.user}
             <div class="flex items-center gap-2">
-              <button
-                type="button"
-                onclick={onLogout}
+              <a
+                href="/profile/{auth.user.npub}"
+                onclick={onClose}
                 class="flex min-w-0 flex-1 items-center gap-2 rounded px-2 py-2 text-left text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
-                aria-label="Log out"
+                aria-label={profileLabel}
               >
-                {#if auth.user.metadata.picture}
-                  <img
-                    src={auth.user.metadata.picture}
-                    alt=""
-                    class="h-8 w-8 rounded-full object-cover"
-                  />
-                {:else}
-                  <span
-                    class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-300 text-sm font-semibold text-neutral-600 dark:text-neutral-400 dark:bg-neutral-600"
-                    aria-hidden="true"
-                  >
-                    {auth.user.shortName.slice(0, 1).toUpperCase()}
-                  </span>
-                {/if}
+                <UserAvatar size="md" />
                 <span class="truncate text-lg font-medium"
                   >{auth.user.shortName}</span
                 >
-                <span
-                  class="ml-auto shrink-0 text-sm text-neutral-400 dark:text-neutral-500"
-                  >Log out</span
-                >
+              </a>
+              <button
+                type="button"
+                onclick={onLogout}
+                class="shrink-0 rounded px-2 py-2 text-sm text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-500 dark:hover:bg-neutral-800 dark:hover:text-neutral-300"
+              >
+                Log out
               </button>
               <ThemeToggle size="md" />
             </div>

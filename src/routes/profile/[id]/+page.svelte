@@ -20,9 +20,12 @@
     UserPostPage,
   } from "$lib/forum/userPosts";
   import Meta from "$lib/components/Meta.svelte";
+  import Notifications from "$lib/components/Notifications.svelte";
+  import { auth } from "$lib/auth.svelte";
   import { summarize } from "$lib/seo";
 
   const pubkey = $derived<string | null>(page.data.pubkey ?? null);
+  const isOwn = $derived(!!pubkey && auth.user?.pubkey === pubkey);
 
   $effect(() => {
     if (!pubkey) return;
@@ -239,6 +242,10 @@
         </span>
       {/if}
     </div>
+
+    {#if isOwn}
+      <Notifications />
+    {/if}
 
     <div class="mt-10 grid gap-10 md:grid-cols-2 md:gap-8">
       <section aria-labelledby="profile-discussions">

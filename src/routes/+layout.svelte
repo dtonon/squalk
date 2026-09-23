@@ -24,6 +24,10 @@
   import { loadRoomAdmins } from "$lib/admins.svelte";
   import { seedProfiles } from "$lib/profiles.svelte";
   import { startChat } from "$lib/chat.svelte";
+  import {
+    startNotifications,
+    stopNotifications,
+  } from "$lib/notifications.svelte";
   import { resetForumConnection } from "$lib/relay";
   import { relayAccess, probeRelayAccess } from "$lib/access.svelte";
   import { activeGroup, setActiveGroup } from "$lib/active.svelte";
@@ -92,6 +96,15 @@
     if (mode === "full") loadRoomAdmins(groupsStore.list.map((g) => g.id));
     seedProfiles(auth.user?.pubkey ?? null);
   }
+
+  // Replies/mentions follow the logged-in user. Keyed on the user rather than
+  // on loadForum: a restored session resolves its profile after the probe.
+  $effect(() => {
+    const pk = auth.user?.pubkey ?? null;
+    if (relayAccess.state !== "open") return;
+    if (pk) startNotifications(pk);
+    else stopNotifications();
+  });
 
   // Each completed probe that finds the relay open reloads the room views: on
   // first load, after a login (private/hidden rooms appear) or logout (they
@@ -171,9 +184,10 @@
 
   // On mobile a route change should always land on the forum pane, so opening
   // a thread or room from the menu never leaves the user stranded on chat.
+  // A chat message link (#chat-…, e.g. from a notification) opens the chat pane.
   $effect(() => {
     page.url.pathname;
-    mobileView = "forum";
+    mobileView = page.url.hash.startsWith("#chat-") ? "chat" : "forum";
   });
 </script>
 

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { tick } from "svelte";
+  import { page } from "$app/state";
   import {
     chatStore,
     getChatMessage,
@@ -262,6 +263,23 @@
     });
   });
 
+  // Arriving with a #chat-… hash (a notification link): scroll to the message
+  // once it is loaded, and stop anchoring to the bottom so it stays in view.
+  let scrolledHashFor = "";
+  $effect(() => {
+    const hash = page.url.hash;
+    messages.length;
+    mobileActive;
+    if (!hash.startsWith("#chat-") || scrolledHashFor === hash) return;
+    tick().then(() => {
+      const el = document.getElementById(hash.slice(1));
+      if (!el) return;
+      scrolledHashFor = hash;
+      userScrolledUp = true;
+      el.scrollIntoView({ block: "center" });
+    });
+  });
+
   $effect(() => {
     if (!expanded) return;
     function handleClick(e: MouseEvent) {
@@ -350,7 +368,7 @@
               ></span>
             </div>
           {/if}
-          <div>
+          <div id="chat-{msg.id}">
             <div class="mb-1 flex items-center gap-2">
               <a
                 href={profilePath(msg.pubkey)}

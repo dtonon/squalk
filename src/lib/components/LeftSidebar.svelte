@@ -7,6 +7,15 @@
   import { GROUP_ID, TITLE, SEARCH_ENABLED } from "$lib/config";
   import { openSearch } from "$lib/searchModal.svelte";
   import ThemeToggle from "$lib/components/ThemeToggle.svelte";
+  import UserAvatar from "$lib/components/UserAvatar.svelte";
+  import { notificationsStore } from "$lib/notifications.svelte";
+
+  const unread = $derived(notificationsStore.unreadCount);
+  const profileLabel = $derived(
+    unread > 0
+      ? `Your profile, ${unread} new notification${unread === 1 ? "" : "s"}`
+      : "Your profile",
+  );
 
   type Props = {
     mode: "simple" | "full";
@@ -189,30 +198,25 @@
       </button>
     {/if}
     {#if auth.user}
-      <div class="mt-3 flex items-center gap-1">
+      <div class="mt-3 flex justify-end">
         <button
           onclick={() => {
             if (confirm("Log out?")) logout();
           }}
-          class="flex min-w-0 flex-1 items-center gap-2 rounded px-2 py-1.5 text-left text-sm text-neutral-700 hover:bg-neutral-200 dark:text-neutral-300 dark:hover:bg-neutral-700"
-          aria-label="Account options"
+          class="rounded px-2 py-0.5 text-xs text-neutral-400 hover:bg-neutral-200 hover:text-neutral-700 dark:text-neutral-500 dark:hover:bg-neutral-700 dark:hover:text-neutral-300"
         >
-          {#if auth.user.metadata.picture}
-            <img
-              src={auth.user.metadata.picture}
-              alt=""
-              class="h-7 w-7 rounded-full object-cover"
-            />
-          {:else}
-            <span
-              class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-300 text-xs font-semibold text-neutral-600 dark:bg-neutral-600 dark:text-neutral-400"
-              aria-hidden="true"
-            >
-              {auth.user.shortName.slice(0, 1).toUpperCase()}
-            </span>
-          {/if}
-          <span class="truncate font-medium">{auth.user.shortName}</span>
+          Log out
         </button>
+      </div>
+      <div class="flex items-center gap-1">
+        <a
+          href="/profile/{auth.user.npub}"
+          class="flex min-w-0 flex-1 items-center gap-2 rounded px-2 py-1.5 text-left text-sm text-neutral-700 hover:bg-neutral-200 dark:text-neutral-300 dark:hover:bg-neutral-700"
+          aria-label={profileLabel}
+        >
+          <UserAvatar />
+          <span class="truncate font-medium">{auth.user.shortName}</span>
+        </a>
         <ThemeToggle />
       </div>
     {:else}
