@@ -1,18 +1,18 @@
 <script lang="ts">
   import { groupStore } from "$lib/group.svelte";
-  import { auth } from "$lib/auth.svelte";
   import { notificationsStore } from "$lib/notifications.svelte";
   import { GROUP_ID, TITLE, MODE } from "$lib/config";
-  import UserAvatar from "$lib/components/UserAvatar.svelte";
 
   type Props = { onMenuToggle: () => void };
   let { onMenuToggle }: Props = $props();
 
+  // The unread notifications count rides on the menu button; the drawer's
+  // profile link repeats it and leads to the list.
   const unread = $derived(notificationsStore.unreadCount);
-  const profileLabel = $derived(
+  const menuLabel = $derived(
     unread > 0
-      ? `Your profile, ${unread} new notification${unread === 1 ? "" : "s"}`
-      : "Your profile",
+      ? `Open menu, ${unread} new notification${unread === 1 ? "" : "s"}`
+      : "Open menu",
   );
 
   // PUBLIC_TITLE always wins when set. Without it, simple mode shows the room's
@@ -50,21 +50,20 @@
       >{name}</span
     >
   </a>
-  {#if auth.user}
-    <a
-      href="/profile/{auth.user.npub}"
-      class="ml-auto shrink-0 rounded p-1 hover:bg-neutral-200 dark:hover:bg-neutral-700"
-      aria-label={profileLabel}
-    >
-      <UserAvatar size="md" />
-    </a>
-  {/if}
   <button
     type="button"
     onclick={onMenuToggle}
-    class="-mr-1 shrink-0 rounded p-1.5 text-neutral-700 hover:bg-neutral-200 md:hidden dark:text-neutral-300 dark:hover:bg-neutral-700"
-    aria-label="Open menu"
+    class="relative -mr-1 shrink-0 rounded p-1.5 text-neutral-700 hover:bg-neutral-200 md:hidden dark:text-neutral-300 dark:hover:bg-neutral-700"
+    aria-label={menuLabel}
   >
+    {#if unread > 0}
+      <span
+        class="bg-accent absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] leading-none font-semibold text-white"
+        aria-hidden="true"
+      >
+        {unread > 99 ? "99+" : unread}
+      </span>
+    {/if}
     <svg
       xmlns="http://www.w3.org/2000/svg"
       class="h-6 w-6"
