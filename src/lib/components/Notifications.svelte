@@ -7,12 +7,27 @@
   import {
     notificationsStore,
     markNotificationsSeen,
+    loadMoreNotifications,
     type Notification,
   } from "$lib/notifications.svelte";
   import { summarize } from "$lib/seo";
   import * as nip19 from "@nostr/tools/nip19";
 
+  const PAGE = 5;
+
   const items = $derived(notificationsStore.items);
+  // Visible slice; "Show more" reveals another page from what is loaded and
+  // fetches older ones once the loaded list runs out.
+  let shown = $state(PAGE);
+  const visible = $derived(items?.slice(0, shown) ?? null);
+  const hasMore = $derived(
+    !!items && (items.length > shown || !notificationsStore.done),
+  );
+
+  async function showMore() {
+    if (items && items.length <= shown) await loadMoreNotifications();
+    shown += PAGE;
+  }
 
   // Unread threshold frozen when the list first shows, so new items keep their
   // mark while on screen even though they are counted as seen right away.
@@ -20,7 +35,13 @@
 
   $effect(() => {
     if (!items) return;
-    if (openedAt === null) openedAt = untrack(() => notificationsStore.seenAt);
+    if (openedAt === null) {
+      const seenAt = untrack(() => notificationsStore.seenAt);
+      openedAt = seenAt;
+      // Every new item is visible at once; the page size is only a floor
+      const unread = items.filter((n) => n.createdAt > seenAt).length;
+      shown = Math.max(PAGE, unread);
+    }
     markNotificationsSeen();
   });
 
@@ -86,7 +107,7 @@
     </p>
   {:else}
     <ul class="divide-y divide-neutral-100 dark:divide-neutral-800">
-      {#each items as n (n.id)}
+      {#each visible ?? [] as n (n.id)}
         {@const unread = n.createdAt > (openedAt ?? 0)}
         {@const name = authorName(n.pubkey)}
         {@const picture = authorPicture(n.pubkey)}
@@ -163,5 +184,18 @@
         </li>
       {/each}
     </ul>
+    {#if hasMore}
+      {@const busy = notificationsStore.loadingMore}
+      <div class="flex justify-center py-6">
+        <button
+          onclick={showMore}
+          disabled={busy}
+          aria-busy={busy}
+          class="rounded border border-neutral-200 px-6 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+        >
+          {busy ? "Loading…" : "Show more"}
+        </button>
+      </div>
+    {/if}
   {/if}
 </section>

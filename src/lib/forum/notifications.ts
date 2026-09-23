@@ -20,7 +20,13 @@ export type Notification = {
   title?: string; // thread title, filled by fetchThreadTitles
 };
 
-export const NOTIFICATIONS_LIMIT = 50;
+export const NOTIFICATIONS_PAGE = 20;
+const CURSOR_HEADROOM = 10; // boundary events re-read at the inclusive cursor
+
+export type NotificationPage = {
+  items: Notification[];
+  done: boolean; // no older notifications left
+};
 
 // Classify an event that p-tags the user. Own events and anything that is
 // neither a discussion reply nor a chat message yield null.
@@ -69,23 +75,32 @@ export async function fetchThreadTitles(
   }
 }
 
-// Latest replies and mentions addressed to the user, newest first. Without
-// `groupId` every group the relay serves the caller counts.
+// One page of replies and mentions addressed to the user, newest first,
+// older than the cursor. Without `groupId` every group the relay serves the
+// caller counts.
 export async function fetchNotifications(
   q: Query,
   me: string,
-  groupId?: string,
-): Promise<Notification[]> {
+  req: { groupId?: string; until?: number; exclude?: Set<string> } = {},
+): Promise<NotificationPage> {
+  const n = NOTIFICATIONS_PAGE;
+  const exclude = req.exclude ?? new Set<string>();
   const events = await q({
     kinds: [1111, 9],
     "#p": [me],
-    ...(groupId ? { "#h": [groupId] } : {}),
-    limit: NOTIFICATIONS_LIMIT,
+    ...(req.groupId ? { "#h": [req.groupId] } : {}),
+    ...(req.until ? { until: req.until } : {}),
+    limit: n + CURSOR_HEADROOM,
   });
-  const items = events
+  const fresh = events
+    .filter((e) => !exclude.has(e.id))
     .map((e) => parseNotification(e, me))
-    .filter((n): n is Notification => n !== null)
+    .filter((x): x is Notification => x !== null)
     .sort((a, b) => b.createdAt - a.createdAt);
+  const items = fresh.slice(0, n);
+  // Finished only when everything fresh fits the page and the relay had
+  // nothing beyond the requested window
+  const done = fresh.length <= n && events.length < n + CURSOR_HEADROOM;
   await fetchThreadTitles(q, items);
-  return items;
+  return { items, done };
 }
