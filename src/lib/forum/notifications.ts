@@ -3,11 +3,18 @@ import { extractMentionPubkeys } from "$lib/mentions";
 import { tag, type Query } from "./query";
 
 export type NotificationKind =
-  | "reply-op" // reply to a discussion the user started
-  | "reply" // reply in a discussion the user took part in
+  | "quote" // reply quoting one of the user's posts
   | "mention" // mentioned in a discussion reply
+  | "reply-op" // reply to a discussion the user started
+  | "reply" // reply in a discussion the user took part in, p-tag only
   | "chat-reply" // chat reply to the user's message
   | "chat-mention"; // mentioned in chat
+
+// Everything but plain thread activity is addressed to the user. Not applied
+// yet: a future setting will let users leave plain activity out of the badge.
+export function isDirect(kind: NotificationKind): boolean {
+  return kind !== "reply";
+}
 
 export type Notification = {
   id: string;
@@ -43,11 +50,14 @@ export function parseNotification(e: Event, me: string): Notification | null {
   if (e.kind === 1111) {
     const threadId = tag(e, "E");
     if (!threadId) return null;
-    const kind: NotificationKind = mentioned
-      ? "mention"
-      : tag(e, "P") === me
-        ? "reply-op"
-        : "reply";
+    const quoted = e.tags.some((t) => t[0] === "q" && t[3] === me);
+    const kind: NotificationKind = quoted
+      ? "quote"
+      : mentioned
+        ? "mention"
+        : tag(e, "P") === me
+          ? "reply-op"
+          : "reply";
     return { ...base, kind, threadId };
   }
   if (e.kind === 9) {

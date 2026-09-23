@@ -60,16 +60,17 @@
 
   function verb(n: Notification): string {
     switch (n.kind) {
+      case "quote":
       case "reply-op":
-        return "replied to your discussion";
+        return "replied to you in";
       case "reply":
-        return "replied in";
+        return "wrote in";
       case "mention":
         return "mentioned you in";
       case "chat-reply":
         return "replied to you in chat";
       case "chat-mention":
-        return "mentioned you in chat";
+        return MODE === "full" ? "mentioned you in" : "mentioned you in chat";
     }
   }
 
@@ -157,6 +158,14 @@
                   <span class="group-hover:text-accent">
                     {n.title || "a discussion"}
                   </span>
+                {:else if n.kind === "chat-mention" && MODE === "full"}
+                  <span class="group-hover:text-accent"
+                    >{getGroupName(n.groupId)}</span
+                  >
+                  <span
+                    class="font-normal text-neutral-500 dark:text-neutral-400"
+                    >chat</span
+                  >
                 {/if}
               </p>
               {#if text}
