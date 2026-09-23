@@ -205,6 +205,16 @@
           >
         </nav>
 
+        {#if auth.user}
+          <button
+            type="button"
+            onclick={onLogout}
+            class="hover:text-accent mt-4 py-1.5 text-left text-lg text-neutral-700 dark:text-neutral-300"
+          >
+            Log out
+          </button>
+        {/if}
+
         <div
           class="mt-4 flex flex-col gap-2 border-t border-neutral-100 pt-4 dark:border-neutral-800"
         >
@@ -230,13 +240,6 @@
                   >{auth.user.shortName}</span
                 >
               </a>
-              <button
-                type="button"
-                onclick={onLogout}
-                class="shrink-0 rounded px-2 py-2 text-sm text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-500 dark:hover:bg-neutral-800 dark:hover:text-neutral-300"
-              >
-                Log out
-              </button>
               <ThemeToggle size="md" />
             </div>
           {:else}

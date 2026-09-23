@@ -21,7 +21,7 @@
   } from "$lib/forum/userPosts";
   import Meta from "$lib/components/Meta.svelte";
   import Notifications from "$lib/components/Notifications.svelte";
-  import { auth } from "$lib/auth.svelte";
+  import { auth, logout } from "$lib/auth.svelte";
   import { summarize } from "$lib/seo";
 
   const pubkey = $derived<string | null>(page.data.pubkey ?? null);
@@ -169,7 +169,19 @@
       Profile not found.
     </p>
   {:else}
-    <h1 class="text-accent py-2 text-[1.65rem]">{name}</h1>
+    <div class="flex items-start justify-between gap-4">
+      <h1 class="text-accent min-w-0 py-2 text-[1.65rem]">{name}</h1>
+      {#if isOwn}
+        <button
+          onclick={() => {
+            if (confirm("Log out?")) logout();
+          }}
+          class="mt-3 shrink-0 rounded px-2 py-1 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+        >
+          Log out
+        </button>
+      {/if}
+    </div>
 
     <div class="mt-2 flex items-start gap-6">
       <div class="min-w-0 flex-1">

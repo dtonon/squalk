@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { auth, openLogin, logout } from "$lib/auth.svelte";
+  import { auth, openLogin } from "$lib/auth.svelte";
   import { groupStore } from "$lib/group.svelte";
   import { groupsStore } from "$lib/groups.svelte";
   import { resourcesStore } from "$lib/resources.svelte";
@@ -198,17 +198,7 @@
       </button>
     {/if}
     {#if auth.user}
-      <div class="mt-3 flex justify-end">
-        <button
-          onclick={() => {
-            if (confirm("Log out?")) logout();
-          }}
-          class="rounded px-2 py-0.5 text-xs text-neutral-400 hover:bg-neutral-200 hover:text-neutral-700 dark:text-neutral-500 dark:hover:bg-neutral-700 dark:hover:text-neutral-300"
-        >
-          Log out
-        </button>
-      </div>
-      <div class="flex items-center gap-1">
+      <div class="mt-3 flex items-center gap-1">
         <a
           href="/profile/{auth.user.npub}"
           class="flex min-w-0 flex-1 items-center gap-2 rounded px-2 py-1.5 text-left text-sm text-neutral-700 hover:bg-neutral-200 dark:text-neutral-300 dark:hover:bg-neutral-700"
