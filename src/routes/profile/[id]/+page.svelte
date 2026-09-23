@@ -183,7 +183,23 @@
       {/if}
     </div>
 
-    <div class="mt-2 flex items-start gap-6">
+    <!-- On mobile the picture floats so the bio wraps around it; from md up
+       it is a flex column on the right. Placed first in the DOM for the float. -->
+    <div class="mt-2 md:flex md:items-start md:gap-6">
+      {#if entry?.picture}
+        <img
+          src={entry.picture}
+          alt=""
+          class="float-right mb-2 ml-4 h-24 w-24 shrink-0 rounded-full object-cover sm:h-32 sm:w-32 md:order-last md:float-none md:mb-0 md:ml-0"
+        />
+      {:else}
+        <span
+          class="float-right mb-2 ml-4 flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-3xl font-semibold text-neutral-500 sm:h-32 sm:w-32 md:order-last md:float-none md:mb-0 md:ml-0 dark:bg-neutral-700 dark:text-neutral-400"
+          aria-hidden="true"
+        >
+          {initial}
+        </span>
+      {/if}
       <div class="min-w-0 flex-1">
         {#if entry?.nip05}
           <p class="truncate text-neutral-400 dark:text-neutral-500">
@@ -238,21 +254,6 @@
           </p>
         {/if}
       </div>
-
-      {#if entry?.picture}
-        <img
-          src={entry.picture}
-          alt=""
-          class="h-24 w-24 shrink-0 rounded-full object-cover sm:h-32 sm:w-32"
-        />
-      {:else}
-        <span
-          class="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-3xl font-semibold text-neutral-500 sm:h-32 sm:w-32 dark:bg-neutral-700 dark:text-neutral-400"
-          aria-hidden="true"
-        >
-          {initial}
-        </span>
-      {/if}
     </div>
 
     {#if isOwn}
