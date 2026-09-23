@@ -15,7 +15,9 @@
   import { page } from "$app/state";
   import { afterNavigate } from "$app/navigation";
   import { onMount, untrack } from "svelte";
-  import { auth, restoreSession } from "$lib/auth.svelte";
+  import { auth, restoreSession, loginMethod } from "$lib/auth.svelte";
+  import { showToast } from "$lib/toast.svelte";
+  import { VERSION, VERSION_URL, diagnostics } from "$lib/version";
   import { loadGroup } from "$lib/group.svelte";
   import { ensureMembershipChecked } from "$lib/join.svelte";
   import { loadGroups, groupsStore } from "$lib/groups.svelte";
@@ -41,6 +43,15 @@
   } from "$lib/config";
 
   let { children } = $props();
+
+  async function copyDiagnostics() {
+    try {
+      await navigator.clipboard.writeText(diagnostics(loginMethod()));
+      showToast("Version info copied, paste it in your bug report");
+    } catch {
+      showToast("Could not copy to clipboard");
+    }
+  }
 
   // Optional env overrides for the theme colors. Set as inline custom props on
   // <html> so they outrank the @theme `:root` defaults; hover shades are derived
@@ -233,6 +244,8 @@
           <footer
             class="mt-auto pt-16 pb-4 text-center text-[90%] text-neutral-500/70 dark:text-neutral-400/70"
           >
+            Hosting relay is {RELAY_URL.replace(/^wss?:\/\//, "")}
+            <br />
             This forum is built on
             <a
               href="https://njump.me"
@@ -249,7 +262,37 @@
               class="underline hover:text-neutral-700 dark:hover:text-neutral-200"
               >Squalk</a
             >
-            - Hosting relay is {RELAY_URL.replace(/^wss?:\/\//, "")}
+            <a
+              href={VERSION_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="underline hover:text-neutral-700 dark:hover:text-neutral-200"
+              >v{VERSION}</a
+            >
+            <button
+              type="button"
+              onclick={copyDiagnostics}
+              aria-label="Copy version info for bug reports"
+              title="Copy version info for bug reports"
+              class="focus-visible:ring-accent inline-flex cursor-pointer items-center rounded align-text-bottom hover:text-neutral-700 focus-visible:ring-2 focus-visible:outline-none dark:hover:text-neutral-200"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="size-3.5"
+                aria-hidden="true"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" />
+                <path
+                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                />
+              </svg>
+            </button>
           </footer>
         </div>
       </main>

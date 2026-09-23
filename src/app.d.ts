@@ -9,8 +9,10 @@ import type {
 import type { ThreadDetail } from "$lib/forum/thread";
 
 declare global {
-  // Injected by vite.config.ts from PUBLIC_SSR
+  // Injected by vite.config.ts from PUBLIC_SSR, package.json and git
   const __SQUALK_SSR__: boolean;
+  const __SQUALK_VERSION__: string;
+  const __SQUALK_COMMIT__: string;
 
   namespace App {
     // interface Error {}

@@ -122,6 +122,10 @@ function closeBunker() {
   bunker = null;
 }
 
+export function loginMethod(): string | null {
+  return user ? localStorage.getItem(METHOD_KEY) : null;
+}
+
 function clearStoredSession() {
   localStorage.removeItem(PUBKEY_KEY);
   localStorage.removeItem(METHOD_KEY);
