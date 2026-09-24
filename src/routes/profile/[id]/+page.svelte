@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from "$app/state";
-  import { MODE } from "$lib/config";
+  import { MODE, EXTERNAL_CLIENT_NAME, externalLink } from "$lib/config";
   import { getGroupName } from "$lib/group.svelte";
   import { groupsStore } from "$lib/groups.svelte";
   import {
@@ -235,12 +235,12 @@
             </span>
           {/if}
           <a
-            href="https://njump.me/{npub}"
+            href={externalLink(npub)}
             target="_blank"
             rel="noopener noreferrer"
             class="text-accent text-sm hover:underline"
           >
-            View on njump ↗
+            View on {EXTERNAL_CLIENT_NAME} ↗
           </a>
         </div>
 

@@ -34,6 +34,7 @@ Squalk is configured entirely through environment variables (all prefixed `PUBLI
 | `PUBLIC_SEARCH` | no | `no` | `yes` to show a search box at the top of the homepage. Requires a relay with NIP-50 search support. |
 | `PUBLIC_LABELS` | no | — | Comma-separated discussion labels offered when composing, e.g. `bug,feature,question`. |
 | `PUBLIC_BLOSSOM_URL` | no | — | Blossom server URL used for media uploads, e.g. `https://blossom.primal.net`. Uploads are disabled when unset. |
+| `PUBLIC_EXTERNAL_CLIENT` | no | `https://njump.me/{e}` | URL template of the external Nostr client used to open profiles and events outside the forum. `{e}` is replaced with the bech32 entity (npub, nevent, naddr), e.g. `https://nostr.at/{e}`. |
 | `PUBLIC_ACCENT_COLOR` | no | `#e32a6d` | Override the accent (primary) color. Quote the value (`"#00ff00"`) — an unquoted leading `#` is read as a comment. The hover shade is derived automatically. |
 | `PUBLIC_SECONDARY_COLOR` | no | `#ffaf25` | Override the secondary color. Same quoting rule and derived hover shade as above. |
 

@@ -73,3 +73,20 @@ export const FAVICON =
     encodeURIComponent(
       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path fill-rule="evenodd" fill="${ACCENT_COLOR || DEFAULT_ACCENT}" d="M16 0a16 16 0 1 0 0 32a16 16 0 1 0 0-32zM16 8a8 8 0 1 1 0 16a8 8 0 1 1 0-16z"/></svg>`,
     );
+
+// External Nostr client used to open events and profiles that live outside
+// the forum. {e} is replaced with the bech32 entity (npub, nevent, naddr...).
+const DEFAULT_EXTERNAL_CLIENT = "https://njump.me/{e}";
+export const EXTERNAL_CLIENT = env.PUBLIC_EXTERNAL_CLIENT?.includes("{e}")
+  ? env.PUBLIC_EXTERNAL_CLIENT
+  : DEFAULT_EXTERNAL_CLIENT;
+export const EXTERNAL_CLIENT_NAME = (() => {
+  try {
+    return new URL(EXTERNAL_CLIENT.replace("{e}", "x")).hostname;
+  } catch {
+    return "external client";
+  }
+})();
+export function externalLink(entity: string): string {
+  return EXTERNAL_CLIENT.replace("{e}", entity);
+}

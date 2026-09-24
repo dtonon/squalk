@@ -2,6 +2,7 @@
   import { loadNostrUser, type NostrUser } from "$lib/gadgets";
   import * as nip19 from "@nostr/tools/nip19";
   import { profilePath } from "$lib/forum/profiles";
+  import { externalLink } from "$lib/config";
   import {
     resolveThreadRef,
     threadRefHref,
@@ -311,7 +312,7 @@
       const entity = dest.slice(6).toLowerCase();
       try {
         nip19.decode(entity);
-        return { type: "link", href: `https://njump.me/${entity}`, label };
+        return { type: "link", href: externalLink(entity), label };
       } catch {
         return { type: "text", value: label };
       }
@@ -642,7 +643,7 @@
         >
       {:else}
         <a
-          href="https://njump.me/{inline.entity}"
+          href={externalLink(inline.entity)}
           target="_blank"
           rel="noopener noreferrer"
           class="text-accent break-all hover:underline">{inline.label}</a

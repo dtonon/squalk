@@ -1,5 +1,5 @@
 import * as nip19 from "@nostr/tools/nip19";
-import { RELAY_URL } from "./config";
+import { RELAY_URL, externalLink } from "./config";
 
 // Curated TLD list: gTLDs, popular new gTLDs, common ccTLDs
 const TLDS = [
@@ -157,7 +157,7 @@ function decodeEntity(entity: string): ChatToken | null {
       return {
         type: "entity",
         entity,
-        href: `https://njump.me/${entity}`,
+        href: externalLink(entity),
         label: shortNostrEntity(entity),
         id: decoded.type === "note" ? decoded.data : decoded.data.id,
       };
@@ -165,7 +165,7 @@ function decodeEntity(entity: string): ChatToken | null {
       return {
         type: "entity",
         entity,
-        href: `https://njump.me/${entity}`,
+        href: externalLink(entity),
         label: shortNostrEntity(entity),
       };
   } catch {
