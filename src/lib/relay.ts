@@ -10,7 +10,29 @@ import { auth } from "$lib/auth.svelte";
 // persists so the handshake happens once rather than per request. Auth is
 // scoped to the forum relay — external relays (profiles, search) are never
 // authenticated against.
-const pool = new SimplePool();
+// Reconnection keeps the live subscriptions (chat, notifications) alive
+// across a network drop: the library re-sends them with `since` moved past
+// the last event seen, so what arrived meanwhile is replayed.
+const pool = new SimplePool({ enableReconnect: true });
+
+// The library retries after a 10s backoff and gives up after one failed
+// attempt while still offline, so reconnect as soon as the network or the
+// tab is back, and keep a shorter backoff for drops in between.
+const FAST_BACKOFF = [1000, 2000, 5000, 10000];
+async function forumRelay(): Promise<AbstractRelay> {
+  const relay = await pool.ensureRelay(RELAY_URL);
+  relay.resubscribeBackoff = FAST_BACKOFF;
+  return relay;
+}
+function touchForumRelay() {
+  forumRelay().catch(() => {});
+}
+if (typeof document !== "undefined") {
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) touchForumRelay();
+  });
+  window.addEventListener("online", touchForumRelay);
+}
 
 // Scoped to the forum relay — external relays (profiles, search) are never
 // authenticated against. Re-evaluated on every connection, so it picks up a
@@ -42,7 +64,7 @@ export async function ensureForumReady(): Promise<void> {
   if (!signer) return; // anonymous: only public groups are visible anyway
   let relay: AbstractRelay;
   try {
-    relay = await pool.ensureRelay(RELAY_URL);
+    relay = await forumRelay();
   } catch {
     return; // connection failed; the caller's own query surfaces the error
   }
@@ -98,7 +120,7 @@ export function subscribeForum(
 // membership probe. Never close it — the pool owns its lifecycle.
 export async function ensureForumRelay(): Promise<AbstractRelay> {
   await ensureForumReady();
-  return pool.ensureRelay(RELAY_URL);
+  return forumRelay();
 }
 
 // Drop the forum connection so the next use reconnects and re-runs the AUTH
