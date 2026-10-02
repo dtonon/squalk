@@ -1,7 +1,7 @@
 import { loadNostrUser, type NostrUser } from "$lib/gadgets";
 import { page } from "$app/state";
 import { RELAY_URL, GROUP_ID } from "$lib/config";
-import { queryForum, publishForum } from "$lib/relay";
+import { queryForum, publishForum, forumRelayReachable } from "$lib/relay";
 import { threads as mockThreads } from "$lib/mock";
 import { auth } from "$lib/auth.svelte";
 import { ingestNostrUser } from "$lib/profiles.svelte";
@@ -24,11 +24,15 @@ const isNostrId = (id: string) => /^[0-9a-f]{64}$/.test(id);
 let detail = $state<ThreadDetail | null>(null);
 let profiles = $state<Record<string, NostrUser>>({});
 // "notfound" means the relay returned nothing — either no such thread or it sits
-// in a private group the current (non-member) user can't read.
-let status = $state<"loading" | "ready" | "notfound">("loading");
+// in a private group the current (non-member) user can't read. "offline" means
+// the relay could not be reached at all, so nothing is known either way.
+type Status = "loading" | "ready" | "notfound" | "offline";
+let status = $state<Status>("loading");
 
 // Until the live fetch lands, the server snapshot (if any) stands in. Its
-// profiles stay as a base layer: the live ones arrive one by one.
+// profiles stay as a base layer: the live ones arrive one by one. The snapshot
+// also outlives an unreachable relay: the server could read the thread, so it
+// is shown as-is while `offline` flags that live data (and posting) is off.
 export const threadDetailStore = {
   get detail() {
     return detail ?? page.data.thread ?? null;
@@ -37,8 +41,15 @@ export const threadDetailStore = {
     const base = page.data.profiles;
     return base ? { ...base, ...profiles } : profiles;
   },
-  get status() {
-    return status === "loading" && page.data.thread ? "ready" : status;
+  get status(): Status {
+    const snapshot = !!page.data.thread;
+    if (snapshot && (status === "loading" || status === "offline")) {
+      return "ready";
+    }
+    return status;
+  },
+  get offline() {
+    return status === "offline";
   },
 };
 
@@ -101,7 +112,7 @@ export async function loadThread(id: string) {
 
   const next = await fetchThread(queryForum, id, GROUP_ID);
   if (!next) {
-    status = "notfound";
+    status = (await forumRelayReachable()) ? "notfound" : "offline";
     return;
   }
   detail = next;

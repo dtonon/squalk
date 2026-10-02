@@ -604,6 +604,15 @@
           </svg>
           Discussions
         </a>
+        {#if threadDetailStore.offline}
+          <div
+            role="status"
+            class="mb-3 rounded border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200"
+          >
+            The forum relay cannot be reached. This is a saved copy: new replies
+            will not appear and posting is unavailable.
+          </div>
+        {/if}
         <h1 class="text-accent text-[1.65rem] leading-7">{detail.title}</h1>
         {#if isScrolled}
           <div
@@ -700,6 +709,21 @@
       topOffset={opTopOffset}
       bind:visible={scrubberVisible}
     />
+  </div>
+{:else if threadDetailStore.status === "offline"}
+  <div class="mx-auto max-w-md py-16 text-center">
+    <h1 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+      The forum relay cannot be reached
+    </h1>
+    <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
+      Your network may be blocking it. Check your connection and try again.
+    </p>
+    <button
+      onclick={() => loadThread(page.params.id ?? "")}
+      class="bg-accent hover:bg-accent-hover mt-5 rounded px-6 py-1.5 font-medium text-white"
+    >
+      Retry
+    </button>
   </div>
 {:else if threadDetailStore.status === "notfound"}
   <div class="mx-auto max-w-md py-16 text-center">

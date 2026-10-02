@@ -46,6 +46,18 @@ pool.automaticallyAuth = (url: string) => {
 
 export const forumPool = pool;
 
+// Whether the forum relay can be reached right now. The pool resolves a failed
+// connection as an empty result, so callers use this to tell "nothing there"
+// apart from "no answer at all" (e.g. a provider blocking the relay).
+export async function forumRelayReachable(): Promise<boolean> {
+  try {
+    await forumRelay();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function authParam() {
   const signer = auth.signer;
   return signer
