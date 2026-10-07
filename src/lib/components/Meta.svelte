@@ -1,11 +1,14 @@
 <script module lang="ts">
-  import { TITLE, GROUP_ID, MODE } from "$lib/config";
+  import { GROUP_ID, MODE } from "$lib/config";
+  import { brand } from "$lib/brand.svelte";
   import { groupStore } from "$lib/group.svelte";
 
-  // Forum name from the env, or the group name in simple mode.
+  // Forum name from the env (or the relay in dynamic mode), or the group name
+  // in simple mode.
   export function siteName(): string {
     return (
-      TITLE || (MODE === "simple" ? (groupStore.data?.name ?? GROUP_ID) : "")
+      brand.title ||
+      (MODE === "simple" ? (groupStore.data?.name ?? GROUP_ID) : "")
     );
   }
 </script>

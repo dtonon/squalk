@@ -4,7 +4,9 @@
   import { groupsStore } from "$lib/groups.svelte";
   import { resourcesStore } from "$lib/resources.svelte";
   import { draftState, resumeDraft } from "$lib/draft.svelte";
-  import { GROUP_ID, TITLE, SEARCH_ENABLED } from "$lib/config";
+  import { GROUP_ID, DYNAMIC, SEARCH_ENABLED } from "$lib/config";
+  import { brand } from "$lib/brand.svelte";
+  import { changeRelay } from "$lib/setup";
   import { openSearch } from "$lib/searchModal.svelte";
   import ThemeToggle from "$lib/components/ThemeToggle.svelte";
   import UserAvatar from "$lib/components/UserAvatar.svelte";
@@ -30,9 +32,10 @@
   // the mobile header's name logic (PUBLIC_TITLE wins; simple mode falls back to
   // the room name, full mode to GROUP_ID).
   const name = $derived(
-    TITLE ||
+    brand.title ||
       (mode === "simple" ? (groupStore.data?.name ?? GROUP_ID) : GROUP_ID),
   );
+  const picture = $derived(groupStore.data?.picture || brand.icon);
 
   // The description of the room currently being viewed (full mode).
   const activeAbout = $derived(
@@ -75,9 +78,9 @@
         class="mt-3 mb-6 flex min-w-0 flex-col hover:opacity-90"
         aria-label="{name} — home"
       >
-        {#if groupStore.data?.picture}
+        {#if picture}
           <img
-            src={groupStore.data.picture}
+            src={picture}
             alt={name}
             class="max-w-[90%] shrink-0 object-cover"
           />
@@ -195,6 +198,15 @@
         class="bg-accent hover:bg-accent-hover w-full rounded px-3 py-1.5 text-sm font-medium text-white"
       >
         Resume draft
+      </button>
+    {/if}
+    {#if DYNAMIC}
+      <button
+        type="button"
+        onclick={changeRelay}
+        class="w-full rounded bg-neutral-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-800 dark:bg-neutral-600 dark:hover:bg-neutral-500"
+      >
+        Change relay
       </button>
     {/if}
     {#if auth.user}

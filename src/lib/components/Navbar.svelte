@@ -1,7 +1,8 @@
 <script lang="ts">
   import { groupStore } from "$lib/group.svelte";
   import { notificationsStore } from "$lib/notifications.svelte";
-  import { GROUP_ID, TITLE, MODE } from "$lib/config";
+  import { GROUP_ID, MODE } from "$lib/config";
+  import { brand } from "$lib/brand.svelte";
 
   type Props = { onMenuToggle: () => void };
   let { onMenuToggle }: Props = $props();
@@ -15,12 +16,13 @@
       : "Open menu",
   );
 
-  // PUBLIC_TITLE always wins when set. Without it, simple mode shows the room's
+  // The instance brand wins when set. Without it, simple mode shows the room's
   // own name; full mode has no single room, so it falls back to GROUP_ID.
   const name = $derived(
-    TITLE ||
+    brand.title ||
       (MODE === "simple" ? (groupStore.data?.name ?? GROUP_ID) : GROUP_ID),
   );
+  const picture = $derived(groupStore.data?.picture || brand.icon);
 </script>
 
 <!-- Mobile only: on desktop the logo lives at the top of the left sidebar. -->
@@ -32,9 +34,9 @@
     class="flex min-w-0 items-center gap-2 hover:opacity-90"
     aria-label="{name} — home"
   >
-    {#if groupStore.data?.picture}
+    {#if picture}
       <img
-        src={groupStore.data.picture}
+        src={picture}
         alt=""
         class="h-9 w-9 shrink-0 rounded-full object-cover"
       />

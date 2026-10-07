@@ -7,6 +7,8 @@
   import { SEARCH_ENABLED } from "$lib/config";
   import { draftState, resumeDraft } from "$lib/draft.svelte";
   import ThemeToggle from "$lib/components/ThemeToggle.svelte";
+  import { DYNAMIC } from "$lib/config";
+  import { changeRelay } from "$lib/setup";
   import UserAvatar from "$lib/components/UserAvatar.svelte";
   import { notificationsStore } from "$lib/notifications.svelte";
 
@@ -225,6 +227,15 @@
               class="bg-accent hover:bg-accent-hover w-full rounded px-3 py-2 font-medium text-white"
             >
               Resume draft
+            </button>
+          {/if}
+          {#if DYNAMIC}
+            <button
+              type="button"
+              onclick={changeRelay}
+              class="w-full rounded bg-neutral-700 px-3 py-2 font-medium text-white hover:bg-neutral-800 dark:bg-neutral-600 dark:hover:bg-neutral-500"
+            >
+              Change relay
             </button>
           {/if}
           {#if auth.user}

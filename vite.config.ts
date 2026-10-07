@@ -35,6 +35,10 @@ function version(): { version: string; commit: string } {
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "PUBLIC_");
   const ssr = (process.env.PUBLIC_SSR ?? env.PUBLIC_SSR) === "yes";
+  const mode_ = process.env.PUBLIC_MODE ?? env.PUBLIC_MODE;
+  if (ssr && mode_ === "dynamic") {
+    throw new Error("PUBLIC_MODE=dynamic cannot be built with PUBLIC_SSR=yes");
+  }
   const build = version();
   return {
     plugins: [tailwindcss(), sveltekit()],

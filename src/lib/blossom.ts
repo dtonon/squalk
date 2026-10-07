@@ -1,5 +1,5 @@
 import { auth } from "$lib/auth.svelte";
-import { BLOSSOM_URL } from "$lib/config";
+import { blossom } from "$lib/blossom.svelte";
 
 async function sha256Hex(data: ArrayBuffer): Promise<string> {
   const hash = await crypto.subtle.digest("SHA-256", data);
@@ -24,6 +24,7 @@ export type BlobDescriptor = {
 };
 
 export async function uploadImage(file: File): Promise<BlobDescriptor> {
+  const BLOSSOM_URL = blossom.url;
   if (!BLOSSOM_URL) throw new Error("Blossom server not configured");
   if (!auth.signer) throw new Error("Not logged in");
 
