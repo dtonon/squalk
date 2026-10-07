@@ -3,6 +3,7 @@
   import {
     normalizeRelayUrl,
     recentRelays,
+    removeRecent,
     saveSetup,
     type RecentRelay,
   } from "$lib/setup";
@@ -22,9 +23,7 @@
   let checking = $state(false);
   let error = $state("");
   let submitting = $state(false);
-  const recent: RecentRelay[] = recentRelays();
-  // Temporarily hidden, still recorded on save
-  const SHOW_RECENT = false;
+  let recent = $state<RecentRelay[]>(recentRelays());
 
   const relayUrl = $derived(normalizeRelayUrl(relayInput));
   const host = $derived(relayUrl?.replace(/^wss?:\/\//, "") ?? "");
@@ -143,9 +142,65 @@
     location.assign("/");
   }
 
+  // Recent relays as a combobox dropdown on the input, filtered by its text
+  const stripScheme = (u: string) => u.replace(/^wss?:\/\//, "");
+  let listOpen = $state(false);
+  let active = $state(-1);
+  const matches = $derived.by(() => {
+    const q = stripScheme(relayInput.trim().toLowerCase());
+    return recent.filter(
+      (r) =>
+        !q ||
+        stripScheme(r.url).toLowerCase().includes(q) ||
+        r.name.toLowerCase().includes(q),
+    );
+  });
+  const showList = $derived(listOpen && matches.length > 0);
+
+  function openList() {
+    listOpen = true;
+    active = -1;
+  }
+
   function pick(r: RecentRelay) {
-    relayInput = r.url;
+    relayInput = r.url.startsWith("wss://") ? stripScheme(r.url) : r.url;
+    listOpen = false;
     error = "";
+  }
+
+  function remove(r: RecentRelay) {
+    removeRecent(r.url);
+    recent = recentRelays();
+    active = Math.min(active, matches.length - 1);
+  }
+
+  function onKeydown(e: KeyboardEvent) {
+    const n = matches.length;
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      if (!n) return;
+      e.preventDefault();
+      const step = e.key === "ArrowDown" ? 1 : -1;
+      if (!showList) {
+        listOpen = true;
+        active = step === 1 ? 0 : n - 1;
+      } else {
+        active = (active + step + n) % n;
+      }
+    } else if (!showList || active < 0) {
+      if (e.key === "Escape" && showList) {
+        e.preventDefault();
+        listOpen = false;
+      }
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      pick(matches[active]);
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      listOpen = false;
+    } else if (e.key === "Delete") {
+      e.preventDefault();
+      remove(matches[active]);
+    }
   }
 </script>
 
@@ -205,24 +260,102 @@
           class="mb-1 block pl-1 text-sm font-medium text-neutral-700 dark:text-neutral-300"
           >Enter the relay's host you want to browse</label
         >
-        <input
-          id="relay-url"
-          type="text"
-          inputmode="url"
-          autocomplete="off"
-          autocapitalize="off"
-          spellcheck="false"
-          placeholder="relay.example.com"
-          bind:value={relayInput}
-          aria-describedby="relay-help relay-preview"
-          aria-invalid={error ? "true" : undefined}
-          class="focus:ring-accent block w-full rounded border border-neutral-300 bg-white px-3 py-2 text-neutral-900 focus:ring-1 focus:outline-none dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100"
-        />
+        <div class="relative">
+          <input
+            id="relay-url"
+            type="text"
+            inputmode="url"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+            placeholder="relay.example.com"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded={showList}
+            aria-controls="relay-recent"
+            aria-activedescendant={showList && active >= 0
+              ? `relay-recent-${active}`
+              : undefined}
+            bind:value={relayInput}
+            onfocus={openList}
+            onclick={() => (listOpen = true)}
+            oninput={openList}
+            onblur={() => (listOpen = false)}
+            onkeydown={onKeydown}
+            aria-describedby="relay-help relay-preview"
+            aria-invalid={error ? "true" : undefined}
+            class="focus:ring-accent block w-full rounded border border-neutral-300 bg-white px-3 py-2 text-neutral-900 focus:ring-1 focus:outline-none dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100"
+          />
+          <ul
+            id="relay-recent"
+            role="listbox"
+            aria-label="Recent relays"
+            hidden={!showList}
+            class="absolute top-full right-0 left-0 z-20 mt-1 overflow-hidden rounded border border-neutral-300 bg-white py-1 shadow-lg dark:border-neutral-600 dark:bg-neutral-800"
+          >
+            {#each matches as r, i (r.url)}
+              <li
+                id="relay-recent-{i}"
+                role="option"
+                tabindex="-1"
+                aria-selected={i === active}
+                onmousedown={(e) => {
+                  e.preventDefault();
+                  pick(r);
+                }}
+                onmouseenter={() => (active = i)}
+                class="flex cursor-pointer items-center gap-2 px-3 py-2 {i ===
+                active
+                  ? 'bg-neutral-100 dark:bg-neutral-700'
+                  : ''}"
+              >
+                <span class="flex min-w-0 flex-1 items-baseline gap-2">
+                  {#if r.name}
+                    <span
+                      class="truncate font-medium text-neutral-900 dark:text-neutral-100"
+                      >{r.name}</span
+                    >
+                  {/if}
+                  <span
+                    class="truncate text-sm text-neutral-500 dark:text-neutral-400"
+                    >{stripScheme(r.url)}</span
+                  >
+                </span>
+                <button
+                  type="button"
+                  tabindex="-1"
+                  aria-hidden="true"
+                  title="Remove from recent relays"
+                  onmousedown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    remove(r);
+                  }}
+                  class="shrink-0 rounded p-1 text-neutral-400 hover:bg-neutral-200 hover:text-neutral-700 dark:hover:bg-neutral-600 dark:hover:text-neutral-200"
+                >
+                  <svg viewBox="0 0 16 16" class="h-3.5 w-3.5" fill="none">
+                    <path
+                      d="M4 4l8 8M12 4l-8 8"
+                      stroke="currentColor"
+                      stroke-width="1.75"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                </button>
+              </li>
+            {/each}
+          </ul>
+        </div>
         <p
           id="relay-help"
           class="mt-1 pl-1 text-xs text-neutral-500 dark:text-neutral-400"
         >
           A NIP-29 relay that hosts the rooms. The scheme is optional.
+          {#if recent.length}
+            <span class="sr-only"
+              >Recent relays open below: arrows to choose, Delete to remove one.</span
+            >
+          {/if}
         </p>
       </div>
 
@@ -260,34 +393,6 @@
           <p class="mt-2 text-amber-700 dark:text-amber-400">{warning}</p>
         {/if}
       </div>
-
-      {#if SHOW_RECENT && recent.length}
-        <div>
-          <p
-            class="mb-1 text-sm font-medium text-neutral-700 dark:text-neutral-300"
-          >
-            Recent relays
-          </p>
-          <ul class="flex flex-col gap-1">
-            {#each recent as r (r.url)}
-              <li>
-                <button
-                  type="button"
-                  onclick={() => pick(r)}
-                  class="flex w-full min-w-0 items-baseline gap-2 rounded px-2 py-1.5 text-left text-sm text-neutral-700 hover:bg-neutral-200 dark:text-neutral-300 dark:hover:bg-neutral-700"
-                >
-                  {#if r.name}
-                    <span class="truncate font-medium">{r.name}</span>
-                  {/if}
-                  <span class="truncate text-neutral-500 dark:text-neutral-400"
-                    >{r.url.replace(/^wss?:\/\//, "")}</span
-                  >
-                </button>
-              </li>
-            {/each}
-          </ul>
-        </div>
-      {/if}
 
       {#if error}
         <p role="alert" class="text-sm text-red-600 dark:text-red-400">

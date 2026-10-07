@@ -40,7 +40,7 @@ Squalk is configured entirely through environment variables (all prefixed `PUBLI
 
 ## Dynamic mode
 
-`PUBLIC_MODE=dynamic` ships Squalk without a relay: the first visit shows a setup screen where the visitor names a NIP-29 relay (the scheme is optional). The choice is stored in the browser, so later visits boot straight into that relay; a **Change relay** button (in the sidebar, and on the access gate when the relay is unreachable) goes back to the setup screen. A link with `?relay=relay.example.com` opens that relay directly and makes it the stored choice.
+`PUBLIC_MODE=dynamic` ships Squalk without a relay: the first visit shows a setup screen where the visitor names a NIP-29 relay (the scheme is optional). The choice is stored in the browser, so later visits boot straight into that relay; a **Change relay** button (in the sidebar, and on the access gate when the relay is unreachable) goes back to the setup screen, whose relay field offers the recent relays in a dropdown. A link with `?relay=relay.example.com` opens that relay directly and makes it the stored choice.
 
 The forum then runs in full mode on that relay: the title is the relay's NIP-11 name (its host until that is known) and the favicon its NIP-11 icon, `PUBLIC_TITLE` and `PUBLIC_FAVICON` only fill in when the relay provides none. Dynamic mode is client-only and refuses to build with `PUBLIC_SSR=yes`.
 

@@ -67,6 +67,11 @@ export function saveSetup(relay: string, name: string) {
   set(RECENT_KEY, JSON.stringify(recent.slice(0, RECENT_MAX)));
 }
 
+export function removeRecent(url: string) {
+  const recent = recentRelays().filter((r) => r.url !== url);
+  set(RECENT_KEY, recent.length ? JSON.stringify(recent) : "");
+}
+
 export function recentRelays(): RecentRelay[] {
   try {
     const list: unknown = JSON.parse(get(RECENT_KEY) || "[]");
