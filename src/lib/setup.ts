@@ -56,14 +56,17 @@ export function readSetup(): { relay: string } {
   const fromUrl = normalizeRelayUrl(
     new URLSearchParams(location.search).get("relay") ?? "",
   );
-  if (fromUrl && fromUrl !== get(RELAY_KEY)) set(RELAY_KEY, fromUrl);
+  if (fromUrl && fromUrl !== get(RELAY_KEY)) saveSetup(fromUrl, "");
   return { relay: get(RELAY_KEY) };
 }
 
 export function saveSetup(relay: string, name: string) {
   set(RELAY_KEY, relay);
-  const recent = recentRelays().filter((r) => r.url !== relay);
-  recent.unshift({ url: relay, name });
+  const old = recentRelays();
+  // A link knows no name: keep the one already recorded for this relay
+  const known = old.find((r) => r.url === relay)?.name ?? "";
+  const recent = old.filter((r) => r.url !== relay);
+  recent.unshift({ url: relay, name: name || known });
   set(RECENT_KEY, JSON.stringify(recent.slice(0, RECENT_MAX)));
 }
 
