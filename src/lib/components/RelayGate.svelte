@@ -3,11 +3,13 @@
   import { relayAccess, probeRelayAccess } from "$lib/access.svelte";
   import { auth, openLogin } from "$lib/auth.svelte";
   import { joinRelay, joinState } from "$lib/join.svelte";
-  import { TITLE } from "$lib/config";
+  import { DYNAMIC, RELAY_HOST } from "$lib/config";
+  import { brand } from "$lib/brand.svelte";
+  import { changeRelay } from "$lib/setup";
 
   // The relay's NIP-11 name is readable even when nothing else is, so the
   // gate can still say which forum this is.
-  const title = $derived(TITLE || relayAccess.info?.name || "Forum");
+  const title = $derived(brand.title || relayAccess.info?.name || "Forum");
   const description = $derived(relayAccess.info?.description ?? "");
   const state = $derived(relayAccess.state);
   // A logged-in user still refused with auth-required means the handshake
@@ -100,6 +102,26 @@
             {relayAccess.message}
           </p>
         {/if}
+      {:else if state === "unreachable"}
+        <p class="text-neutral-700 dark:text-neutral-300">
+          Could not connect to {RELAY_HOST}.
+        </p>
+        <button
+          type="button"
+          onclick={() => probeRelayAccess()}
+          class="bg-accent hover:bg-accent-hover mt-5 rounded px-6 py-2 font-medium text-white"
+        >
+          Retry
+        </button>
+      {/if}
+      {#if DYNAMIC}
+        <button
+          type="button"
+          onclick={changeRelay}
+          class="mt-5 block w-full rounded bg-neutral-700 px-6 py-2 font-medium text-white hover:bg-neutral-800 dark:bg-neutral-600 dark:hover:bg-neutral-500"
+        >
+          Change relay
+        </button>
       {/if}
     </div>
   </main>

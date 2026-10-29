@@ -1,15 +1,32 @@
-import { PUBLIC_RELAY_URL } from "$env/static/public";
 import { env } from "$env/dynamic/public";
+import { readSetup } from "$lib/setup";
 
-// Required: a missing relay is always a misconfiguration, so let the static
-// import fail loudly (and keep it typed as string).
-export const RELAY_URL = PUBLIC_RELAY_URL;
+// Server-side rendering: opt-in, decided at build time (vite.config.ts bakes
+// PUBLIC_SSR in; svelte.config.js picks the matching adapter).
+export const SSR_ENABLED = __SQUALK_SSR__;
 
-// Optional: read dynamically so an unset var is undefined and falls back to its
-// default, instead of breaking the static-import contract at load time.
-export const TITLE = env.PUBLIC_TITLE ?? "";
+// Dynamic mode: no configured relay, the visitor picks one at startup (see
+// setup.ts) and the app behaves as full mode on it. Client-only by nature.
+export const DYNAMIC = env.PUBLIC_MODE === "dynamic";
+if (DYNAMIC && SSR_ENABLED) {
+  throw new Error("PUBLIC_MODE=dynamic requires PUBLIC_SSR=no");
+}
 export const MODE: "simple" | "full" =
-  env.PUBLIC_MODE === "full" ? "full" : "simple";
+  env.PUBLIC_MODE === "full" || DYNAMIC ? "full" : "simple";
+
+// Optional vars are read dynamically so an unset one is undefined and falls
+// back to its default instead of breaking the static-import contract.
+const setup = readSetup();
+export const RELAY_URL = DYNAMIC ? setup.relay : (env.PUBLIC_RELAY_URL ?? "");
+if (!DYNAMIC && !RELAY_URL) {
+  throw new Error("PUBLIC_RELAY_URL is required");
+}
+export const RELAY_HOST = RELAY_URL.replace(/^wss?:\/\//, "");
+// Dynamic mode before a relay is chosen: the layout shows the setup screen and
+// nothing touches the (empty) relay.
+export const NEEDS_SETUP = DYNAMIC && !RELAY_URL;
+
+export const TITLE = env.PUBLIC_TITLE ?? "";
 
 // Required in simple mode (the single forum's group), optional in full mode
 // where rooms are selected at runtime. Read dynamically so full mode can omit
@@ -27,9 +44,6 @@ export const NOSTRCONNECT_RELAYS: string[] = (
   .split(",")
   .map((r) => r.trim())
   .filter(Boolean);
-// Server-side rendering: opt-in, decided at build time (vite.config.ts bakes
-// PUBLIC_SSR in; svelte.config.js picks the matching adapter).
-export const SSR_ENABLED = __SQUALK_SSR__;
 // With SSR on, a client-side navigation also asks the server for the same
 // snapshot (without waiting for it) so the page is already cached for the
 // next refresh, shared link or crawler. Costs one server→relay query per
@@ -56,6 +70,8 @@ export const LABELS = (env.PUBLIC_LABELS ?? "")
   .split(",")
   .map((l) => l.trim())
   .filter(Boolean);
+// Explicitly configured Blossom server. Empty means "resolve it": see
+// blossom.svelte.ts.
 export const BLOSSOM_URL = (env.PUBLIC_BLOSSOM_URL ?? "").replace(/\/$/, "");
 
 // Theme color overrides: when set, replace the accent (primary) and secondary

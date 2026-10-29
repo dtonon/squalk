@@ -2,6 +2,7 @@ import type { AbstractRelay } from "@nostr/tools/abstract-relay";
 import { auth } from "$lib/auth.svelte";
 import { ensureForumRelay, forumRelayInfo } from "$lib/relay";
 import type { ForumRelayInfo } from "$lib/relay";
+import { DYNAMIC } from "$lib/config";
 
 // Whether the forum relay will serve this visitor at all. A relay can refuse
 // every read (auth-required for anonymous visitors, restricted for logged-in
@@ -13,7 +14,8 @@ export type RelayAccess =
   | "open"
   | "auth-required"
   | "restricted"
-  | "blocked";
+  | "blocked"
+  | "unreachable";
 
 let state = $state<RelayAccess>("checking");
 let message = $state<string | null>(null);
@@ -91,10 +93,13 @@ export function probeRelayAccess(): Promise<RelayAccess> {
       } else {
         try {
           reason = await probeRead(await ensureForumRelay());
+          next = classify(reason);
         } catch {
-          reason = null; // connection failure: the pages surface their own errors
+          // Connection failure. A configured relay lets the pages surface
+          // their own errors (an SSR snapshot may still be readable); a relay
+          // the visitor typed gets the gate, with a way to pick another.
+          next = DYNAMIC ? "unreachable" : "open";
         }
-        next = classify(reason);
       }
       state = next;
       message =

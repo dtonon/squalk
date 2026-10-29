@@ -7,7 +7,8 @@
     loginWithNostrConnect,
     loginWithNsec,
   } from "$lib/auth.svelte";
-  import { TITLE, MODE } from "$lib/config";
+  import { MODE } from "$lib/config";
+  import { brand } from "$lib/brand.svelte";
   import { groupStore } from "$lib/group.svelte";
   import { themeState } from "$lib/theme.svelte";
   import type { NstartModal } from "nstart-modal";
@@ -33,7 +34,7 @@
   let signingUp = $state(false);
 
   const appName = $derived(
-    TITLE ||
+    brand.title ||
       (MODE === "simple" ? groupStore.data?.name : "") ||
       (typeof location !== "undefined" ? location.host : ""),
   );

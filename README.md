@@ -22,8 +22,8 @@ Squalk is configured entirely through environment variables (all prefixed `PUBLI
 
 | Variable | Required | Default | Description |
 | --- | --- | --- | --- |
-| `PUBLIC_RELAY_URL` | yes | — | WebSocket URL of the NIP-29 relay hosting the group(s), e.g. `wss://relay.example.com`. |
-| `PUBLIC_MODE` | no | `simple` | `simple` (a single forum) or `full` (multiple rooms). The admin can later upgrade simple → full at runtime. |
+| `PUBLIC_RELAY_URL` | unless dynamic | — | WebSocket URL of the NIP-29 relay hosting the group(s), e.g. `wss://relay.example.com`. Ignored in dynamic mode. |
+| `PUBLIC_MODE` | no | `simple` | `simple` (a single forum), `full` (multiple rooms) or `dynamic` (full mode on a relay the visitor picks at startup, see [Dynamic mode](#dynamic-mode)). The admin can later upgrade simple → full at runtime. |
 | `PUBLIC_GROUP_ID` | in simple mode | — | The single forum's group id. Required when `PUBLIC_MODE=simple`; ignored in full mode, where rooms are selected at runtime. |
 | `PUBLIC_TITLE` | no | group name | Title shown in the top bar. When empty it falls back to the group's name. |
 | `PUBLIC_JOINCODE` | no | `no` | `yes` to show an invite-code field when a join request is rejected (for code-gated relays). |
@@ -33,10 +33,16 @@ Squalk is configured entirely through environment variables (all prefixed `PUBLI
 | `PUBLIC_SSR_CACHE_STALE` | no | `21600` | Seconds after which a snapshot is no longer served while being refreshed in the background (until then a stale page is answered instantly and updated for the next visitor). Also the edge cache's `stale-while-revalidate`. |
 | `PUBLIC_SEARCH` | no | `no` | `yes` to show a search box at the top of the homepage. Requires a relay with NIP-50 search support. |
 | `PUBLIC_LABELS` | no | — | Comma-separated discussion labels offered when composing, e.g. `bug,feature,question`. |
-| `PUBLIC_BLOSSOM_URL` | no | — | Blossom server URL used for media uploads, e.g. `https://blossom.primal.net`. Uploads are disabled when unset. |
+| `PUBLIC_BLOSSOM_URL` | no | — | Blossom server URL used for media uploads, e.g. `https://blossom.primal.net`. When unset, uploads go to the relay's host if it also serves Blossom (a `HEAD /upload` probe), else they are disabled. |
 | `PUBLIC_EXTERNAL_CLIENT` | no | `https://njump.me/{e}` | URL template of the external Nostr client used to open profiles and events outside the forum. `{e}` is replaced with the bech32 entity (npub, nevent, naddr), e.g. `https://nostr.at/{e}`. |
 | `PUBLIC_ACCENT_COLOR` | no | `#e32a6d` | Override the accent (primary) color. Quote the value (`"#00ff00"`) — an unquoted leading `#` is read as a comment. The hover shade is derived automatically. |
 | `PUBLIC_SECONDARY_COLOR` | no | `#ffaf25` | Override the secondary color. Same quoting rule and derived hover shade as above. |
+
+## Dynamic mode
+
+`PUBLIC_MODE=dynamic` ships Squalk without a relay: the first visit shows a setup screen where the visitor names a NIP-29 relay (the scheme is optional). The choice is stored in the browser, so later visits boot straight into that relay; a **Change relay** button (in the sidebar, and on the access gate when the relay is unreachable) goes back to the setup screen, whose relay field offers the recent relays in a dropdown. A link with `?relay=relay.example.com` opens that relay directly and makes it the stored choice.
+
+The forum then runs in full mode on that relay: the title is the relay's NIP-11 name (its host until that is known) and the favicon its NIP-11 icon, `PUBLIC_TITLE` and `PUBLIC_FAVICON` only fill in when the relay provides none. Dynamic mode is client-only and refuses to build with `PUBLIC_SSR=yes`.
 
 ## Customizing content
 

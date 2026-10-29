@@ -38,6 +38,20 @@ deploy-ssr mode:
   ssh "$DEPLOY_HOST" "\$SHELL -l -c 'cd $DEPLOY_DIR && npm ci --omit=dev && sudo systemctl restart $DEPLOY_SERVICE'"
   just purge-web-cache {{mode}}
 
+# Ships the static bundle of an instance to a directory served by the web
+# server. Same conventions as deploy-ssr: .env.<mode> is baked into the build,
+# .env.<mode>.local provides DEPLOY_HOST, DEPLOY_DIR and the Cloudflare credentials.
+deploy-static mode:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  [ -f .env.{{mode}}.local ] || { echo "Missing .env.{{mode}}.local"; exit 1; }
+  set -a; source .env.{{mode}}.local; set +a
+  : "${DEPLOY_HOST:?DEPLOY_HOST missing in .env.{{mode}}.local}"
+  : "${DEPLOY_DIR:?DEPLOY_DIR missing in .env.{{mode}}.local}"
+  PUBLIC_SSR=no npm run build -- --mode {{mode}}
+  rsync -av --delete --progress build/ "$DEPLOY_HOST:$DEPLOY_DIR/"
+  just purge-web-cache {{mode}}
+
 purge-web-cache mode="production":
   #!/usr/bin/env bash
   if [ -f .env.{{mode}}.local ]; then set -a; source .env.{{mode}}.local; set +a; fi

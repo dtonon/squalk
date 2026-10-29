@@ -12,8 +12,9 @@
   import DeleteModal from "$lib/components/DeleteModal.svelte";
   import Toast from "$lib/components/Toast.svelte";
   import RelayGate from "$lib/components/RelayGate.svelte";
+  import RelaySetup from "$lib/components/RelaySetup.svelte";
   import { page } from "$app/state";
-  import { afterNavigate } from "$app/navigation";
+  import { afterNavigate, replaceState } from "$app/navigation";
   import { onMount, untrack } from "svelte";
   import { auth, restoreSession, loginMethod } from "$lib/auth.svelte";
   import { showToast } from "$lib/toast.svelte";
@@ -33,13 +34,16 @@
   import { resetForumConnection } from "$lib/relay";
   import { relayAccess, probeRelayAccess } from "$lib/access.svelte";
   import { activeGroup, setActiveGroup } from "$lib/active.svelte";
+  import { brand } from "$lib/brand.svelte";
+  import { resolveBlossom } from "$lib/blossom.svelte";
   import {
     MODE,
+    DYNAMIC,
+    NEEDS_SETUP,
     ACCENT_COLOR,
     SECONDARY_COLOR,
     SEARCH_ENABLED,
-    FAVICON,
-    RELAY_URL,
+    RELAY_HOST,
   } from "$lib/config";
 
   let { children } = $props();
@@ -85,6 +89,12 @@
   let mainEl = $state<HTMLElement | null>(null);
   afterNavigate((nav) => {
     if (nav.type !== "popstate" && !nav.to?.url.hash) mainEl?.scrollTo(0, 0);
+    // A `?relay=` link has done its job (config.ts stored the relay it named)
+    if (DYNAMIC && nav.to?.url.searchParams.has("relay")) {
+      const url = new URL(nav.to.url);
+      url.searchParams.delete("relay");
+      replaceState(url, page.state);
+    }
   });
 
   // Nothing is fetched until the relay confirms it will serve this visitor:
@@ -92,8 +102,10 @@
   // synchronously, before its profile fetch), and every probe that ends open
   // (re)loads the forum below.
   onMount(() => {
+    if (NEEDS_SETUP) return;
     restoreSession();
     probeRelayAccess();
+    resolveBlossom();
   });
 
   async function loadForum() {
@@ -203,12 +215,14 @@
 </script>
 
 <svelte:head>
-  <link rel="icon" href={FAVICON} />
+  <link rel="icon" href={brand.favicon} />
 </svelte:head>
 
 <!-- The server and the pre-probe client render the forum; the gate only
    replaces it once a probe confirms the relay refuses this visitor. -->
-{#if relayAccess.state !== "open" && relayAccess.state !== "checking"}
+{#if NEEDS_SETUP}
+  <RelaySetup />
+{:else if relayAccess.state !== "open" && relayAccess.state !== "checking"}
   <RelayGate />
 {:else}
   <div
@@ -244,7 +258,7 @@
           <footer
             class="mt-auto pt-16 pb-4 text-center text-[90%] text-neutral-500/70 dark:text-neutral-400/70"
           >
-            Hosting relay is {RELAY_URL.replace(/^wss?:\/\//, "")}
+            Hosting relay is {RELAY_HOST}
             <br />
             This forum is built on
             <a

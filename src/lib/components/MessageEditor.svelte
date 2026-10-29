@@ -1,7 +1,7 @@
 <script lang="ts">
   import { tick } from "svelte";
   import { uploadImage } from "$lib/blossom";
-  import { BLOSSOM_URL } from "$lib/config";
+  import { blossom } from "$lib/blossom.svelte";
   import PostContent from "$lib/components/PostContent.svelte";
   import MentionAutocomplete from "$lib/components/MentionAutocomplete.svelte";
   import { convertForumUrls } from "$lib/linkify";
@@ -112,8 +112,8 @@
     <button
       type="button"
       onclick={onUploadClick}
-      disabled={uploading || disabled || previewing || !BLOSSOM_URL}
-      title={!BLOSSOM_URL ? "Blossom server not configured" : ""}
+      disabled={uploading || disabled || previewing || !blossom.url}
+      title={!blossom.url ? "No Blossom server available for uploads" : ""}
       class="inline-flex items-center gap-1.5 text-neutral-600 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-50 dark:text-neutral-400 dark:hover:text-neutral-100"
     >
       <svg
