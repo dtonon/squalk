@@ -19,6 +19,8 @@ let items = $state<Notification[] | null>(null);
 let done = $state(true);
 let loadingMore = $state(false);
 let seenAt = $state(0);
+let cursor: number | undefined; // `until` of the next page
+let dropped = new Set<string>(); // skipped events, kept out of later pages
 let liveSub: { close(): void } | null = null;
 let req = 0; // supersedes an in-flight load on login/logout
 
@@ -67,15 +69,27 @@ export async function startNotifications(pk: string) {
   const current = ++req;
   const groupId = scope();
 
-  let result: NotificationPage = { items: [], done: true };
+  let result: NotificationPage = { items: [], done: true, dropped: [] };
+  const skipped = new Set<string>();
   try {
     result = await fetchNotifications(queryForum, pk, { groupId });
+    // A first window filtered out entirely: read further back
+    for (let i = 0; i < 4 && !result.items.length && !result.done; i++) {
+      for (const id of result.dropped) skipped.add(id);
+      result = await fetchNotifications(queryForum, pk, {
+        groupId,
+        until: result.cursor,
+        exclude: skipped,
+      });
+    }
   } catch (e) {
     console.error("[notifications] load failed", e);
   }
   if (current !== req) return;
   items = result.items;
   done = result.done;
+  cursor = result.cursor;
+  dropped = new Set([...skipped, ...result.dropped]);
   for (const n of result.items) ensureProfile(n.pubkey);
 
   liveSub = subscribeForum(
@@ -89,14 +103,12 @@ export async function startNotifications(pk: string) {
       onevent: async (ev) => {
         const n = parseNotification(ev, pk);
         if (!n) return;
-        if (n.threadId) {
-          try {
-            await fetchThreadTitles(queryForum, [n]);
-          } catch {
-            // Shown without a title
-          }
+        try {
+          const [readable] = await fetchThreadTitles(queryForum, [n]);
+          if (readable && current === req) ingest(readable);
+        } catch {
+          // Thread unknown: left out like on the initial load
         }
-        if (current === req) ingest(n);
       },
     },
   );
@@ -111,6 +123,8 @@ export function stopNotifications() {
   done = true;
   loadingMore = false;
   seenAt = 0;
+  cursor = undefined;
+  dropped = new Set();
 }
 
 // Append the next page of older notifications.
@@ -119,16 +133,17 @@ export async function loadMoreNotifications() {
   const current = req;
   if (!pk || !items || done || loadingMore) return;
   loadingMore = true;
-  const oldest = items[items.length - 1];
   try {
     const next = await fetchNotifications(queryForum, pk, {
       groupId: scope(),
-      until: oldest?.createdAt,
-      exclude: new Set(items.map((n) => n.id)),
+      until: cursor,
+      exclude: new Set([...items.map((n) => n.id), ...dropped]),
     });
     if (current !== req || !items) return;
     items = [...items, ...next.items];
     done = next.done;
+    cursor = next.cursor;
+    for (const id of next.dropped) dropped.add(id);
     for (const n of next.items) ensureProfile(n.pubkey);
   } catch (e) {
     console.error("[notifications] failed to load more", e);

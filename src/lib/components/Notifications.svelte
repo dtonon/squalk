@@ -102,7 +102,7 @@
   </h2>
   {#if !items}
     <p class="py-3 text-sm text-neutral-400 dark:text-neutral-500">Loading…</p>
-  {:else if items.length === 0}
+  {:else if items.length === 0 && notificationsStore.done}
     <p class="py-3 text-sm text-neutral-400 dark:text-neutral-500">
       No replies or mentions yet.
     </p>

@@ -33,23 +33,30 @@ const CURSOR_HEADROOM = 10; // boundary events re-read at the inclusive cursor
 export type NotificationPage = {
   items: Notification[];
   done: boolean; // no older notifications left
+  cursor?: number; // `until` for the next page
+  dropped: string[]; // events skipped, to exclude from the next page
 };
 
-// Classify an event that p-tags the user. Own events and anything that is
-// neither a discussion reply nor a chat message yield null.
+// Classify an event that p-tags the user. Own events, events outside a group
+// and anything that is neither a discussion reply nor a chat message yield null.
 export function parseNotification(e: Event, me: string): Notification | null {
   if (e.pubkey === me) return null;
+  const groupId = tag(e, "h");
+  if (!groupId) return null;
   const mentioned = extractMentionPubkeys(e.content).includes(me);
   const base = {
     id: e.id,
     pubkey: e.pubkey,
     createdAt: e.created_at,
     content: e.content,
-    groupId: tag(e, "h") ?? "",
+    groupId,
   };
   if (e.kind === 1111) {
     const threadId = tag(e, "E");
     if (!threadId) return null;
+    // Comments on anything but a forum thread can't be opened here
+    const rootKind = tag(e, "K");
+    if (rootKind && rootKind !== "11") return null;
     const quoted = e.tags.some((t) => t[0] === "q" && t[3] === me);
     const kind: NotificationKind = quoted
       ? "quote"
@@ -67,22 +74,28 @@ export function parseNotification(e: Event, me: string): Notification | null {
   return null;
 }
 
-// Fill thread titles for discussion replies, in place.
+// Fill thread titles for discussion replies, in place, and return the items
+// whose thread is readable: a reply to a root the relay doesn't return as a
+// kind 11 would open on "unavailable".
 export async function fetchThreadTitles(
   q: Query,
   items: Notification[],
-): Promise<void> {
+): Promise<Notification[]> {
   const ids = [
     ...new Set(items.flatMap((n) => (n.threadId ? [n.threadId] : []))),
   ];
-  if (ids.length === 0) return;
+  if (ids.length === 0) return items;
   const roots = await q({ kinds: [11], ids });
   const titles = new Map(
     roots.map((e) => [e.id, tag(e, "title") ?? "(untitled)"]),
   );
-  for (const n of items) {
-    if (n.threadId) n.title = titles.get(n.threadId) ?? "";
-  }
+  return items.filter((n) => {
+    if (!n.threadId) return true;
+    const title = titles.get(n.threadId);
+    if (title === undefined) return false;
+    n.title = title;
+    return true;
+  });
 }
 
 // One page of replies and mentions addressed to the user, newest first,
@@ -102,15 +115,24 @@ export async function fetchNotifications(
     ...(req.until ? { until: req.until } : {}),
     limit: n + CURSOR_HEADROOM,
   });
-  const fresh = events
-    .filter((e) => !exclude.has(e.id))
+  const unseen = events.filter((e) => !exclude.has(e.id));
+  const parsed = unseen
     .map((e) => parseNotification(e, me))
-    .filter((x): x is Notification => x !== null)
-    .sort((a, b) => b.createdAt - a.createdAt);
+    .filter((x): x is Notification => x !== null);
+  const fresh = (await fetchThreadTitles(q, parsed)).sort(
+    (a, b) => b.createdAt - a.createdAt,
+  );
   const items = fresh.slice(0, n);
+  const kept = new Set(fresh.map((x) => x.id));
+  const dropped = unseen.filter((e) => !kept.has(e.id)).map((e) => e.id);
   // Finished only when everything fresh fits the page and the relay had
   // nothing beyond the requested window
   const done = fresh.length <= n && events.length < n + CURSOR_HEADROOM;
-  await fetchThreadTitles(q, items);
-  return { items, done };
+  // A window where everything was dropped still moves the cursor back
+  const cursor = items.length
+    ? items[items.length - 1].createdAt
+    : events.length
+      ? Math.min(...events.map((e) => e.created_at))
+      : req.until;
+  return { items, done, cursor, dropped };
 }
